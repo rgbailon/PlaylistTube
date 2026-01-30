@@ -159,25 +159,35 @@
 
         /* Illustrated/Cartoon Theme - Playful, hand-drawn feel */
         [data-theme="cartoon"] {
-            --bg-main: #fff8f0;
-            --bg-card: #ffffff;
-            --bg-glass: #ffffff;
-            --bg-hover: #fff0e6;
-            --bg-active: #ffe4d6;
-            --text-main: #2d2d2d;
-            --text-muted: #666666;
-            --border-color: #2d2d2d;
-            --border-hover: #1a1a1a;
-            --accent-color: #ff6b6b;
-            --accent-hover: #ee5a5a;
-            --accent-bg: #fff0f0;
-            --accent-border: #2d2d2d;
-            --shadow-sm: 3px 3px 0px 0px #2d2d2d;
-            --shadow-md: 5px 5px 0px 0px #2d2d2d;
-            --scrollbar-thumb: #2d2d2d;
-            --scrollbar-track: #fff8f0;
+            --bg-main: #d9c3a0; /* Brown paper color */
+            --bg-card: #e0cda7; /* Slightly lighter paper */
+            --bg-glass: #e8d5b5; /* Paper with slight transparency */
+            --bg-hover: #d1b88f; /* Darker paper on hover */
+            --bg-active: #c9ae80; /* Even darker paper when active */
+            --text-main: #4d2c0c; /* Dark brown text */
+            --text-muted: #7a5c3c; /* Muted brown text */
+            --border-color: #8b5e3c; /* Border with dirt effect */
+            --border-hover: #6b462a; /* Darker border on hover */
+            --accent-color: #a65e2f; /* Earthy accent color */
+            --accent-hover: #8a4c27; /* Darker accent on hover */
+            --accent-bg: rgba(166, 94, 47, 0.15); /* Subtle accent background */
+            --accent-border: #7a5025; /* Accent border */
+            --shadow-sm: 2px 2px 4px rgba(77, 44, 12, 0.3); /* Dirtier shadow */
+            --shadow-md: 4px 4px 8px rgba(77, 44, 12, 0.4); /* More pronounced shadow */
+            --scrollbar-thumb: #8b5e3c; /* Scrollbar matching dirt theme */
+            --scrollbar-track: #d9c3a0; /* Scrollbar track matching paper */
         }
-        
+
+        /* Add paper texture and dirt effects */
+        [data-theme="cartoon"] {
+            background-image:
+                radial-gradient(circle at 20% 30%, rgba(139, 94, 60, 0.05) 0.5px, transparent 0.5px),
+                radial-gradient(circle at 80% 70%, rgba(139, 94, 60, 0.05) 0.5px, transparent 0.5px),
+                radial-gradient(circle at 40% 80%, rgba(107, 70, 42, 0.05) 0.7px, transparent 0.7px),
+                radial-gradient(circle at 60% 20%, rgba(107, 70, 42, 0.05) 0.7px, transparent 0.7px);
+            background-size: 150px 150px, 150px 150px, 100px 100px, 100px 100px;
+        }
+
         [data-theme="cartoon"] .glass,
         [data-theme="cartoon"] .input-styled,
         [data-theme="cartoon"] .player-container,
@@ -187,6 +197,30 @@
         [data-theme="cartoon"] .mobile-tab {
             border-width: 2px !important;
             border-radius: 8px !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        [data-theme="cartoon"] .glass::before,
+        [data-theme="cartoon"] .input-styled::before,
+        [data-theme="cartoon"] .player-container::before,
+        [data-theme="cartoon"] .video-item::before,
+        [data-theme="cartoon"] .nav-btn::before,
+        [data-theme="cartoon"] .theme-dropdown-content::before,
+        [data-theme="cartoon"] .mobile-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(77, 44, 12, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 90% 80%, rgba(77, 44, 12, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at 50% 50%, rgba(107, 70, 42, 0.02) 2px, transparent 2px);
+            background-size: 50px 50px, 70px 70px, 100px 100px;
+            pointer-events: none;
+            z-index: 1;
         }
 
         /* Photography Theme - Large focus on media content */
@@ -389,10 +423,13 @@
         
         /* Custom Scrollbar */
         .scrollbar-thin::-webkit-scrollbar { width: 6px; }
-        .scrollbar-thin::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-        .scrollbar-thin::-webkit-scrollbar-thumb { 
-            background: var(--scrollbar-thumb); 
-            border-radius: 10px; 
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 10px;
         }
         .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
         
