@@ -193,12 +193,19 @@
         [data-theme="cartoon"] .player-container,
         [data-theme="cartoon"] .video-item,
         [data-theme="cartoon"] .nav-btn,
-        [data-theme="cartoon"] .theme-dropdown-content,
         [data-theme="cartoon"] .mobile-tab {
             border-width: 2px !important;
             border-radius: 8px !important;
             position: relative;
             overflow: hidden;
+        }
+
+        [data-theme="cartoon"] .theme-dropdown-content {
+            border-width: 2px !important;
+            border-radius: 8px !important;
+            position: relative;
+            overflow: hidden;
+            z-index: 1000 !important;
         }
 
         [data-theme="cartoon"] .glass::before,
@@ -689,7 +696,7 @@
             border-radius: 0.75rem;
             box-shadow: var(--shadow-md);
             min-width: 140px;
-            z-index: 100;
+            z-index: 1000;
             overflow: hidden;
         }
         .theme-dropdown-content.show {
