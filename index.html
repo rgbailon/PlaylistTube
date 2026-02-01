@@ -1,0 +1,3013 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlaylistTube - Free YouTube Playlist Player | Watch Playlists Ad-Free</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="PlaylistTube is a free YouTube playlist player. Watch your favorite YouTube playlists seamlessly, search for playlists, and enjoy distraction-free viewing. No ads, no sign-up required.">
+    <meta name="keywords" content="YouTube playlist player, watch YouTube playlists, free playlist player, YouTube viewer, playlist manager, ad-free YouTube, video player, music playlist, YouTube API player">
+    <meta name="author" content="PlaylistTube">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="rating" content="general">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="PlaylistTube - Free YouTube Playlist Player">
+    <meta property="og:description" content="Watch YouTube playlists seamlessly. Search, play, and enjoy your favorite playlists without distractions. Free and no sign-up required.">
+    <meta property="og:image" content="https://img.youtube.com/vi/default/hqdefault.jpg">
+    <meta property="og:url" content="">
+    <meta property="og:site_name" content="PlaylistTube">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PlaylistTube - Free YouTube Playlist Player">
+    <meta name="twitter:description" content="Watch YouTube playlists seamlessly. Search, play, and enjoy without distractions.">
+    <meta name="twitter:image" content="https://img.youtube.com/vi/default/hqdefault.jpg">
+    
+    <!-- Theme Color for Mobile Browsers -->
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PlaylistTube",
+        "description": "Free YouTube Playlist Player - Watch playlists seamlessly without distractions",
+        "url": "",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "All",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "YouTube playlist playback",
+            "Playlist search",
+            "Multiple theme options",
+            "Mobile responsive",
+            "No registration required"
+        ]
+    }
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Minimalist Theme (Default) - Clean, lots of white space */
+            --bg-main: #fafafa;
+            --bg-card: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            --bg-hover: #f5f5f5;
+            --bg-active: #f0f0f0;
+            --text-main: #171717;
+            --text-muted: #737373;
+            --border-color: #e5e5e5;
+            --border-hover: #d4d4d4;
+            --accent-color: #171717;
+            --accent-hover: #404040;
+            --accent-bg: #f5f5f5;
+            --accent-border: #d4d4d4;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --scrollbar-thumb: #d4d4d4;
+            --scrollbar-track: transparent;
+        }
+
+        /* Bold & Colorful Theme - Vibrant palettes, eye-catching */
+        [data-theme="bold"] {
+            --bg-main: #0a0a0a;
+            --bg-card: #171717;
+            --bg-glass: rgba(23, 23, 23, 0.95);
+            --bg-hover: #262626;
+            --bg-active: #404040;
+            --text-main: #ffffff;
+            --text-muted: #a3a3a3;
+            --border-color: #404040;
+            --border-hover: #525252;
+            --accent-color: #22d3ee;
+            --accent-hover: #67e8f9;
+            --accent-bg: rgba(34, 211, 238, 0.15);
+            --accent-border: #06b6d4;
+            --shadow-sm: 0 0 10px rgba(236, 72, 153, 0.3);
+            --shadow-md: 0 0 20px rgba(168, 85, 247, 0.4);
+            --scrollbar-thumb: #ec4899;
+            --scrollbar-track: #0a0a0a;
+        }
+        
+        [data-theme="bold"] .nav-btn.active,
+        [data-theme="bold"] .mobile-tab.active {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #06b6d4 100%) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        /* Dark Mode Theme - Sleek, modern, easy on eyes */
+        [data-theme="dark"] {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-glass: rgba(30, 41, 59, 0.95);
+            --bg-hover: #334155;
+            --bg-active: #475569;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --border-hover: #475569;
+            --accent-color: #60a5fa;
+            --accent-hover: #93c5fd;
+            --accent-bg: rgba(96, 165, 250, 0.1);
+            --accent-border: #3b82f6;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --scrollbar-thumb: #475569;
+            --scrollbar-track: #0f172a;
+        }
+
+        /* Retro/Vintage Theme - Nostalgic design elements */
+        [data-theme="retro"] {
+            --bg-main: #fdf6e3;
+            --bg-card: #fefcf6;
+            --bg-glass: rgba(253, 246, 227, 0.95);
+            --bg-hover: #f5edd6;
+            --bg-active: #ede4c9;
+            --text-main: #5c4a32;
+            --text-muted: #8b7355;
+            --border-color: #d4c4a8;
+            --border-hover: #c4b393;
+            --accent-color: #b85c38;
+            --accent-hover: #a04a2a;
+            --accent-bg: rgba(184, 92, 56, 0.1);
+            --accent-border: #c4a77d;
+            --shadow-sm: 2px 2px 4px rgba(92, 74, 50, 0.1);
+            --shadow-md: 4px 4px 8px rgba(92, 74, 50, 0.15);
+            --scrollbar-thumb: #c4a77d;
+            --scrollbar-track: #fdf6e3;
+        }
+
+        /* Illustrated/Cartoon Theme - Playful, hand-drawn feel */
+        [data-theme="cartoon"] {
+            --bg-main: #fff8f0;
+            --bg-card: #ffffff;
+            --bg-glass: #ffffff;
+            --bg-hover: #fff0e6;
+            --bg-active: #ffe4d6;
+            --text-main: #2d2d2d;
+            --text-muted: #666666;
+            --border-color: #2d2d2d;
+            --border-hover: #1a1a1a;
+            --accent-color: #ff6b6b;
+            --accent-hover: #ee5a5a;
+            --accent-bg: #fff0f0;
+            --accent-border: #2d2d2d;
+            --shadow-sm: 3px 3px 0px 0px #2d2d2d;
+            --shadow-md: 5px 5px 0px 0px #2d2d2d;
+            --scrollbar-thumb: #2d2d2d;
+            --scrollbar-track: #fff8f0;
+        }
+        
+        [data-theme="cartoon"] .glass,
+        [data-theme="cartoon"] .input-styled,
+        [data-theme="cartoon"] .player-container,
+        [data-theme="cartoon"] .video-item,
+        [data-theme="cartoon"] .nav-btn,
+        [data-theme="cartoon"] .theme-dropdown-content,
+        [data-theme="cartoon"] .mobile-tab {
+            border-width: 2px !important;
+            border-radius: 8px !important;
+        }
+
+        /* Photography Theme - Large focus on media content */
+        [data-theme="photo"] {
+            --bg-main: #000000;
+            --bg-card: #0a0a0a;
+            --bg-glass: rgba(10, 10, 10, 0.9);
+            --bg-hover: #1a1a1a;
+            --bg-active: #262626;
+            --text-main: #e5e5e5;
+            --text-muted: #737373;
+            --border-color: #262626;
+            --border-hover: #404040;
+            --accent-color: #ffffff;
+            --accent-hover: #e5e5e5;
+            --accent-bg: rgba(255, 255, 255, 0.05);
+            --accent-border: #404040;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.7);
+            --scrollbar-thumb: #404040;
+            --scrollbar-track: #000000;
+        }
+        
+        [data-theme="photo"] .player-container {
+            border: none !important;
+            box-shadow: 0 0 60px rgba(255,255,255,0.05) !important;
+        }
+
+        /* Forest Theme (Green/Nature) */
+        [data-theme="forest"] {
+            --bg-main: #14281d;
+            --bg-card: #1e392a;
+            --bg-glass: rgba(30, 57, 42, 0.95);
+            --bg-hover: #2a4c38;
+            --bg-active: #355e46;
+            --text-main: #e8f5e9;
+            --text-muted: #a5d6a7;
+            --border-color: #2a4c38;
+            --border-hover: #355e46;
+            --accent-color: #4ade80;
+            --accent-hover: #86efac;
+            --accent-bg: rgba(74, 222, 128, 0.15);
+            --accent-border: #22c55e;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.5);
+            --scrollbar-thumb: #22c55e;
+            --scrollbar-track: #14281d;
+        }
+
+        /* Ocean Theme (Deep Teal) */
+        [data-theme="ocean"] {
+            --bg-main: #0c4a6e;
+            --bg-card: #075985;
+            --bg-glass: rgba(7, 89, 133, 0.95);
+            --bg-hover: #0369a1;
+            --bg-active: #0284c7;
+            --text-main: #f0f9ff;
+            --text-muted: #bae6fd;
+            --border-color: #0369a1;
+            --border-hover: #0284c7;
+            --accent-color: #38bdf8;
+            --accent-hover: #7dd3fc;
+            --accent-bg: rgba(56, 189, 248, 0.15);
+            --accent-border: #0ea5e9;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.5);
+            --scrollbar-thumb: #0ea5e9;
+            --scrollbar-track: #0c4a6e;
+        }
+
+        /* Sunset Theme (Warm Purple/Pink) */
+        [data-theme="sunset"] {
+            --bg-main: #4a044e;
+            --bg-card: #701a75;
+            --bg-glass: rgba(112, 26, 117, 0.95);
+            --bg-hover: #86198f;
+            --bg-active: #a21caf;
+            --text-main: #fdf4ff;
+            --text-muted: #f5d0fe;
+            --border-color: #86198f;
+            --border-hover: #a21caf;
+            --accent-color: #fca5a5;
+            --accent-hover: #fcd34d;
+            --accent-bg: rgba(252, 165, 165, 0.15);
+            --accent-border: #f87171;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.5);
+            --scrollbar-thumb: #f87171;
+            --scrollbar-track: #4a044e;
+        }
+
+        /* Cyber Theme (Neon Green/Black) */
+        [data-theme="cyber"] {
+            --bg-main: #000000;
+            --bg-card: #0a0a0a;
+            --bg-glass: rgba(10, 10, 10, 0.95);
+            --bg-hover: #111111;
+            --bg-active: #1a1a1a;
+            --text-main: #00ff00;
+            --text-muted: #00aa00;
+            --border-color: #003300;
+            --border-hover: #004400;
+            --accent-color: #00ff00;
+            --accent-hover: #33ff33;
+            --accent-bg: rgba(0, 255, 0, 0.1);
+            --accent-border: #00ff00;
+            --shadow-sm: 0 0 5px #00ff00;
+            --shadow-md: 0 0 15px #00ff00;
+            --scrollbar-thumb: #00ff00;
+            --scrollbar-track: #000000;
+        }
+
+        /* Coffee Theme (Warm Brown) */
+        [data-theme="coffee"] {
+            --bg-main: #271c19;
+            --bg-card: #3c2a25;
+            --bg-glass: rgba(60, 42, 37, 0.95);
+            --bg-hover: #4e362e;
+            --bg-active: #5d4037;
+            --text-main: #d7ccc8;
+            --text-muted: #a1887f;
+            --border-color: #4e362e;
+            --border-hover: #5d4037;
+            --accent-color: #d7ccc8;
+            --accent-hover: #efebe9;
+            --accent-bg: rgba(215, 204, 200, 0.15);
+            --accent-border: #8d6e63;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.5);
+            --scrollbar-thumb: #8d6e63;
+            --scrollbar-track: #271c19;
+        }
+
+        /* Netflix Theme (Dark with Red Accents) */
+        [data-theme="netflix"] {
+            --bg-main: #141414;
+            --bg-card: #1f1f1f;
+            --bg-glass: rgba(31, 31, 31, 0.98);
+            --bg-hover: #2a2a2a;
+            --bg-active: #333333;
+            --text-main: #ffffff;
+            --text-muted: #b3b3b3;
+            --border-color: #2a2a2a;
+            --border-hover: #404040;
+            --accent-color: #e50914;
+            --accent-hover: #f40612;
+            --accent-bg: rgba(229, 9, 20, 0.15);
+            --accent-border: #b20710;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.7);
+            --scrollbar-thumb: #e50914;
+            --scrollbar-track: #141414;
+        }
+        
+        /* Netflix theme special hover effects */
+        [data-theme="netflix"] .video-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(229, 9, 20, 0.3);
+        }
+        
+        [data-theme="netflix"] .player-container {
+            border: none;
+            box-shadow: 0 0 40px rgba(229, 9, 20, 0.2);
+        }
+        
+        [data-theme="netflix"] .nav-btn.active {
+            background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+            color: white;
+            border: none;
+        }
+        
+        [data-theme="netflix"] .mobile-tab.active {
+            background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+            color: white;
+        }
+        
+        [data-theme="netflix"] .btn-add {
+            background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+        }
+        
+        [data-theme="netflix"] .btn-add:hover {
+            background: linear-gradient(135deg, #f40612 0%, #e50914 100%);
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+        }
+
+        * {
+            font-family: 'Helvetica Neue', 'Inter', sans-serif;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+        
+        /* Custom Scrollbar */
+        .scrollbar-thin::-webkit-scrollbar { 
+            width: 6px; 
+        }
+        .scrollbar-thin::-webkit-scrollbar-track { 
+            background: var(--scrollbar-track); 
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb { 
+            background: var(--scrollbar-thumb); 
+            border-radius: 10px; 
+            transition: background 0.2s ease;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover { 
+            background: var(--accent-color); 
+            box-shadow: 0 0 6px var(--accent-color);
+        }
+        
+        /* Theme-specific scrollbar enhancements */
+        [data-theme="bold"] .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #ec4899, #a855f7);
+            box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);
+        }
+        
+        [data-theme="cyber"] .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #00ff00;
+            box-shadow: 0 0 8px #00ff00;
+        }
+        
+        [data-theme="netflix"] .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #e50914;
+            box-shadow: 0 0 8px rgba(229, 9, 20, 0.5);
+        }
+        
+        /* Active Video Item */
+        .video-item.active { 
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-border);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Glass/Card Styles */
+        .glass {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .glass-darker {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        /* Button Hover Effects */
+        .btn-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-hover:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* Card Hover Effects */
+        .card-hover {
+            transition: all 0.2s ease;
+        }
+        
+        .card-hover:hover {
+            background: var(--bg-hover);
+            border-color: var(--border-hover);
+        }
+        
+        /* Video Player Container */
+        .player-container {
+            background: #000;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            border: none;
+            transition: box-shadow 0.3s ease;
+            position: relative;
+        }
+        
+        .player-container::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-hover), var(--accent-color));
+            border-radius: 16px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            filter: blur(2px);
+        }
+        
+        .player-container:hover::before {
+            opacity: 0.6;
+            animation: neon-glow 3s ease-in-out infinite alternate;
+        }
+        
+        .player-container:hover {
+            box-shadow: 0 0 8px var(--accent-color), 0 0 15px var(--accent-hover);
+            transform: scale(1.002);
+        }
+        
+        @keyframes neon-glow {
+            0% {
+                filter: blur(2px) brightness(0.9);
+                box-shadow: 0 0 8px var(--accent-color), 0 0 15px var(--accent-hover);
+            }
+            100% {
+                filter: blur(3px) brightness(1);
+                box-shadow: 0 0 10px var(--accent-color), 0 0 18px var(--accent-hover);
+            }
+        }
+        
+        /* Theme-specific player glow effects */
+        [data-theme="pink"] .player-container {
+            box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+        }
+        
+        [data-theme="purple"] .player-container {
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+        }
+        
+        [data-theme="red"] .player-container {
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+        }
+        
+        [data-theme="cartoon"] .player-container {
+            border-width: 4px;
+            border-color: #000000;
+            box-shadow: 6px 6px 0px 0px #000000;
+        }
+        
+        [data-theme="dark"] .player-container {
+            box-shadow: 0 0 30px rgba(96, 165, 250, 0.2);
+        }
+        
+        [data-theme="gray"] .player-container {
+            box-shadow: 0 0 20px rgba(161, 161, 170, 0.2);
+        }
+        
+        /* Input Fields */
+        .input-styled {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            caret-color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+        
+        .input-styled:focus {
+            background: var(--bg-card);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px var(--accent-bg);
+            outline: none;
+        }
+        
+        .input-styled::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* All dark themes - ensure proper contrast */
+        [data-theme="dark"] .input-styled,
+        [data-theme="bold"] .input-styled,
+        [data-theme="photo"] .input-styled,
+        [data-theme="forest"] .input-styled,
+        [data-theme="ocean"] .input-styled,
+        [data-theme="sunset"] .input-styled,
+        [data-theme="cyber"] .input-styled,
+        [data-theme="coffee"] .input-styled {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="dark"] .input-styled:focus,
+        [data-theme="bold"] .input-styled:focus,
+        [data-theme="photo"] .input-styled:focus,
+        [data-theme="forest"] .input-styled:focus,
+        [data-theme="ocean"] .input-styled:focus,
+        [data-theme="sunset"] .input-styled:focus,
+        [data-theme="cyber"] .input-styled:focus,
+        [data-theme="coffee"] .input-styled:focus {
+            background: var(--bg-card);
+        }
+
+        /* WebKit autofill handling for dark themes */
+        [data-theme="dark"] .input-styled:-webkit-autofill,
+        [data-theme="bold"] .input-styled:-webkit-autofill,
+        [data-theme="photo"] .input-styled:-webkit-autofill,
+        [data-theme="cyber"] .input-styled:-webkit-autofill {
+            -webkit-text-fill-color: var(--text-main);
+            -webkit-box-shadow: 0 0 0px 1000px var(--bg-card) inset;
+            caret-color: var(--text-main);
+        }
+        
+        /* Mobile sidebar styles */
+        .mobile-sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+        }
+        .mobile-sidebar.open {
+            transform: translateX(0);
+        }
+        .mobile-video-list {
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+        }
+        .mobile-video-list.open {
+            transform: translateX(0);
+        }
+        .overlay {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
+        .overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        /* Mobile tab styles */
+        .mobile-tab {
+            transition: all 0.2s ease;
+            background: var(--bg-card);
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+        }
+        .mobile-tab.active {
+            background: var(--bg-hover);
+            color: var(--accent-color);
+        }
+        
+        /* Nav button active */
+        .nav-btn {
+            color: var(--text-muted);
+            background: transparent;
+        }
+        .nav-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-main);
+        }
+        .nav-btn.active {
+            background: var(--accent-bg);
+            color: var(--accent-color);
+            font-weight: 600;
+            border: 1px solid var(--accent-border);
+        }
+        
+        /* Thumbnail Overlay */
+        .thumbnail-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.05);
+            transition: opacity 0.2s ease;
+        }
+        
+        .video-item:hover .thumbnail-overlay {
+            opacity: 0;
+        }
+        
+        /* Collapsible Animation */
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .collapse-content.open {
+            max-height: 600px;
+        }
+        
+        /* Status Indicator */
+        @keyframes pulse-dot {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        .status-indicator { animation: pulse-dot 2s infinite; }
+        
+        /* Theme Toggle Button */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 9999px;
+            color: var(--text-muted);
+            background: var(--bg-hover);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        .theme-toggle:hover {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        /* Theme Dropdown */
+        .theme-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .theme-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-md);
+            min-width: 140px;
+            z-index: 100;
+            overflow: hidden;
+        }
+        .theme-dropdown-content.show {
+            display: block;
+        }
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: var(--text-main);
+            font-size: 0.875rem;
+        }
+        .theme-option:hover {
+            background: var(--bg-hover);
+        }
+        .theme-option.active {
+            background: var(--accent-bg);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        .theme-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid rgba(0,0,0,0.1);
+        }
+
+        /* Utility colors handled by variables */
+        .text-custom-main { color: var(--text-main); }
+        .text-custom-muted { color: var(--text-muted); }
+        .bg-custom-card { background-color: var(--bg-card); }
+        .border-custom { border-color: var(--border-color); }
+        
+        /* Sort Buttons */
+        .sort-btn {
+            background: var(--bg-main);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+        .sort-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-main);
+            border-color: var(--border-hover);
+        }
+        .sort-btn.active {
+            background: var(--accent-bg);
+            color: var(--accent-color);
+            border-color: var(--accent-border);
+            font-weight: 600;
+        }
+
+        /* Theme-aware Add Button */
+        .btn-add {
+            background-color: var(--accent-color);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        .btn-add:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+        /* Fix contrast for light-accent themes */
+        [data-theme="photo"] .btn-add {
+            color: #000000;
+        }
+        /* Minimalist/Retro/Cartoon accents are dark enough for white text */
+        [data-theme="light"] .btn-add,
+        [data-theme="retro"] .btn-add,
+        [data-theme="cartoon"] .btn-add {
+            color: white;
+        }
+
+        /* Theme-aware Search Button */
+        button[onclick*="searchPlaylists"] {
+            background-color: var(--accent-color) !important;
+            color: white !important;
+            border: 1px solid var(--accent-border) !important;
+            transition: all 0.2s ease !important;
+        }
+        
+        button[onclick*="searchPlaylists"]:hover {
+            background-color: var(--accent-hover) !important;
+            box-shadow: 0 0 15px var(--accent-color), var(--shadow-md) !important;
+            transform: translateY(-1px) !important;
+        }
+
+        /* Video Item Tooltip */
+        .video-item {
+            position: relative;
+            /* Optimize rendering for large lists */
+            contain: layout style;
+            will-change: background-color;
+        }
+        
+        .video-item.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .video-item[data-tooltip]:hover::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: var(--text-main);
+            color: var(--bg-card);
+            font-size: 11px;
+            font-weight: 500;
+            line-height: 1.4;
+            border-radius: 6px;
+            white-space: normal;
+            max-width: 250px;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+        .video-item[data-tooltip]:hover::after {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--text-main);
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* Mobile Fullscreen Mode */
+        #player-wrapper.fullscreen-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            border-radius: 0 !important;
+            aspect-ratio: auto !important;
+        }
+        
+        #player-wrapper.fullscreen-mode #player,
+        #player-wrapper.fullscreen-mode iframe {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        #player-wrapper.fullscreen-mode #fullscreen-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: rgba(0,0,0,0.8);
+            padding: 12px 20px;
+            font-size: 16px;
+        }
+        
+        /* Hide other elements when in fullscreen */
+        body.player-fullscreen .glass-darker,
+        body.player-fullscreen .mobile-sidebar,
+        body.player-fullscreen .mobile-video-list,
+        body.player-fullscreen #mobile-overlay,
+        body.player-fullscreen > div:not(#main-page),
+        body.player-fullscreen #video-info,
+        body.player-fullscreen .md\\:hidden:not(#player-wrapper):not(#fullscreen-btn) {
+            display: none !important;
+        }
+        
+        body.player-fullscreen {
+            overflow: hidden !important;
+        }
+        
+        body.player-fullscreen #main-page {
+            padding: 0 !important;
+            margin: 0 !important;
+            height: 100vh !important;
+        }
+        
+        /* Landscape hint for mobile */
+        @media (max-width: 768px) and (orientation: portrait) {
+            #player-wrapper.fullscreen-mode::before {
+                content: '';
+                position: absolute;
+                top: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.7);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                z-index: 10001;
+                animation: fadeOut 3s forwards;
+            }
+        }
+        
+        @keyframes fadeOut {
+            0%, 70% { opacity: 1; }
+            100% { opacity: 0; pointer-events: none; }
+        }
+
+        /* Settings Dock (Inside History Sidebar) */
+        .settings-dock {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 100%;
+            max-height: 45vh; /* stays within sidebar boundary */
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .settings-dock.hidden { display: none; }
+
+
+
+        /* Prevent any child from forcing horizontal scroll */
+        .settings-dock * {
+            max-width: 100%;
+        }
+
+        /* Sharper corners across the UI (including Search result cards) */
+        :root {
+            --radius-ui: 3px;
+            --radius-ui-sm: 2px;
+        }
+
+        .glass,
+        .glass-darker,
+        .input-styled,
+        .nav-btn,
+        .sort-btn,
+        .theme-toggle,
+        .theme-dropdown-content,
+        .player-container,
+        .video-item,
+        .history-item,
+        .mobile-tab,
+        .btn-add,
+        #fullscreen-btn,
+        #btn-load-more,
+        button[onclick*="searchPlaylists"] {
+            border-radius: var(--radius-ui) !important;
+        }
+
+        /* Images / thumbnails slightly sharper */
+        #search-results img,
+        img.video-thumb {
+            border-radius: var(--radius-ui-sm) !important;
+        }
+
+    </style>
+</head>
+<body class="overflow-hidden">
+    
+    <!-- Navigation -->
+    <nav class="glass-darker sticky top-0 z-50 px-3 md:px-6 py-3 md:py-3 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 text-white p-2 rounded-xl shadow-md cursor-pointer hover:scale-105 transition-transform">
+                <i class="fab fa-youtube text-lg md:text-xl"></i>
+            </div>
+            <h1 class="text-lg md:text-xl font-bold tracking-tight text-custom-main">PlaylistTube</h1>
+        </div>
+        <div class="flex items-center gap-2 md:gap-3">
+
+            <button onclick="showPage('main')" class="nav-btn active px-3 md:px-5 py-2 rounded-lg transition-all text-sm md:text-base flex items-center gap-2" id="nav-main">
+                <i class="fas fa-play-circle"></i><span class="hidden md:inline">Player</span>
+            </button>
+            <button onclick="showPage('search')" class="nav-btn px-3 md:px-5 py-2 rounded-lg transition-all text-sm md:text-base flex items-center gap-2" id="nav-search">
+                <i class="fas fa-search"></i><span class="hidden md:inline">Search</span>
+            </button>
+            <button onclick="showPage('privacy')" class="nav-btn px-3 md:px-5 py-2 rounded-lg transition-all text-sm md:text-base flex items-center gap-2" id="nav-privacy">
+                <i class="fas fa-shield-alt"></i><span class="hidden md:inline">Privacy</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Bottom Tab Bar -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-custom-card border-t border-custom z-40 flex shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <button onclick="toggleMobileHistory()" class="mobile-tab flex-1 py-3 flex flex-col items-center gap-1 text-[10px] font-medium" id="tab-history">
+            <i class="fas fa-history text-lg mb-0.5"></i>
+            <span>History</span>
+        </button>
+        <button onclick="closeMobilePanels()" class="mobile-tab flex-1 py-3 flex flex-col items-center gap-1 text-[10px] font-medium active" id="tab-player">
+            <i class="fas fa-play-circle text-lg mb-0.5"></i>
+            <span>Player</span>
+        </button>
+        <button onclick="toggleMobileVideoList()" class="mobile-tab flex-1 py-3 flex flex-col items-center gap-1 text-[10px] font-medium" id="tab-videos">
+            <i class="fas fa-list text-lg mb-0.5"></i>
+            <span>Videos</span>
+        </button>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="overlay md:hidden fixed inset-0 z-30" onclick="closeMobilePanels()"></div>
+
+    <!-- Main Page -->
+    <div id="main-page" class="flex flex-col md:flex-row h-[calc(100vh-70px)] md:h-[calc(100vh-70px)] pb-16 md:pb-0">
+        <!-- Left Sidebar - Playlist History (Desktop) -->
+        <aside class="hidden md:flex w-72 glass flex-col border-r border-custom z-10 overflow-hidden">
+            <div class="p-4 border-b border-custom bg-custom-card">
+                <h2 class="font-semibold text-sm uppercase tracking-wider text-custom-muted flex items-center gap-2">
+                    <i class="fas fa-history text-blue-500"></i>
+                    Playlist History
+                </h2>
+                <!-- Search Input -->
+                <div class="mt-3 relative">
+                    <input type="text" id="history-search" placeholder="Search history..." 
+                        class="w-full input-styled rounded-lg pl-8 pr-3 py-1.5 text-xs" 
+                        onkeyup="filterHistory()">
+                    <i class="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-custom-muted text-xs"></i>
+                </div>
+            </div>
+            <div id="playlist-history" class="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-2" style="background: var(--bg-main);">
+                <!-- History Items -->
+            </div>
+            <!-- Settings dock mounts here on desktop (kept within sidebar boundary) -->
+            <div id="settings-dock-host-desktop" class="px-2 pt-2 pb-2"></div>
+            <div class="p-2 border-t border-custom bg-custom-card flex items-center justify-start">
+                <button onclick="toggleSettingsDock()" class="py-1 px-3 rounded text-custom-muted hover:text-custom-main transition-colors text-sm font-medium flex items-center justify-center gap-1 border border-custom" title="Settings">
+                    <i class="fas fa-gear text-sm"></i>
+                    Settings
+                </button>
+            </div>
+        </aside>
+
+        <!-- Mobile History Sidebar -->
+        <aside id="mobile-history-sidebar" class="mobile-sidebar md:hidden fixed top-[65px] left-0 bottom-16 w-4/5 max-w-xs flex flex-col z-40 shadow-xl overflow-hidden">
+            <div class="p-4 border-b border-custom flex flex-col gap-3 bg-custom-card">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-semibold text-custom-main flex items-center gap-2">
+                        <i class="fas fa-history text-blue-500"></i>
+                        History
+                    </h2>
+                    <button onclick="closeMobilePanels()" class="text-custom-muted hover:text-custom-main p-2 rounded-lg hover:bg-custom-main">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <!-- Mobile Search Input -->
+                <div class="relative">
+                    <input type="text" id="history-search-mobile" placeholder="Search history..." 
+                        class="w-full input-styled rounded-lg pl-8 pr-3 py-2 text-sm" 
+                        onkeyup="filterHistoryMobile()">
+                    <i class="fas fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-custom-muted text-sm"></i>
+                </div>
+            </div>
+            <div id="playlist-history-mobile" class="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-2">
+                <!-- Mobile History Items -->
+            </div>
+            <!-- Settings dock mounts here on mobile (kept within sidebar boundary) -->
+            <div id="settings-dock-host-mobile" class="px-2 pt-2 pb-2"></div>
+            <div class="p-2 border-t border-custom bg-custom-card flex items-center justify-start">
+                <button onclick="toggleSettingsDock()" class="py-1 px-3 rounded text-custom-muted hover:text-custom-main transition-colors text-sm font-medium flex items-center justify-center gap-1 border border-custom" title="Settings">
+                    <i class="fas fa-gear text-sm"></i>
+                    Settings
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden relative" style="background: var(--bg-main);">
+            <!-- Settings Dock (Hidden by default; toggled from History) -->
+            <div id="settings-dock" class="settings-dock glass hidden">
+                <div class="bg-custom-card border border-custom">
+                    <div class="p-2 border-b border-custom bg-custom-card flex items-center justify-between gap-2">
+                        <span class="text-[11px] font-semibold text-custom-main">Settings</span>
+                        <button onclick="toggleInputSection()" class="p-1 rounded text-custom-muted hover:text-custom-main hover:bg-custom-card transition-colors cursor-pointer">
+                            <i class="fas fa-chevron-down text-custom-muted transition-transform duration-300" id="input-toggle-icon"></i>
+                        </button>
+                    </div>
+
+
+                    <!-- Collapsible Content -->
+                    <div id="input-section" class="collapse-content">
+                        <div class="p-3 md:p-5 pt-0 md:pt-0 pb-5">
+                            <div class="w-full">
+                                <div class="grid grid-cols-1 gap-4 mb-2">
+                                    <!-- Theme Selector (moved from top nav into Settings) -->
+                                    <div class="p-4 rounded-xl bg-custom-main border border-custom mt-2">
+                                        <label class="block text-[10px] font-semibold text-custom-muted uppercase tracking-wide mb-2 flex items-center gap-2">
+                                            Theme
+                                        </label>
+                                        <select id="theme-select" class="w-full input-styled rounded-lg px-3 py-2 text-xs" onchange="setTheme(this.value)">
+                                            <option value="light">Minimalist</option>
+                                            <option value="bold">Bold &amp; Colorful</option>
+                                            <option value="dark">Dark Mode</option>
+                                            <option value="retro">Retro/Vintage</option>
+                                            <option value="cartoon">Illustrated</option>
+                                            <option value="photo">Photography</option>
+                                            <option value="forest">Forest</option>
+                                            <option value="ocean">Ocean</option>
+                                            <option value="sunset">Sunset</option>
+                                            <option value="cyber">Cyber</option>
+                                            <option value="coffee">Coffee</option>
+                                            <option value="netflix">Netflix</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="p-4 rounded-xl bg-custom-main border border-custom">
+                                        <label class="block text-[10px] font-semibold text-custom-muted uppercase tracking-wide mb-2 flex items-center gap-2">
+                                            YouTube API Keys
+                                            <span class="text-custom-muted font-normal normal-case text-[9px] ml-auto">Auto-rotates on limit</span>
+                                        </label>
+                                        <!-- API Keys List (Collapsible) -->
+                                        <div id="api-keys-container" class="mb-2">
+                                            <button onclick="event.stopPropagation(); toggleApiKeysList()" id="api-keys-toggle" class="hidden w-full text-left text-xs py-1.5 px-2 rounded border border-custom bg-custom-card text-custom-muted hover:bg-custom-main transition flex items-center justify-between">
+                                                <span><i class="fas fa-key mr-1.5"></i><span id="api-keys-summary">0 keys</span></span>
+                                                <i class="fas fa-chevron-down text-[10px] transition-transform" id="api-keys-chevron"></i>
+                                            </button>
+                                            <div id="api-keys-list" class="space-y-1.5 max-h-24 overflow-y-auto scrollbar-thin text-[10px]">
+                                                <!-- Keys rendered here -->
+                                            </div>
+                                        </div>
+                                        <!-- Add New Key -->
+                                        <div class="relative">
+                                            <input type="password" id="api-key-input" placeholder="Enter new API Key" 
+                                                class="w-full input-styled rounded-lg px-3 py-2 text-xs pr-10">
+                                            <button onclick="event.stopPropagation(); toggleApiVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-custom-muted hover:text-blue-500 transition">
+                                                <i class="fas fa-eye" id="api-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="flex gap-2 mt-2">
+                                            <button onclick="event.stopPropagation(); addApiKey()" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-[10px] shadow-sm btn-hover transition-colors">
+                                                <i class="fas fa-plus mr-1"></i>Add Key
+                                            </button>
+                                            <button onclick="event.stopPropagation(); clearAllApiKeys()" class="px-3 py-2 bg-custom-card text-red-500 border border-custom hover:bg-red-50 hover:border-red-200 rounded-lg font-medium text-[10px] transition-colors" title="Clear All">
+                                                Clear All
+                                            </button>
+                                        </div>
+                                        <p class="text-[8px] text-custom-muted mt-1.5 text-center opacity-70">
+                                            <i class="fas fa-sync-alt mr-1"></i>Auto-switches when quota exceeded
+                                        </p>
+                                        <p id="error-message" class="text-center rounded-lg py-2 px-4 text-xs mt-2 hidden"></p>
+                                        <!-- API Quota Progress Bar -->
+                                        <div id="quota-section" class="mt-3 pt-3 border-t border-custom hidden">
+                                            <div class="flex justify-between items-center mb-1.5">
+                                                <span class="text-[10px] text-custom-muted font-medium">Daily Quota</span>
+                                                <span id="quota-text" class="text-[10px] text-custom-muted">0 / 10,000 units</span>
+                                            </div>
+                                            <div class="w-full h-2 bg-custom-card rounded-full overflow-hidden border border-custom">
+                                                <div id="quota-bar" class="h-full bg-green-500 transition-all duration-300" style="width: 0%"></div>
+                                            </div>
+                                            <div class="flex justify-between items-center mt-1">
+                                                <span id="quota-percent" class="text-[9px] text-custom-muted">0% used</span>
+                                                <button onclick="resetQuota()" class="text-[9px] text-custom-muted hover:text-blue-500 transition" title="Reset quota counter">
+                                                    <i class="fas fa-undo mr-0.5"></i>Reset
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Clear History (moved below settings & playlist) -->
+                                    <div class="p-4 rounded-xl bg-custom-main border border-custom">
+                                        <div class="flex flex-col gap-3">
+                                            <div>
+                                                <p class="text-xs font-semibold text-custom-main">Playlist History</p>
+                                                <p class="text-[10px] text-custom-muted mt-0.5">Remove all saved playlists from this device.</p>
+                                            </div>
+                                            <button onclick="event.stopPropagation(); clearHistory()" class="py-2 px-3 rounded text-red-400 hover:text-red-500 transition-colors text-xs font-semibold flex items-center justify-center gap-2 border border-custom self-start" title="Clear playlist history">
+                                                <i class="fas fa-trash-alt text-[10px]"></i>Clear
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Player Section -->
+            <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+                <!-- Video Player -->
+                <div class="flex-1 p-3 md:p-6 flex flex-col min-h-0 overflow-y-auto md:overflow-hidden">
+                    <div id="player-wrapper" class="player-container relative aspect-video w-full bg-black shadow-lg">
+                        <div id="player-placeholder" class="absolute inset-0 flex items-center justify-center bg-slate-900">
+                            <div class="text-center px-4">
+                                <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 shadow-inner">
+                                    <i class="fab fa-youtube text-4xl text-slate-600"></i>
+                                </div>
+                                <p class="text-slate-400 text-sm font-medium">Ready to play</p>
+                                <p class="text-slate-600 text-xs mt-1">Load a playlist to start</p>
+                            </div>
+                        </div>
+                        <div id="player"></div>
+                        <!-- Mobile Fullscreen Button -->
+                        <button id="fullscreen-btn" onclick="toggleFullscreen()" class="md:hidden absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all z-10">
+                            <i class="fas fa-expand"></i>
+                            <span id="fullscreen-text">Fullscreen</span>
+                        </button>
+                    </div>
+
+                    <div id="video-info" class="mt-4 px-1 hidden">
+                        <h3 id="video-title" class="text-lg md:text-xl font-bold mb-1 line-clamp-2 text-custom-main leading-tight"></h3>
+                        <p id="video-channel" class="text-custom-muted text-sm flex items-center gap-2 font-medium">
+                            <i class="fas fa-user-circle text-custom-muted"></i>
+                            <span></span>
+                        </p>
+                    </div>
+                    
+                    <!-- Mobile Navigation Controls -->
+                    <div class="md:hidden flex gap-3 mt-4 mb-4 px-1">
+                        <button onclick="playPreviousVideo()" class="flex-1 bg-custom-card border border-custom py-3 rounded-xl text-sm font-medium hover:bg-custom-main transition-colors flex items-center justify-center gap-2 shadow-sm text-custom-main">
+                            <i class="fas fa-step-backward text-custom-muted"></i>Prev
+                        </button>
+                        <button onclick="playNextVideo()" class="flex-1 bg-custom-card border border-custom py-3 rounded-xl text-sm font-medium hover:bg-custom-main transition-colors flex items-center justify-center gap-2 shadow-sm text-custom-main">
+                            Next<i class="fas fa-step-forward text-custom-muted"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video List (Desktop) -->
+                <aside class="hidden md:flex w-80 glass border-l border-custom flex-col z-10">
+                    <div class="p-4 border-b border-custom bg-custom-card">
+                        <h2 class="font-semibold text-sm uppercase tracking-wider text-custom-muted flex items-center gap-2">
+                            <i class="fas fa-list-ol text-blue-500"></i>
+                            <span id="playlist-title" class="truncate">Playlist</span>
+                        </h2>
+                        <p id="video-count" class="text-xs text-custom-muted mt-1 pl-6"></p>
+                    </div>
+                    <div id="video-list" class="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-2" style="background: var(--bg-main);">
+                        <div class="text-center py-10">
+                            <div class="w-12 h-12 rounded-full bg-custom-card flex items-center justify-center mx-auto mb-3 border border-custom">
+                                <i class="fas fa-film text-xl text-custom-muted"></i>
+                            </div>
+                            <p class="text-custom-muted text-sm">Videos will appear here</p>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+
+        <!-- Mobile Video List Sidebar -->
+        <aside id="mobile-video-sidebar" class="mobile-video-list md:hidden fixed top-[65px] right-0 bottom-16 w-4/5 max-w-xs flex flex-col z-40 shadow-xl">
+            <div class="p-4 border-b border-custom flex items-center justify-between bg-custom-card">
+                <div class="min-w-0 pr-4">
+                    <h2 class="font-semibold text-custom-main flex items-center gap-2 truncate">
+                        <i class="fas fa-list-ol text-blue-500"></i>
+                        <span id="playlist-title-mobile" class="truncate">Videos</span>
+                    </h2>
+                    <p id="video-count-mobile" class="text-xs text-custom-muted mt-0.5"></p>
+                </div>
+                <button onclick="closeMobilePanels()" class="text-custom-muted hover:text-custom-main p-2 rounded-lg hover:bg-custom-main">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="video-list-mobile" class="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-2">
+                <!-- Mobile Video Items -->
+            </div>
+        </aside>
+    </div>
+
+
+
+    <!-- Search Page -->
+    <div id="search-page" class="hidden h-[calc(100vh-70px)] overflow-y-auto pb-16 md:pb-0" style="background: var(--bg-main);">
+        <div class="max-w-4xl mx-auto p-4 md:p-8">
+            <!-- Search Bar -->
+            <div class="glass rounded-2xl p-6 md:p-8 shadow-sm border border-custom bg-custom-card mb-8">
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <div class="w-full relative">
+                            <input type="text" id="yt-search-input" placeholder="Search for playlists (e.g., 'lofi hip hop', 'coding tutorials')..." 
+                                class="w-full input-styled rounded-xl pl-12 pr-4 py-4 text-sm md:text-base shadow-sm"
+                                onkeydown="if(event.key === 'Enter') searchPlaylists()">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-custom-muted text-lg"></i>
+                        </div>
+                        <button onclick="searchPlaylists()" class="w-full md:w-auto px-8 py-4 font-medium shadow-sm btn-hover transition-all flex items-center justify-center gap-2 min-w-[140px]" style="background-color: var(--accent-color); color: white; border: 1px solid var(--accent-border); border-radius: var(--radius-ui) !important;">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                    
+                    <!-- Sort Options -->
+                    <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-custom">
+                        <span class="text-sm text-custom-muted font-medium"><i class="fas fa-sort mr-2"></i>Sort by:</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="setSortOrder('relevance')" class="sort-btn active px-4 py-2 rounded-lg text-sm font-medium transition-all" data-sort="relevance">
+                                <i class="fas fa-star mr-1.5"></i>Relevance
+                            </button>
+                            <button onclick="setSortOrder('date')" class="sort-btn px-4 py-2 rounded-lg text-sm font-medium transition-all" data-sort="date">
+                                <i class="fas fa-arrow-down mr-1.5"></i>Newest First
+                            </button>
+                            <button onclick="setSortOrder('date-asc')" class="sort-btn px-4 py-2 rounded-lg text-sm font-medium transition-all" data-sort="date-asc">
+                                <i class="fas fa-arrow-up mr-1.5"></i>Oldest First
+                            </button>
+                            <button onclick="setSortOrder('viewCount')" class="sort-btn px-4 py-2 rounded-lg text-sm font-medium transition-all" data-sort="viewCount">
+                                <i class="fas fa-eye mr-1.5"></i>Most Viewed
+                            </button>
+                            <button onclick="setSortOrder('rating')" class="sort-btn px-4 py-2 rounded-lg text-sm font-medium transition-all" data-sort="rating">
+                                <i class="fas fa-thumbs-up mr-1.5"></i>Top Rated
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                <div class="col-span-full text-center py-20 opacity-50">
+                    <i class="fab fa-youtube text-6xl mb-4 text-custom-muted"></i>
+                    <p class="text-custom-muted text-lg">Search YouTube for playlists</p>
+                    <p class="text-custom-muted text-sm mt-1">Only playlists will be shown (no single videos)</p>
+                </div>
+            </div>
+            
+            <!-- Load More -->
+            <div id="search-load-more" class="hidden mt-8 text-center pb-8">
+                <button onclick="searchMore()" id="btn-load-more" class="px-8 py-3 bg-custom-card border border-custom text-custom-main rounded-xl hover:bg-blue-50 hover:border-blue-200 transition font-medium">
+                    Load More Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Page -->
+    <div id="privacy-page" class="hidden h-[calc(100vh-70px)] overflow-y-auto pb-16 md:pb-0" style="background: var(--bg-main);">
+        <div class="max-w-3xl mx-auto p-4 md:p-8">
+            <div class="glass rounded-2xl p-6 md:p-10 shadow-sm border border-custom bg-custom-card">
+                <div class="text-center mb-8 md:mb-10">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 mb-4 shadow-sm">
+                        <i class="fas fa-shield-alt text-3xl"></i>
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-custom-main">Privacy & Security</h2>
+                    <p class="text-custom-muted mt-2">Simple, transparent, and secure by design.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Security Badge -->
+                    <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl p-5 md:p-6">
+                        <div class="flex items-start gap-4">
+                            <i class="fas fa-lock text-xl mt-1 opacity-80"></i>
+                            <div>
+                                <h3 class="font-bold text-lg mb-1">100% Client-Side</h3>
+                                <p class="text-sm opacity-90 leading-relaxed">No servers. No database. Minimal tracking. This application runs entirely in your browser. Your data never leaves your device except to communicate directly with YouTube and basic usage analytics.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Storage -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-5 rounded-xl border border-custom bg-custom-main">
+                            <h4 class="font-bold text-custom-main mb-3 flex items-center gap-2">
+                                <i class="fas fa-hdd text-custom-muted"></i>
+                                Saved Locally
+                            </h4>
+                            <ul class="text-sm text-custom-muted space-y-2">
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>API Key (Cookies)</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Playlist History</li>
+                            </ul>
+                        </div>
+                        <div class="p-5 rounded-xl border border-custom bg-custom-main">
+                            <h4 class="font-bold text-custom-main mb-3 flex items-center gap-2">
+                                <i class="fas fa-cloud-slash text-custom-muted"></i>
+                                Never Stored
+                            </h4>
+                            <ul class="text-sm text-custom-muted space-y-2">
+                                <li class="flex items-center gap-2"><i class="fas fa-times text-red-400 text-xs"></i>No external servers</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-info text-blue-400 text-xs"></i>Minimal analytics only</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- API Key Info -->
+                    <div class="p-5 md:p-6 rounded-xl border border-blue-200 bg-blue-50">
+                        <h3 class="font-bold text-blue-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-key text-blue-500"></i>
+                            About Your API Key
+                        </h3>
+                        <div class="space-y-3 text-sm text-blue-800">
+                            <p>You can remove your API key at any time using the <span class="font-semibold text-red-500 bg-white px-1.5 py-0.5 rounded border border-red-100">Clear</span> button in the settings panel.</p>
+                            <p>Clearing your "Playlist History" <strong class="text-blue-900">does not</strong> remove your API key.</p>
+                            <div class="mt-4 pt-3 border-t border-blue-200">
+                                <p class="text-xs font-semibold mb-1"><i class="fas fa-user-shield mr-1"></i> Security Recommendation:</p>
+                                <p class="text-xs opacity-90">We strongly recommend creating a separate <strong>"Dummy" Google Account</strong> to generate your API key. This ensures your primary account remains completely isolated.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Transparency -->
+                    <div class="p-5 md:p-6 rounded-xl border border-yellow-200 bg-yellow-50">
+                        <h3 class="font-bold text-yellow-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-chart-line text-yellow-600"></i>
+                            Analytics Transparency
+                        </h3>
+                        <div class="space-y-3 text-sm text-yellow-800">
+                            <p>We use <strong>minimal, anonymous analytics</strong> to understand basic usage patterns and improve the application.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                                <div class="p-3 rounded bg-yellow-100 border border-yellow-300">
+                                    <p class="font-semibold text-xs mb-1">What We Track:</p>
+                                    <ul class="text-xs space-y-1">
+                                        <li>• Page visits (anonymized)</li>
+                                        <li>• General geographic region</li>
+                                        <li>• Browser/device types</li>
+                                        <li>• Basic usage statistics</li>
+                                    </ul>
+                                </div>
+                                <div class="p-3 rounded bg-yellow-100 border border-yellow-300">
+                                    <p class="font-semibold text-xs mb-1">What We DON'T Track:</p>
+                                    <ul class="text-xs space-y-1">
+                                        <li>• Personal information</li>
+                                        <li>• Your YouTube data</li>
+                                        <li>• API keys or playlists</li>
+                                        <li>• Individual user behavior</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="text-xs mt-3 italic"><i class="fas fa-shield-alt mr-1"></i>Your YouTube API keys, playlists, and all personal data remain 100% private on your device.</p>
+                        </div>
+                    </div>
+
+                    <!-- Setup Guide -->
+                    <div class="pt-4 border-t border-custom">
+                        <h3 class="font-bold text-custom-main mb-4">How to get a Key</h3>
+                        <div class="space-y-2 text-sm">
+                            <a href="https://console.cloud.google.com/" target="_blank" class="flex items-center justify-between p-3 rounded-lg border border-custom hover:border-blue-300 hover:bg-blue-50 transition-colors group">
+                                <span class="text-custom-muted group-hover:text-blue-700">1. Open Google Cloud Console</span>
+                                <i class="fas fa-external-link-alt text-custom-muted group-hover:text-blue-400"></i>
+                            </a>
+                            <div class="p-3 rounded-lg border border-custom bg-custom-main text-custom-muted">
+                                2. Create Project & Enable "YouTube Data API v3"
+                            </div>
+                            <div class="p-3 rounded-lg border border-custom bg-custom-main text-custom-muted">
+                                3. Create Credentials (API Key) & Paste here
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cookie Management
+        function setCookie(name, value, days = 365) {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Strict';
+        }
+
+        function getCookie(name) {
+            const value = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+            return value ? decodeURIComponent(value.split('=')[1]) : null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        }
+
+        // State
+        let player = null;
+        let currentPlaylist = [];
+        let currentVideoIndex = 0;
+        let playlistHistory = [];
+        let theme = 'light';
+        let apiKeys = [];
+        let currentKeyIndex = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTheme();
+            loadSavedData();
+            loadYouTubeAPI();
+            mountSettingsDock();
+            window.addEventListener('resize', debounceMountSettingsDock);
+        });
+        
+        // Theme Management
+        const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
+        
+        function loadTheme() {
+            const savedTheme = getCookie('yt_theme');
+            if (savedTheme && themes.includes(savedTheme)) {
+                theme = savedTheme;
+            } else {
+                theme = 'light';
+            }
+            applyTheme();
+        }
+        
+        function toggleThemeDropdown() {
+            const dropdown = document.getElementById('theme-dropdown');
+            dropdown.classList.toggle('show');
+        }
+        
+        function setTheme(newTheme) {
+            theme = newTheme;
+            setCookie('yt_theme', theme);
+            applyTheme();
+
+            // Sync settings select if present
+            const sel = document.getElementById('theme-select');
+            if (sel) sel.value = theme;
+
+            // Close dropdown if it still exists (older UI)
+            const dd = document.getElementById('theme-dropdown');
+            if (dd) dd.classList.remove('show');
+        }
+        
+        function applyTheme() {
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // Sync settings select
+            const sel = document.getElementById('theme-select');
+            if (sel) sel.value = theme;
+            
+            // Update active state in dropdown (if present)
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                const onclick = opt.getAttribute('onclick') || '';
+                const match = onclick.match(/setTheme\('([^']+)'\)/);
+                const key = match ? match[1] : null;
+                opt.classList.toggle('active', key === theme);
+            });
+        }
+        
+        // Close dropdown when clicking outside (if dropdown exists)
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('theme-dropdown');
+            const btn = document.getElementById('theme-btn');
+            if (!dropdown || !btn) return;
+            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        function loadSavedData() {
+            // Load API keys (multiple)
+            const savedApiKeys = getCookie('yt_api_keys');
+            if (savedApiKeys) {
+                try {
+                    apiKeys = JSON.parse(savedApiKeys);
+                } catch (e) {
+                    apiKeys = [];
+                }
+            }
+            
+            // Load current key index
+            const savedKeyIndex = getCookie('yt_current_key_index');
+            if (savedKeyIndex) {
+                currentKeyIndex = parseInt(savedKeyIndex) || 0;
+            }
+            
+            // Restore API key list expanded state (collapsed by default)
+            const expandedCookie = getCookie('yt_api_keys_expanded');
+            apiKeysExpanded = expandedCookie === '1' ? true : false;
+
+            // Render API keys list
+            renderApiKeysList();
+            updateApiStatus();
+
+            // API section is collapsed by default (only expand if user previously opened it)
+            const settingsOpen = getCookie('yt_settings_open') === '1';
+            if (settingsOpen) {
+                // open settings content
+                const section = document.getElementById('input-section');
+                const icon = document.getElementById('input-toggle-icon');
+                if (section && icon) {
+                    section.classList.add('open');
+                    icon.classList.add('rotate-180');
+                }
+            }
+
+            // Load and display quota
+            loadQuota();
+            updateQuotaDisplay();
+
+            // Load playlist history
+            const savedHistory = getCookie('yt_playlist_history');
+            if (savedHistory) {
+                try {
+                    playlistHistory = JSON.parse(savedHistory);
+                    renderPlaylistHistory();
+                } catch (e) {
+                    playlistHistory = [];
+                }
+            }
+        }
+        
+        // Multi-API Key Management
+        // Collapsed by default when multiple keys exist
+        let apiKeysExpanded = false;
+        
+        function toggleApiKeysList() {
+            apiKeysExpanded = !apiKeysExpanded;
+            const list = document.getElementById('api-keys-list');
+            const chevron = document.getElementById('api-keys-chevron');
+            
+            list.classList.toggle('hidden', !apiKeysExpanded);
+            chevron.classList.toggle('rotate-180', apiKeysExpanded);
+            setCookie('yt_api_keys_expanded', apiKeysExpanded ? '1' : '0');
+        }
+        
+        function renderApiKeysList() {
+            const container = document.getElementById('api-keys-list');
+            const toggle = document.getElementById('api-keys-toggle');
+            const summary = document.getElementById('api-keys-summary');
+            
+            // Update quota display when keys change
+            if (typeof updateQuotaDisplay === 'function') {
+                updateQuotaDisplay();
+            }
+            
+            if (apiKeys.length === 0) {
+                toggle.classList.add('hidden');
+                container.classList.remove('hidden');
+                container.innerHTML = '<p class="text-custom-muted text-center py-2 opacity-60">No API keys added yet</p>';
+                return;
+            }
+            
+            // Show toggle button if more than 1 key
+            if (apiKeys.length > 1) {
+                toggle.classList.remove('hidden');
+                summary.textContent = `${apiKeys.length} keys saved (Key ${currentKeyIndex + 1} active)`;
+
+                // Default to collapsed when multiple keys exist (unless user expanded)
+                container.classList.toggle('hidden', !apiKeysExpanded);
+                document.getElementById('api-keys-chevron').classList.toggle('rotate-180', apiKeysExpanded);
+
+                // If many keys, keep collapsed by default
+                if (apiKeys.length > 2 && apiKeysExpanded) {
+                    apiKeysExpanded = false;
+                    container.classList.add('hidden');
+                    document.getElementById('api-keys-chevron').classList.remove('rotate-180');
+                    setCookie('yt_api_keys_expanded', '0');
+                }
+            } else {
+                toggle.classList.add('hidden');
+                container.classList.remove('hidden');
+            }
+            
+            container.innerHTML = apiKeys.map((key, index) => {
+                const shortKey = `${key.substring(0, 8)}...${key.substring(key.length - 4)}`;
+                const active = index === currentKeyIndex;
+                return `
+                <div class="flex items-center gap-2 p-2 rounded-lg ${active ? 'border border-green-500/50 bg-green-500/10' : 'bg-custom-card border border-custom'}">
+                    <button onclick="event.stopPropagation(); setActiveApiKey(${index})" class="w-7 h-7 rounded-md border border-custom flex items-center justify-center ${active ? 'bg-green-500/20 text-green-500' : 'bg-custom-main text-custom-muted hover:text-custom-main'}" title="Make active">
+                        <i class="fas ${active ? 'fa-check' : 'fa-circle'} text-[10px]"></i>
+                    </button>
+                    <span class="flex-1 font-mono truncate text-custom-main">${shortKey}</span>
+                    <button onclick="event.stopPropagation(); copyApiKey(${index})" class="w-7 h-7 rounded-md border border-custom flex items-center justify-center text-custom-muted hover:text-custom-main" title="Copy">
+                        <i class="fas fa-copy text-[10px]"></i>
+                    </button>
+                    <button onclick="event.stopPropagation(); removeApiKey(${index})" class="w-7 h-7 rounded-md border border-custom flex items-center justify-center text-red-400 hover:text-red-600" title="Remove">
+                        <i class="fas fa-trash text-[10px]"></i>
+                    </button>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function setActiveApiKey(index) {
+            if (index < 0 || index >= apiKeys.length) return;
+            currentKeyIndex = index;
+            setCookie('yt_current_key_index', currentKeyIndex.toString());
+            renderApiKeysList();
+            updateApiStatus();
+        }
+
+        async function copyApiKey(index) {
+            const key = apiKeys[index];
+            if (!key) return;
+            try {
+                await navigator.clipboard.writeText(key);
+                showMessage('API key copied', 'success');
+            } catch (e) {
+                // Fallback
+                const temp = document.createElement('textarea');
+                temp.value = key;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                showMessage('API key copied', 'success');
+            }
+        }
+        
+        async function addApiKey() {
+            const input = document.getElementById('api-key-input');
+            const newKey = input.value.trim();
+            
+            if (!newKey) {
+                showMessage('Please enter an API key', 'error');
+                return;
+            }
+            
+            // Check if key already exists
+            if (apiKeys.includes(newKey)) {
+                showMessage('This API key is already added', 'error');
+                return;
+            }
+            
+            // Validate key
+            const btn = document.querySelector('button[onclick*="addApiKey"]');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Checking...';
+            
+            try {
+                const resp = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&maxResults=1&key=${newKey}`);
+                const data = await resp.json();
+                
+                if (!resp.ok || data.error) {
+                    throw new Error(stripHtml(data?.error?.message || 'Invalid API key'));
+                }
+                
+                // Key is valid, add it
+                apiKeys.push(newKey);
+                setCookie('yt_api_keys', JSON.stringify(apiKeys));
+                input.value = '';
+                renderApiKeysList();
+                updateApiStatus();
+                showMessage('API key verified and added!', 'success');
+                
+            } catch (err) {
+                showMessage('Invalid API key: ' + stripHtml(err.message), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+        
+        function removeApiKey(index) {
+            apiKeys.splice(index, 1);
+            
+            // Adjust current index if needed
+            if (currentKeyIndex >= apiKeys.length) {
+                currentKeyIndex = Math.max(0, apiKeys.length - 1);
+            }
+            
+            setCookie('yt_api_keys', JSON.stringify(apiKeys));
+            setCookie('yt_current_key_index', currentKeyIndex.toString());
+            renderApiKeysList();
+            updateApiStatus();
+        }
+        
+        function clearAllApiKeys() {
+            if (confirm('Are you sure you want to clear ALL API keys?')) {
+                apiKeys = [];
+                currentKeyIndex = 0;
+                deleteCookie('yt_api_keys');
+                deleteCookie('yt_current_key_index');
+                renderApiKeysList();
+                updateApiStatus();
+                showMessage('All API keys cleared', 'success');
+            }
+        }
+        
+        function getCurrentApiKey() {
+            if (apiKeys.length === 0) return null;
+            return apiKeys[currentKeyIndex];
+        }
+        
+        function rotateToNextApiKey() {
+            if (apiKeys.length <= 1) return false;
+            
+            currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+            setCookie('yt_current_key_index', currentKeyIndex.toString());
+            renderApiKeysList();
+            showMessage(`Switched to API key ${currentKeyIndex + 1} of ${apiKeys.length}`, 'info');
+            return true;
+        }
+
+        function loadYouTubeAPI() {
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        // Search History
+        function filterHistory() {
+            const query = document.getElementById('history-search').value.toLowerCase();
+            const filtered = playlistHistory.filter(item => 
+                item.title.toLowerCase().includes(query)
+            );
+            renderPlaylistHistory(filtered);
+        }
+        
+        function filterHistoryMobile() {
+            const query = document.getElementById('history-search-mobile').value.toLowerCase();
+            const filtered = playlistHistory.filter(item => 
+                item.title.toLowerCase().includes(query)
+            );
+            renderPlaylistHistory(filtered);
+        }
+
+        // Mobile Panel Management
+        function toggleMobileHistory() {
+            const sidebar = document.getElementById('mobile-history-sidebar');
+            const videoSidebar = document.getElementById('mobile-video-sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            videoSidebar.classList.remove('open');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open', sidebar.classList.contains('open'));
+            
+            updateMobileTabs();
+        }
+
+        function toggleMobileVideoList() {
+            const sidebar = document.getElementById('mobile-video-sidebar');
+            const historySidebar = document.getElementById('mobile-history-sidebar');
+            const overlay = document.getElementById('mobile-overlay');
+            
+            historySidebar.classList.remove('open');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open', sidebar.classList.contains('open'));
+            
+            updateMobileTabs();
+        }
+
+        function closeMobilePanels() {
+            document.getElementById('mobile-history-sidebar').classList.remove('open');
+            document.getElementById('mobile-video-sidebar').classList.remove('open');
+            document.getElementById('mobile-overlay').classList.remove('open');
+            updateMobileTabs();
+        }
+
+        function updateMobileTabs() {
+            const historyOpen = document.getElementById('mobile-history-sidebar').classList.contains('open');
+            const videosOpen = document.getElementById('mobile-video-sidebar').classList.contains('open');
+            
+            document.getElementById('tab-history').classList.toggle('active', historyOpen);
+            document.getElementById('tab-player').classList.toggle('active', !historyOpen && !videosOpen);
+            document.getElementById('tab-videos').classList.toggle('active', videosOpen);
+        }
+
+        // Page Navigation
+        function showPage(page) {
+            document.getElementById('main-page').classList.toggle('hidden', page !== 'main');
+            document.getElementById('search-page').classList.toggle('hidden', page !== 'search');
+            document.getElementById('privacy-page').classList.toggle('hidden', page !== 'privacy');
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const navBtn = document.getElementById('nav-' + page);
+            if (navBtn) navBtn.classList.add('active');
+            
+            closeMobilePanels();
+        }
+
+        // ========== SEARCH FUNCTIONALITY ==========
+        let searchNextToken = '';
+        let currentSearchQuery = '';
+        let currentSortOrder = 'relevance';
+        let allSearchResults = [];
+
+        function setSortOrder(order) {
+            currentSortOrder = order;
+            
+            // Update active button styling
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.sort === order);
+            });
+            
+            // If we have results and selecting client-side sort (oldest first), sort them
+            if (order === 'date-asc' && allSearchResults.length > 0) {
+                // Sort existing results by date ascending (oldest first)
+                const sorted = [...allSearchResults].sort((a, b) => {
+                    return new Date(a.snippet.publishedAt) - new Date(b.snippet.publishedAt);
+                });
+                renderSearchResults(sorted);
+            } else if (currentSearchQuery) {
+                // Re-search with new sort order
+                searchPlaylists();
+            }
+        }
+
+        function renderSearchResults(items) {
+            const container = document.getElementById('search-results');
+            container.innerHTML = '';
+            
+            items.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'glass rounded-xl overflow-hidden shadow-sm border border-custom flex flex-col card-hover';
+                el.innerHTML = `
+                    <div class="relative aspect-video bg-slate-200">
+                        <img src="${item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22><rect fill=%22%23cbd5e1%22 width=%22100%%22 height=%22100%%22/></svg>'">
+                    </div>
+                    <div class="p-4 flex flex-col flex-1">
+                        <h3 class="font-bold text-custom-main line-clamp-2 mb-2 text-sm md:text-base leading-snug">${escapeHtml(item.snippet.title)}</h3>
+                        <p class="text-xs text-custom-muted mb-4 flex items-center gap-1">
+                            <i class="fas fa-user-circle"></i> ${escapeHtml(item.snippet.channelTitle)}
+                        </p>
+                        <div class="mt-auto flex items-center justify-between">
+                            <div class="flex gap-2">
+                                <button onclick="importPlaylist('${item.id.playlistId}')" class="btn-add w-9 h-9 rounded-lg transition flex items-center justify-center shadow-sm" title="Add to History">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button onclick="playPlaylistDirect('${item.id.playlistId}')" class="btn-add w-9 h-9 rounded-lg transition flex items-center justify-center shadow-sm" title="Play Now">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                            <span class="text-xs text-custom-muted font-medium flex items-center gap-1">
+                                <i class="fas fa-video text-[10px]"></i> ${item.videoCount || 0}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        async function searchPlaylists(pageToken = '') {
+            const apiKey = getCurrentApiKey();
+            const query = document.getElementById('yt-search-input').value.trim();
+            
+            if (!apiKey) {
+                alert('Please add at least one API Key in the Player Settings first.');
+                showPage('main');
+                toggleInputSection();
+                return;
+            }
+            
+            if (!query) return;
+
+            currentSearchQuery = query;
+            const container = document.getElementById('search-results');
+            const loadMoreBtn = document.getElementById('search-load-more');
+            
+            if (!pageToken) {
+                container.innerHTML = '<div class="col-span-full text-center py-20"><i class="fas fa-circle-notch fa-spin text-4xl text-blue-500"></i><p class="mt-4 text-custom-muted">Searching playlists...</p></div>';
+                loadMoreBtn.classList.add('hidden');
+            } else {
+                document.getElementById('btn-load-more').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Loading...';
+            }
+
+            try {
+                // Determine API sort order (date-asc uses 'date' then sorts client-side)
+                const apiOrder = currentSortOrder === 'date-asc' ? 'date' : currentSortOrder;
+                
+                const response = await fetch(
+                    `https://www.googleapis.com/youtube/v3/search?part=snippet&type=playlist&q=${encodeURIComponent(query)}&maxResults=12&order=${apiOrder}&key=${apiKey}${pageToken ? '&pageToken=' + pageToken : ''}`
+                );
+                const data = await response.json();
+
+                if (data.error) {
+                    // Check for quota exceeded error
+                    if (data.error.code === 403 && data.error.message.includes('quota')) {
+                        if (rotateToNextApiKey()) {
+                            // Retry with next key
+                            searchPlaylists(pageToken);
+                            return;
+                        }
+                    }
+                    throw new Error(data.error.message);
+                }
+
+                searchNextToken = data.nextPageToken || '';
+                
+                if (!pageToken) {
+                    allSearchResults = [];
+                    container.innerHTML = '';
+                    if (data.items.length === 0) {
+                        container.innerHTML = '<div class="col-span-full text-center py-20 text-custom-muted"><i class="fas fa-inbox text-4xl mb-4"></i><p>No playlists found for "' + escapeHtml(query) + '"</p></div>';
+                        return;
+                    }
+                }
+
+                // Fetch video counts for all playlists in one batch call
+                const playlistIds = data.items.map(item => item.id.playlistId).join(',');
+                const detailsResponse = await fetch(
+                    `https://www.googleapis.com/youtube/v3/playlists?part=contentDetails&id=${playlistIds}&key=${apiKey}`
+                );
+                const detailsData = await detailsResponse.json();
+                
+                // Create a map of playlist ID to video count
+                const videoCountMap = {};
+                if (detailsData.items) {
+                    detailsData.items.forEach(item => {
+                        videoCountMap[item.id] = item.contentDetails.itemCount;
+                    });
+                }
+
+                // Merge video counts into search results
+                data.items.forEach(item => {
+                    item.videoCount = videoCountMap[item.id.playlistId] || 0;
+                });
+
+                // Store results for client-side sorting
+                allSearchResults = allSearchResults.concat(data.items);
+                
+                // If oldest first, sort all results
+                let itemsToRender = data.items;
+                if (currentSortOrder === 'date-asc') {
+                    const sorted = [...allSearchResults].sort((a, b) => {
+                        return new Date(a.snippet.publishedAt) - new Date(b.snippet.publishedAt);
+                    });
+                    container.innerHTML = '';
+                    itemsToRender = sorted;
+                }
+
+                itemsToRender.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'glass rounded-xl overflow-hidden shadow-sm border border-custom flex flex-col card-hover';
+                    el.innerHTML = `
+                        <div class="relative aspect-video bg-slate-200">
+                            <img src="${item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22><rect fill=%22%23cbd5e1%22 width=%22100%%22 height=%22100%%22/></svg>'">
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <h3 class="font-bold text-custom-main line-clamp-2 mb-2 text-sm md:text-base leading-snug">${escapeHtml(item.snippet.title)}</h3>
+                            <p class="text-xs text-custom-muted mb-4 flex items-center gap-1">
+                                <i class="fas fa-user-circle"></i> ${escapeHtml(item.snippet.channelTitle)}
+                            </p>
+                            <div class="mt-auto flex items-center justify-between">
+                                <div class="flex gap-2">
+                                    <button onclick="importPlaylist('${item.id.playlistId}')" class="btn-add w-9 h-9 rounded-lg transition flex items-center justify-center shadow-sm" title="Add to History">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button onclick="playPlaylistDirect('${item.id.playlistId}')" class="btn-add w-9 h-9 rounded-lg transition flex items-center justify-center shadow-sm" title="Play Now">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <span class="text-xs text-custom-muted font-medium flex items-center gap-1">
+                                    <i class="fas fa-video text-[10px]"></i> ${item.videoCount || 0}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+
+                if (searchNextToken) {
+                    loadMoreBtn.classList.remove('hidden');
+                    document.getElementById('btn-load-more').innerHTML = 'Load More Results';
+                } else {
+                    loadMoreBtn.classList.add('hidden');
+                }
+
+            } catch (error) {
+                container.innerHTML = `<div class="col-span-full text-center text-red-500 py-10"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>Error: ${escapeHtml(stripHtml(error.message))}</p></div>`;
+                loadMoreBtn.classList.add('hidden');
+            }
+        }
+
+        function searchMore() {
+            if (searchNextToken) {
+                searchPlaylists(searchNextToken);
+            }
+        }
+
+        async function importPlaylist(playlistId) {
+            // Ensure we have at least one API key configured
+            if (!apiKeys || apiKeys.length === 0) {
+                alert('Please add at least one API Key in the Player Settings first.');
+                showPage('main');
+                toggleInputSection();
+                return;
+            }
+
+            // Find and update button(s)
+            const btns = document.querySelectorAll(`button[onclick="importPlaylist('${playlistId}')"]`);
+            btns.forEach(btn => btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>');
+
+            let attempts = 0;
+            while (attempts < Math.max(1, apiKeys.length)) {
+                const apiKey = getCurrentApiKey();
+                try {
+                    const response = await fetch(
+                        `https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${playlistId}&key=${apiKey}`
+                    );
+                    const data = await response.json();
+
+                    if (data.error) {
+                        // Rotate on quota exceeded
+                        if (data.error.code === 403 && (data.error.message || '').toLowerCase().includes('quota')) {
+                            if (rotateToNextApiKey()) { attempts++; continue; }
+                        }
+                        throw new Error(data.error.message || 'Failed to fetch playlist');
+                    }
+
+                    if (data.items && data.items.length > 0) {
+                        const item = data.items[0];
+                        const title = item.snippet.title;
+                        const count = item.contentDetails.itemCount;
+                        const url = `https://www.youtube.com/playlist?list=${playlistId}`;
+
+                        addToHistory(playlistId, title, url, count);
+                        
+                        btns.forEach(btn => {
+                            btn.innerHTML = '<i class="fas fa-check"></i>';
+                            btn.classList.remove('btn-add');
+                            btn.classList.add('bg-green-600');
+                            setTimeout(() => {
+                                btn.innerHTML = '<i class="fas fa-plus"></i>';
+                                btn.classList.add('btn-add');
+                                btn.classList.remove('bg-green-600');
+                            }, 1500);
+                        });
+                    }
+                    return; // success
+                } catch (e) {
+                    if (attempts >= apiKeys.length - 1) {
+                        btns.forEach(btn => btn.innerHTML = '<i class="fas fa-plus"></i>');
+                        showMessage('Error importing: ' + stripHtml(e.message || 'Unknown error'), 'error');
+                        return;
+                    }
+                    attempts++;
+                    rotateToNextApiKey();
+                }
+            }
+        }
+
+        async function playPlaylistDirect(playlistId) {
+            const url = `https://www.youtube.com/playlist?list=${playlistId}`;
+            showPage('main');
+            await loadPlaylist(url);
+        }
+
+        // API Key Management
+        function toggleApiVisibility() {
+            const input = document.getElementById('api-key-input');
+            const eye = document.getElementById('api-eye');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eye.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                eye.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+        
+        function updateApiStatus() {
+            const status = document.getElementById('api-status');
+            
+            if (apiKeys.length > 0) {
+                status.textContent = `${apiKeys.length} Key${apiKeys.length > 1 ? 's' : ''}`;
+                status.classList.remove('text-slate-500', 'bg-slate-100', 'border-slate-200');
+                status.classList.add('text-green-600', 'bg-green-50', 'border-green-200');
+                status.style.borderColor = '#bbf7d0';
+            } else {
+                status.textContent = 'No API Key';
+                status.classList.remove('text-green-600', 'bg-green-50', 'border-green-200');
+                status.classList.add('text-slate-500', 'bg-slate-100', 'border-slate-200');
+                status.style.borderColor = '#e2e8f0';
+            }
+        }
+
+        function toggleInputSection() {
+            const section = document.getElementById('input-section');
+            const icon = document.getElementById('input-toggle-icon');
+            const dock = document.getElementById('settings-dock');
+
+            const isCurrentlyOpen = section.classList.contains('open');
+            
+            if (isCurrentlyOpen) {
+                // If section is open, close the entire settings dock
+                section.classList.remove('open');
+                icon.classList.remove('rotate-180');
+                if (dock) {
+                    dock.classList.add('hidden');
+                }
+                setCookie('yt_settings_open', '0');
+            } else {
+                // If section is closed, open it
+                section.classList.add('open');
+                icon.classList.add('rotate-180');
+                setCookie('yt_settings_open', '1');
+            }
+        }
+
+        // Settings Dock mount (kept within History sidebar boundary)
+        function mountSettingsDock() {
+            const dock = document.getElementById('settings-dock');
+            if (!dock) return;
+
+            const desktopHost = document.getElementById('settings-dock-host-desktop');
+            const mobileHost = document.getElementById('settings-dock-host-mobile');
+            const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+            const host = isDesktop ? desktopHost : mobileHost;
+
+            if (host && dock.parentElement !== host) {
+                host.appendChild(dock);
+            }
+        }
+
+        let mountDockTimer = null;
+        function debounceMountSettingsDock() {
+            clearTimeout(mountDockTimer);
+            mountDockTimer = setTimeout(() => mountSettingsDock(), 150);
+        }
+
+        // Settings Dock toggle
+        function toggleSettingsDock(force) {
+            mountSettingsDock();
+            const dock = document.getElementById('settings-dock');
+            if (!dock) return;
+
+            let willShow;
+            if (typeof force === 'boolean') {
+                willShow = force;
+                dock.classList.toggle('hidden', !force);
+            } else {
+                dock.classList.toggle('hidden');
+                willShow = !dock.classList.contains('hidden');
+            }
+
+            // When opening the dock, expand the settings content once to reveal Theme/API UI
+            if (willShow) {
+                const section = document.getElementById('input-section');
+                const icon = document.getElementById('input-toggle-icon');
+                if (section && icon && !section.classList.contains('open')) {
+                    section.classList.add('open');
+                    icon.classList.add('rotate-180');
+                    setCookie('yt_settings_open', '1');
+                }
+            }
+        }
+
+        // Playlist Management
+        function extractPlaylistId(url) {
+            const regex = /[?&]list=([^&]+)/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+        function isPlaylistUrl(url) {
+            return url.includes('list=') && !url.includes('/watch?v=') || url.includes('playlist?list=');
+        }
+
+        async function loadPlaylist(playlistUrlOverride = '') {
+            // Use multi-key system
+            if (!apiKeys || apiKeys.length === 0) {
+                showMessage('Please add at least one API key in Settings', 'error');
+                return;
+            }
+
+            // This app loads playlists from History or Search (URL is passed in).
+            const playlistUrl = (playlistUrlOverride || '').trim();
+
+            if (!playlistUrl) {
+                showMessage('Pick a playlist from History or Search first.', 'error');
+                return;
+            }
+
+            if (!isPlaylistUrl(playlistUrl)) {
+                showMessage('Please enter a valid playlist URL (not a single video link)', 'error');
+                return;
+            }
+
+            const playlistId = extractPlaylistId(playlistUrl);
+            if (!playlistId) {
+                showMessage('Could not extract playlist ID from URL', 'error');
+                return;
+            }
+
+            let attempts = 0;
+            showMessage('Loading playlist...', 'info');
+
+            while (attempts < Math.max(1, apiKeys.length)) {
+                const apiKey = getCurrentApiKey();
+                try {
+                    // Fetch playlist details
+                    const playlistResponse = await fetch(
+                        `https://www.googleapis.com/youtube/v3/playlists?part=snippet&id=${playlistId}&key=${apiKey}`
+                    );
+                    const playlistData = await playlistResponse.json();
+
+                    if (playlistData.error) {
+                        if (playlistData.error.code === 403 && (playlistData.error.message || '').toLowerCase().includes('quota')) {
+                            if (rotateToNextApiKey()) { attempts++; continue; }
+                        }
+                        throw new Error(playlistData.error.message);
+                    }
+
+                    const playlistTitle = playlistData.items?.[0]?.snippet?.title || 'Unknown Playlist';
+
+                    // Fetch playlist items
+                    let allItems = [];
+                    let nextPageToken = '';
+
+                    do {
+                        const response = await fetch(
+                            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}${nextPageToken ? '&pageToken=' + nextPageToken : ''}`
+                        );
+                        const data = await response.json();
+
+                        if (data.error) {
+                            if (data.error.code === 403 && (data.error.message || '').toLowerCase().includes('quota')) {
+                                if (rotateToNextApiKey()) { attempts++; continue; }
+                            }
+                            throw new Error(data.error.message);
+                        }
+
+                        allItems = allItems.concat(data.items || []);
+                        nextPageToken = data.nextPageToken;
+                    } while (nextPageToken);
+
+                    if (allItems.length === 0) {
+                        showMessage('Playlist is empty or private', 'error');
+                        return;
+                    }
+
+                    currentPlaylist = allItems.map(item => ({
+                        videoId: item.snippet.resourceId.videoId,
+                        title: item.snippet.title,
+                        thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                        channel: item.snippet.videoOwnerChannelTitle,
+                        publishedAt: item.snippet.publishedAt
+                    }));
+
+                    // Fetch video statistics (views) in batches of 50
+                    const videoIds = currentPlaylist.map(v => v.videoId);
+                    for (let i = 0; i < videoIds.length; i += 50) {
+                        const batch = videoIds.slice(i, i + 50).join(',');
+                        try {
+                            const statsResponse = await fetch(
+                                `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${batch}&key=${apiKey}`
+                            );
+                            const statsData = await statsResponse.json();
+                            if (statsData.items) {
+                                statsData.items.forEach(stat => {
+                                    const video = currentPlaylist.find(v => v.videoId === stat.id);
+                                    if (video) {
+                                        video.viewCount = parseInt(stat.statistics.viewCount) || 0;
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.warn('Could not fetch video stats:', e);
+                        }
+                    }
+
+                    // Add to history
+                    addToHistory(playlistId, playlistTitle, playlistUrl, currentPlaylist.length);
+
+                    // Update UI
+                    document.getElementById('playlist-title').textContent = playlistTitle;
+                    document.getElementById('playlist-title-mobile').textContent = playlistTitle;
+                    document.getElementById('video-count').textContent = `${currentPlaylist.length} videos`;
+                    document.getElementById('video-count-mobile').textContent = `${currentPlaylist.length} videos`;
+                    renderVideoList();
+                    playVideo(0);
+                    hideMessage();
+                    closeMobilePanels();
+                    // Clear input if it exists (UI may hide it)
+                    const inputEl = document.getElementById('playlist-url');
+                    if (inputEl) inputEl.value = '';
+                    return;
+
+                } catch (error) {
+                    if (attempts >= apiKeys.length - 1) {
+                        showMessage('Error: ' + stripHtml(error.message), 'error');
+                        return;
+                    }
+                    attempts++;
+                    rotateToNextApiKey();
+                }
+            }
+        }
+
+        // Debounce to prevent multiple rapid clicks
+        let isPlayingVideo = false;
+        let playDebounceTimer = null;
+        
+        function renderVideoList() {
+            // For large playlists, use lazy loading approach
+            const maxInitialRender = 100; // Render first 100, lazy load rest
+            const totalVideos = currentPlaylist.length;
+            
+            const renderVideoItem = (video, index) => `
+                <div class="video-item glass p-2.5 rounded-lg cursor-pointer card-hover flex gap-3 ${index === currentVideoIndex ? 'active' : ''}" 
+                     data-index="${index}"
+                     data-tooltip="${escapeHtml(video.title)}">
+                    <div class="relative flex-shrink-0">
+                        <img src="${index < maxInitialRender ? (video.thumbnail || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%2268%22><rect fill=%22%23cbd5e1%22 width=%22100%%22 height=%22100%%22/></svg>') : 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%2268%22><rect fill=%22%23cbd5e1%22 width=%22100%%22 height=%22100%%22/></svg>'}" 
+                             data-src="${video.thumbnail || ''}"
+                             alt="" class="w-20 md:w-24 h-12 md:h-14 object-cover rounded shadow-sm bg-slate-200 video-thumb">
+                        <div class="thumbnail-overlay rounded"></div>
+                        <span class="absolute bottom-1 left-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">${index + 1}</span>
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col">
+                        <p class="text-xs md:text-sm font-medium line-clamp-1 text-custom-main leading-snug">${escapeHtml(video.title)}</p>
+                        <p class="text-[10px] text-custom-muted mt-0.5 truncate flex items-center gap-1">
+                            <i class="fas fa-user-circle"></i>
+                            ${escapeHtml(video.channel || '')}
+                        </p>
+                        <p class="text-[9px] text-custom-muted mt-auto flex items-center gap-2">
+                            <span>${formatViews(video.viewCount)} views</span>
+                            <span>•</span>
+                            <span>${formatTimeAgo(video.publishedAt)}</span>
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            const videoItemsHTML = currentPlaylist.map((video, index) => renderVideoItem(video, index)).join('');
+            
+            const videoListEl = document.getElementById('video-list');
+            const videoListMobileEl = document.getElementById('video-list-mobile');
+            
+            videoListEl.innerHTML = videoItemsHTML;
+            videoListMobileEl.innerHTML = videoItemsHTML;
+            
+            // Use event delegation for clicks (much more performant for large lists)
+            videoListEl.onclick = handleVideoListClick;
+            videoListMobileEl.onclick = handleVideoListClick;
+            
+            // Lazy load thumbnails on scroll
+            setupLazyLoading(videoListEl);
+            setupLazyLoading(videoListMobileEl);
+        }
+        
+        function handleVideoListClick(e) {
+            const videoItem = e.target.closest('.video-item');
+            if (!videoItem) return;
+            
+            const index = parseInt(videoItem.dataset.index);
+            if (isNaN(index)) return;
+            
+            // Debounce rapid clicks
+            if (isPlayingVideo) return;
+            
+            isPlayingVideo = true;
+            clearTimeout(playDebounceTimer);
+            
+            playVideo(index);
+            closeMobilePanels();
+            
+            // Reset debounce after 500ms
+            playDebounceTimer = setTimeout(() => {
+                isPlayingVideo = false;
+            }, 500);
+        }
+        
+        function setupLazyLoading(container) {
+            if (!container) return;
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        const src = img.dataset.src;
+                        if (src && img.src !== src) {
+                            img.src = src;
+                        }
+                        observer.unobserve(img);
+                    }
+                });
+            }, { rootMargin: '100px' });
+            
+            container.querySelectorAll('img.video-thumb[data-src]').forEach(img => {
+                observer.observe(img);
+            });
+        }
+        
+        // Format view count (e.g., 1.2M, 45K)
+        function formatViews(count) {
+            if (!count) return '0';
+            if (count >= 1000000) {
+                return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+            }
+            if (count >= 1000) {
+                return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+            }
+            return count.toLocaleString();
+        }
+        
+        // Format time ago (e.g., "2 hours ago", "3 days ago")
+        function formatTimeAgo(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            const intervals = [
+                { label: 'year', seconds: 31536000 },
+                { label: 'month', seconds: 2592000 },
+                { label: 'week', seconds: 604800 },
+                { label: 'day', seconds: 86400 },
+                { label: 'hour', seconds: 3600 },
+                { label: 'minute', seconds: 60 }
+            ];
+            
+            for (const interval of intervals) {
+                const count = Math.floor(seconds / interval.seconds);
+                if (count >= 1) {
+                    return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
+                }
+            }
+            return 'just now';
+        }
+
+        function playVideo(index) {
+            if (index < 0 || index >= currentPlaylist.length) return;
+            
+            // Prevent duplicate plays of same video
+            if (index === currentVideoIndex && player && typeof player.getPlayerState === 'function') {
+                const state = player.getPlayerState();
+                // If already playing or buffering, don't reload
+                if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
+                    return;
+                }
+            }
+            
+            currentVideoIndex = index;
+            const video = currentPlaylist[index];
+
+            document.getElementById('player-placeholder').classList.add('hidden');
+
+            // Show loading state in video info
+            document.getElementById('video-info').classList.remove('hidden');
+            document.getElementById('video-title').textContent = video.title || 'Loading...';
+            document.getElementById('video-channel').innerHTML = `<i class="fas fa-user-circle text-custom-muted"></i><span>${video.channel || ''}</span>`;
+
+            try {
+                if (player && typeof player.loadVideoById === 'function') {
+                    // Player exists, just load new video
+                    player.loadVideoById({
+                        videoId: video.videoId,
+                        startSeconds: 0
+                    });
+                } else if (player && typeof player.destroy === 'function') {
+                    // Player exists but in bad state, destroy and recreate
+                    player.destroy();
+                    player = null;
+                    createPlayer(video.videoId);
+                } else {
+                    // No player, create new one
+                    createPlayer(video.videoId);
+                }
+            } catch (e) {
+                console.error('Error playing video:', e);
+                // Try to recreate player on error
+                try {
+                    if (player && typeof player.destroy === 'function') {
+                        player.destroy();
+                    }
+                } catch (destroyError) {
+                    console.error('Error destroying player:', destroyError);
+                }
+                player = null;
+                createPlayer(video.videoId);
+            }
+
+            // Update active state in list (use data-index for performance)
+            document.querySelectorAll('.video-item.active').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll(`.video-item[data-index="${index}"]`).forEach(el => {
+                el.classList.add('active');
+                // Scroll to active video
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        }
+
+        function playNextVideo() {
+            if (currentVideoIndex < currentPlaylist.length - 1) {
+                playVideo(currentVideoIndex + 1);
+            }
+        }
+
+        function playPreviousVideo() {
+            if (currentVideoIndex > 0) {
+                playVideo(currentVideoIndex - 1);
+            }
+        }
+
+        function createPlayer(videoId) {
+            // Clear the player div first
+            const playerDiv = document.getElementById('player');
+            if (playerDiv) {
+                playerDiv.innerHTML = '';
+            }
+            
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                try {
+                    player = new YT.Player('player', {
+                        height: '100%',
+                        width: '100%',
+                        videoId: videoId,
+                        playerVars: {
+                            autoplay: 1,
+                            rel: 0,
+                            playsinline: 1,
+                            origin: window.location.origin,
+                            enablejsapi: 1,
+                            modestbranding: 1
+                        },
+                        events: {
+                            onReady: onPlayerReady,
+                            onStateChange: onPlayerStateChange,
+                            onError: onPlayerError
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error creating player:', e);
+                    showMessage('Error loading video player. Please refresh the page.', 'error');
+                }
+            }, 100);
+        }
+        
+        function onPlayerReady(event) {
+            // Player is ready, ensure it plays
+            try {
+                event.target.playVideo();
+            } catch (e) {
+                console.error('Error starting playback:', e);
+            }
+        }
+
+        function onPlayerError(event) {
+            console.warn('Player Error:', event.data);
+            // 100: Video not found, 101/150/153: Embedding disabled, 2: Invalid video ID
+            if ([2, 100, 101, 150, 153].includes(event.data)) {
+                const video = currentPlaylist[currentVideoIndex];
+                const videoTitle = video?.title || 'Video';
+                const videoId = video?.videoId;
+                
+                // Show error with YouTube link option
+                const el = document.getElementById('error-message');
+                el.innerHTML = `
+                    <span>Cannot play "${escapeHtml(videoTitle.substring(0, 30))}..." - </span>
+                    <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" class="underline font-bold hover:text-blue-700">Watch on YouTube</a>
+                    <span> | Auto-skipping in 3s...</span>
+                `;
+                el.classList.remove('hidden', 'text-green-600', 'text-blue-600');
+                el.classList.add('text-red-600');
+                el.style.background = '#fef2f2';
+                el.style.border = '1px solid #fee2e2';
+                
+                // Auto skip after delay
+                setTimeout(() => {
+                    hideMessage();
+                    if (currentVideoIndex < currentPlaylist.length - 1) {
+                        playNextVideo();
+                    }
+                }, 3000);
+            } else if (event.data === 5) {
+                // HTML5 player error - try to recreate player
+                console.warn('HTML5 player error, attempting to recreate...');
+                try {
+                    if (player && typeof player.destroy === 'function') {
+                        player.destroy();
+                    }
+                } catch (e) {}
+                player = null;
+                
+                setTimeout(() => {
+                    const video = currentPlaylist[currentVideoIndex];
+                    if (video) {
+                        createPlayer(video.videoId);
+                    }
+                }, 1000);
+            }
+        }
+
+        function onPlayerStateChange(event) {
+            // When video ends, play next
+            if (event.data === YT.PlayerState.ENDED) {
+                if (currentVideoIndex < currentPlaylist.length - 1) {
+                    playVideo(currentVideoIndex + 1);
+                }
+            }
+        }
+
+        // History Management
+        function addToHistory(playlistId, title, url, videoCount) {
+            // Remove if already exists
+            playlistHistory = playlistHistory.filter(p => p.id !== playlistId);
+            
+            // Add to beginning
+            playlistHistory.unshift({
+                id: playlistId,
+                title: title,
+                url: url,
+                videoCount: videoCount,
+                addedAt: Date.now()
+            });
+
+            // Keep only last 20
+            playlistHistory = playlistHistory.slice(0, 20);
+
+            // Save to cookie
+            setCookie('yt_playlist_history', JSON.stringify(playlistHistory));
+            
+            // Re-render, respecting current search query if any
+            filterHistory();
+        }
+
+        function renderPlaylistHistory(itemsToRender) {
+            const items = itemsToRender || playlistHistory;
+            
+            const emptyHTML = `
+                <div class="text-center py-10">
+                    <div class="w-12 h-12 rounded-full bg-custom-card flex items-center justify-center mx-auto mb-3 border border-custom">
+                        <i class="fas fa-inbox text-xl text-custom-muted"></i>
+                    </div>
+                    <p class="text-custom-muted text-sm">No playlists found</p>
+                </div>
+            `;
+            
+            const historyHTML = items.length === 0 
+                ? emptyHTML
+                : items.map((playlist, index) => {
+                    // Find actual index in main history array for deletion
+                    const originalIndex = playlistHistory.findIndex(p => p.id === playlist.id);
+                    return `
+                    <div class="glass rounded-lg p-3 cursor-pointer card-hover group history-item relative" 
+                         data-index="${originalIndex}">
+                        <p class="font-medium text-xs md:text-sm line-clamp-2 text-custom-main group-hover:text-blue-600 transition pr-6">${escapeHtml(playlist.title)}</p>
+                        <div class="flex items-center justify-between mt-2 text-[10px] md:text-xs text-custom-muted">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fas fa-video text-blue-400"></i>
+                                ${playlist.videoCount} videos
+                            </span>
+                        </div>
+                        <button class="remove-history-btn absolute top-2 right-2 text-custom-muted hover:text-red-500 hover:bg-red-50 rounded p-1 transition" 
+                                data-id="${playlist.id}" title="Remove from history">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
+                `}).join('');
+            
+            document.getElementById('playlist-history').innerHTML = historyHTML;
+            document.getElementById('playlist-history-mobile').innerHTML = historyHTML;
+            
+            // Add click event listeners for history items
+            document.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('click', async function(e) {
+                    if (e.target.closest('.remove-history-btn')) return;
+                    
+                    // Prevent double-clicks
+                    if (this.dataset.loading === 'true') return;
+                    this.dataset.loading = 'true';
+                    
+                    const index = parseInt(this.dataset.index);
+                    
+                    try {
+                        await loadFromHistory(index);
+                    } finally {
+                        this.dataset.loading = 'false';
+                    }
+                });
+            });
+            
+            // Add click event listeners for remove buttons
+            document.querySelectorAll('.remove-history-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const playlistId = this.dataset.id;
+                    removeFromHistory(playlistId);
+                });
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function stripHtml(html) {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            return div.textContent || div.innerText || '';
+        }
+
+        async function loadFromHistory(index) {
+            if (index >= 0 && index < playlistHistory.length) {
+                const playlist = playlistHistory[index];
+
+                // Show loading state on the clicked item
+                const historyItems = document.querySelectorAll(`.history-item[data-index="${index}"]`);
+                historyItems.forEach(item => {
+                    item.style.opacity = '0.6';
+                    item.style.pointerEvents = 'none';
+                });
+
+                try {
+                    showPage('main');
+                    await loadPlaylist(playlist.url);
+                } finally {
+                    // Reset loading state
+                    historyItems.forEach(item => {
+                        item.style.opacity = '';
+                        item.style.pointerEvents = '';
+                    });
+                }
+            }
+        }
+
+        function removeFromHistory(playlistId) {
+            playlistHistory = playlistHistory.filter(p => p.id !== playlistId);
+            setCookie('yt_playlist_history', JSON.stringify(playlistHistory));
+            filterHistory(); // Re-render respecting search
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all playlist history? This will NOT delete your API key.')) {
+                playlistHistory = [];
+                deleteCookie('yt_playlist_history');
+                document.getElementById('history-search').value = ''; // Clear search
+                document.getElementById('history-search-mobile').value = '';
+                renderPlaylistHistory();
+                showMessage('Playlist history cleared', 'success');
+            }
+        }
+
+        // UI Helpers
+        function showMessage(message, type = 'info') {
+            const el = document.getElementById('error-message');
+            el.textContent = message;
+            el.classList.remove('hidden', 'text-red-600', 'text-green-600', 'text-blue-600');
+            el.style.background = '';
+            el.style.border = '';
+            
+            if (type === 'error') {
+                el.classList.add('text-red-600');
+                el.style.background = '#fef2f2';
+                el.style.border = '1px solid #fee2e2';
+            } else if (type === 'success') {
+                el.classList.add('text-green-600');
+                el.style.background = '#f0fdf4';
+                el.style.border = '1px solid #bbf7d0';
+            } else {
+                el.classList.add('text-blue-600');
+                el.style.background = '#eff6ff';
+                el.style.border = '1px solid #bfdbfe';
+            }
+            
+            // Auto-hide message after 4 seconds
+            setTimeout(() => {
+                el.classList.add('hidden');
+            }, 4000);
+        }
+
+        function hideMessage() {
+            document.getElementById('error-message').classList.add('hidden');
+        }
+
+        // YouTube API Ready callback
+        function onYouTubeIframeAPIReady() {
+            console.log('YouTube API Ready');
+        }
+
+        // Mobile Fullscreen Mode
+        let isFullscreen = false;
+
+        function toggleFullscreen() {
+            const wrapper = document.getElementById('player-wrapper');
+            const btn = document.getElementById('fullscreen-btn');
+            const btnText = document.getElementById('fullscreen-text');
+            const btnIcon = btn.querySelector('i');
+
+            isFullscreen = !isFullscreen;
+
+            if (isFullscreen) {
+                // Enter fullscreen
+                wrapper.classList.add('fullscreen-mode');
+                document.body.classList.add('player-fullscreen');
+                btnText.textContent = 'Exit';
+                btnIcon.className = 'fas fa-compress';
+                
+                // Try to lock orientation to landscape
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(function(err) {
+                        console.log('Orientation lock not supported:', err);
+                    });
+                }
+                
+                // Also try native fullscreen API
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen().catch(err => console.log(err));
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                }
+            } else {
+                // Exit fullscreen
+                exitFullscreenMode();
+            }
+        }
+
+        function exitFullscreenMode() {
+            const wrapper = document.getElementById('player-wrapper');
+            const btn = document.getElementById('fullscreen-btn');
+            const btnText = document.getElementById('fullscreen-text');
+            const btnIcon = btn.querySelector('i');
+
+            isFullscreen = false;
+            wrapper.classList.remove('fullscreen-mode');
+            document.body.classList.remove('player-fullscreen');
+            btnText.textContent = 'Fullscreen';
+            btnIcon.className = 'fas fa-expand';
+            
+            // Unlock orientation
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+            
+            // Exit native fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(err => {});
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+
+        // Listen for fullscreen change (e.g., user pressing Escape)
+        document.addEventListener('fullscreenchange', function() {
+            if (!document.fullscreenElement && isFullscreen) {
+                exitFullscreenMode();
+            }
+        });
+
+        document.addEventListener('webkitfullscreenchange', function() {
+            if (!document.webkitFullscreenElement && isFullscreen) {
+                exitFullscreenMode();
+            }
+        });
+
+        // Exit fullscreen on back button / escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isFullscreen) {
+                exitFullscreenMode();
+            }
+        });
+
+        // ========== QUOTA TRACKING ==========
+        // YouTube API Quota: 10,000 units per day per API key
+        // Costs: Search = 100 units, Playlist details = 1 unit, PlaylistItems = 1 unit
+        const QUOTA_PER_KEY = 10000;
+        let quotaUsed = 0;
+        
+        function loadQuota() {
+            const savedQuota = getCookie('yt_quota_used');
+            const savedDate = getCookie('yt_quota_date');
+            const today = new Date().toDateString();
+            
+            // Reset quota if it's a new day
+            if (savedDate !== today) {
+                quotaUsed = 0;
+                setCookie('yt_quota_date', today);
+                setCookie('yt_quota_used', '0');
+            } else if (savedQuota) {
+                quotaUsed = parseInt(savedQuota) || 0;
+            }
+        }
+        
+        function addQuotaUsage(units) {
+            quotaUsed += units;
+            setCookie('yt_quota_used', quotaUsed.toString());
+            updateQuotaDisplay();
+        }
+        
+        function updateQuotaDisplay() {
+            const section = document.getElementById('quota-section');
+            const bar = document.getElementById('quota-bar');
+            const text = document.getElementById('quota-text');
+            const percent = document.getElementById('quota-percent');
+            
+            if (!section || apiKeys.length === 0) {
+                if (section) section.classList.add('hidden');
+                return;
+            }
+            
+            section.classList.remove('hidden');
+            
+            const totalQuota = apiKeys.length * QUOTA_PER_KEY;
+            const percentUsed = Math.min((quotaUsed / totalQuota) * 100, 100);
+            
+            bar.style.width = percentUsed + '%';
+            text.textContent = `${quotaUsed.toLocaleString()} / ${totalQuota.toLocaleString()} units`;
+            percent.textContent = `${percentUsed.toFixed(1)}% used`;
+            
+            // Change bar color based on usage
+            bar.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-orange-500', 'bg-red-500');
+            if (percentUsed < 50) {
+                bar.classList.add('bg-green-500');
+            } else if (percentUsed < 75) {
+                bar.classList.add('bg-yellow-500');
+            } else if (percentUsed < 90) {
+                bar.classList.add('bg-orange-500');
+            } else {
+                bar.classList.add('bg-red-500');
+            }
+        }
+        
+        function resetQuota() {
+            if (confirm('Reset the quota counter? This only resets the display, not YouTube actual quota.')) {
+                quotaUsed = 0;
+                setCookie('yt_quota_used', '0');
+                updateQuotaDisplay();
+                showMessage('Quota counter reset', 'success');
+            }
+        }
+        
+        // Override fetch calls to track quota (wrap existing functions)
+        const originalSearchPlaylists = searchPlaylists;
+        searchPlaylists = async function(pageToken = '') {
+            const result = await originalSearchPlaylists(pageToken);
+            // Search costs 100 units + playlist details costs 1 unit per playlist (12 playlists)
+            addQuotaUsage(100 + 12);
+            return result;
+        };
+
+
+    </script>
+</body>
+</html>
