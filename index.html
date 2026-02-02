@@ -899,6 +899,157 @@
             border-radius: var(--radius-ui-sm) !important;
         }
 
+        /* Live Stream Cards - Netflix Style */
+        .live-stream-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+        }
+
+        .live-stream-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        [data-theme="netflix"] .live-stream-card:hover {
+            box-shadow: 0 20px 40px rgba(229, 9, 20, 0.3);
+        }
+
+        .live-stream-card .aspect-video {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .live-stream-card .aspect-video::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .live-stream-card:hover .aspect-video::after {
+            opacity: 1;
+        }
+
+        /* Live Category Buttons */
+        .live-category-btn {
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .live-category-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .live-category-btn.active {
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+        }
+
+        /* Hero Section Styles */
+        #live-hero {
+            position: relative;
+        }
+
+        #live-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            z-index: 5;
+        }
+
+        #live-hero .absolute {
+            z-index: 20;
+        }
+
+        /* Responsive adjustments for live page */
+        @media (max-width: 768px) {
+            .live-stream-card:hover {
+                transform: scale(1.02);
+            }
+            
+            #live-hero {
+                height: 40vh;
+            }
+        }
+
+        /* Animation for live indicator */
+        @keyframes live-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .live-stream-card .fa-circle {
+            animation: live-pulse 2s infinite;
+        }
+
+        /* Live Chat Box Styles */
+        #live-chat-container {
+            box-shadow: var(--shadow-md);
+        }
+
+        #live-chat-container.open {
+            height: 350px !important;
+        }
+
+        #live-chat-iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Dark theme support for chat */
+        [data-theme="dark"] #live-chat-iframe-container,
+        [data-theme="bold"] #live-chat-iframe-container,
+        [data-theme="photo"] #live-chat-iframe-container,
+        [data-theme="forest"] #live-chat-iframe-container,
+        [data-theme="ocean"] #live-chat-iframe-container,
+        [data-theme="sunset"] #live-chat-iframe-container,
+        [data-theme="cyber"] #live-chat-iframe-container,
+        [data-theme="coffee"] #live-chat-iframe-container,
+        [data-theme="netflix"] #live-chat-iframe-container {
+            background: #0f0f0f;
+        }
+
+        #live-chat-toggle-btn {
+            position: relative;
+        }
+
+        #live-chat-toggle-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #ef4444;
+            border-radius: 3px 0 0 3px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        #live-chat-toggle-btn:hover::before {
+            opacity: 1;
+        }
+
+        #live-chat-chevron.rotate {
+            transform: rotate(180deg);
+        }
+
+        /* Responsive chat adjustments */
+        @media (max-width: 768px) {
+            #live-chat-container.open {
+                height: 300px !important;
+            }
+            
+            #live-chat-iframe-container {
+                min-height: 250px;
+                max-height: 300px;
+            }
+        }
+
     </style>
 
     <!-- Google tag (gtag.js) -->
@@ -928,6 +1079,9 @@
             </button>
             <button onclick="showPage('search')" class="nav-btn px-3 md:px-5 py-2 rounded-lg transition-all text-sm md:text-base flex items-center gap-2" id="nav-search">
                 <i class="fas fa-search"></i><span class="hidden md:inline">Search</span>
+            </button>
+            <button onclick="showPage('live')" class="nav-btn px-3 md:px-5 py-2 rounded-lg transition-all text-sm md:text-base flex items-center gap-2" id="nav-live">
+                <i class="fas fa-broadcast-tower"></i><span class="hidden md:inline">Live</span>
             </button>
             <button onclick="showPage('privacy')" class="nav-btn px-3 md:px-5 py-2 rounded-lg transition-all text-sm md:text-base flex items-center gap-2" id="nav-privacy">
                 <i class="fas fa-shield-alt"></i><span class="hidden md:inline">Privacy</span>
@@ -977,8 +1131,8 @@
             <!-- Settings dock mounts here on desktop (kept within sidebar boundary) -->
             <div id="settings-dock-host-desktop" class="px-2 pt-2 pb-2"></div>
             <div class="p-2 border-t border-custom bg-custom-card flex items-center justify-start">
-                <button onclick="toggleSettingsDock()" class="py-1 px-2 rounded text-custom-muted hover:text-custom-main transition-colors text-[10px] font-medium flex items-center justify-center gap-1 border border-custom" title="Settings">
-                    <i class="fas fa-gear text-[10px]"></i><span>Settings</span>
+                <button onclick="toggleSettingsDock()" class="py-1 px-2 rounded text-custom-muted hover:text-custom-main transition-colors font-medium flex items-center justify-center gap-1 border border-custom" title="Settings">
+                    <i class="fas fa-gear text-xs"></i>
                 </button>
             </div>
         </aside>
@@ -1009,8 +1163,8 @@
             <!-- Settings dock mounts here on mobile (kept within sidebar boundary) -->
             <div id="settings-dock-host-mobile" class="px-2 pt-2 pb-2"></div>
             <div class="p-2 border-t border-custom bg-custom-card flex items-center justify-start">
-                <button onclick="toggleSettingsDock()" class="py-1 px-2 rounded text-custom-muted hover:text-custom-main transition-colors text-[10px] font-medium flex items-center justify-center gap-1 border border-custom" title="Settings">
-                    <i class="fas fa-gear text-[10px]"></i><span>Settings</span>
+                <button onclick="toggleSettingsDock()" class="py-1 px-2 rounded text-custom-muted hover:text-custom-main transition-colors font-medium flex items-center justify-center gap-1 border border-custom" title="Settings">
+                    <i class="fas fa-gear text-xs"></i>
                 </button>
             </div>
         </aside>
@@ -1019,36 +1173,32 @@
         <main class="flex-1 flex flex-col overflow-hidden relative" style="background: var(--bg-main);">
             <!-- Settings Dock (Hidden by default; toggled from History) -->
             <div id="settings-dock" class="settings-dock glass hidden">
-                <button class="dock-close theme-toggle" onclick="toggleSettingsDock()" title="Close settings">
+                <button class="dock-close theme-toggle" onclick="toggleSettingsDock()" title="Close">
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="bg-custom-card border border-custom">
-                    <div class="p-2 border-b border-custom bg-custom-card flex items-center justify-between gap-2">
-                        <span class="text-[11px] font-semibold text-custom-main">Settings</span>
-                    </div>
                     <!-- Collapsible Header -->
-                    <button onclick="toggleInputSection()" class="w-full p-3 md:p-4 flex items-center justify-between hover:bg-custom-card transition-colors cursor-pointer group">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                                <i class="fas fa-sliders-h text-sm"></i>
+                    <button onclick="toggleInputSection()" class="w-full p-2 flex items-center justify-between hover:bg-custom-card transition-colors cursor-pointer group">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-sliders-h text-xs"></i>
                             </div>
-                            <span class="font-semibold text-custom-main text-sm md:text-base">Settings</span>
-                            <span id="api-status" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 ml-2 font-medium border border-slate-200">No API Key</span>
+                            <span id="api-status" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-medium border border-slate-200">No Key</span>
                         </div>
-                        <i class="fas fa-chevron-down text-custom-muted transition-transform duration-300" id="input-toggle-icon"></i>
+                        <i class="fas fa-chevron-down text-custom-muted text-xs transition-transform duration-300" id="input-toggle-icon"></i>
                     </button>
 
                     <!-- Collapsible Content -->
                     <div id="input-section" class="collapse-content">
-                        <div class="p-3 md:p-5 pt-0 md:pt-0 pb-5">
+                        <div class="p-2 pb-3">
                             <div class="w-full">
-                                <div class="grid grid-cols-1 gap-4 mb-2">
+                                <div class="grid grid-cols-1 gap-2 mb-1">
                                     <!-- Theme Selector (moved from top nav into Settings) -->
-                                    <div class="p-4 rounded-xl bg-custom-main border border-custom">
-                                        <label class="block text-xs font-semibold text-custom-muted uppercase tracking-wide mb-2 flex items-center gap-2">
+                                    <div class="p-2 rounded-lg bg-custom-main border border-custom">
+                                        <label class="block text-[10px] font-semibold text-custom-muted uppercase tracking-wide mb-1">
                                             Theme
                                         </label>
-                                        <select id="theme-select" class="w-full input-styled rounded-lg px-3 py-2 text-sm" onchange="setTheme(this.value)">
+                                        <select id="theme-select" class="w-full input-styled rounded px-2 py-1 text-xs" onchange="setTheme(this.value)">
                                             <option value="light">Minimalist</option>
                                             <option value="bold">Bold &amp; Colorful</option>
                                             <option value="dark">Dark Mode</option>
@@ -1064,52 +1214,51 @@
                                         </select>
                                     </div>
 
-                                    <div class="p-4 rounded-xl bg-custom-main border border-custom">
-                                        <label class="block text-xs font-semibold text-custom-muted uppercase tracking-wide mb-2 flex items-center gap-2">
-                                            YouTube API Keys
-                                            <span class="text-custom-muted font-normal normal-case text-[10px] ml-auto">Auto-rotates on limit</span>
+                                    <div class="p-2 rounded-lg bg-custom-main border border-custom">
+                                        <label class="block text-[10px] font-semibold text-custom-muted uppercase tracking-wide mb-1">
+                                            API Keys
                                         </label>
                                         <!-- API Keys List (Collapsible) -->
-                                        <div id="api-keys-container" class="mb-2">
-                                            <button onclick="event.stopPropagation(); toggleApiKeysList()" id="api-keys-toggle" class="hidden w-full text-left text-xs py-1.5 px-2 rounded border border-custom bg-custom-card text-custom-muted hover:bg-custom-main transition flex items-center justify-between">
-                                                <span><i class="fas fa-key mr-1.5"></i><span id="api-keys-summary">0 keys</span></span>
-                                                <i class="fas fa-chevron-down text-[10px] transition-transform" id="api-keys-chevron"></i>
+                                        <div id="api-keys-container" class="mb-1">
+                                            <button onclick="event.stopPropagation(); toggleApiKeysList()" id="api-keys-toggle" class="hidden w-full text-left text-[10px] py-1 px-1.5 rounded border border-custom bg-custom-card text-custom-muted hover:bg-custom-main transition flex items-center justify-between">
+                                                <span><i class="fas fa-key mr-1"></i><span id="api-keys-summary">0</span></span>
+                                                <i class="fas fa-chevron-down text-[9px] transition-transform" id="api-keys-chevron"></i>
                                             </button>
-                                            <div id="api-keys-list" class="space-y-1.5 max-h-24 overflow-y-auto scrollbar-thin text-xs">
+                                            <div id="api-keys-list" class="space-y-1 max-h-20 overflow-y-auto scrollbar-thin text-[10px]">
                                                 <!-- Keys rendered here -->
                                             </div>
                                         </div>
                                         <!-- Add New Key -->
                                         <div class="relative">
-                                            <input type="password" id="api-key-input" placeholder="Enter new API Key" 
-                                                class="w-full input-styled rounded-lg px-3 py-2 text-sm pr-10">
-                                            <button onclick="event.stopPropagation(); toggleApiVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-custom-muted hover:text-blue-500 transition">
+                                            <input type="password" id="api-key-input" placeholder="Add API Key" 
+                                                class="w-full input-styled rounded px-2 py-1 text-xs pr-8">
+                                            <button onclick="event.stopPropagation(); toggleApiVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 text-custom-muted hover:text-blue-500 transition text-xs">
                                                 <i class="fas fa-eye" id="api-eye"></i>
                                             </button>
                                         </div>
-                                        <div class="flex gap-2 mt-2">
-                                            <button onclick="event.stopPropagation(); addApiKey()" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs shadow-sm btn-hover transition-colors">
-                                                <i class="fas fa-plus mr-1"></i>Add Key
+                                        <div class="flex gap-1.5 mt-1.5">
+                                            <button onclick="event.stopPropagation(); addApiKey()" class="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-[10px] shadow-sm btn-hover transition-colors">
+                                                <i class="fas fa-plus mr-0.5"></i>Add
                                             </button>
-                                            <button onclick="event.stopPropagation(); clearAllApiKeys()" class="px-3 py-2 bg-custom-card text-red-500 border border-custom hover:bg-red-50 hover:border-red-200 rounded-lg font-medium text-xs transition-colors" title="Clear All">
-                                                Clear All
+                                            <button onclick="event.stopPropagation(); clearAllApiKeys()" class="px-2 py-1 bg-custom-card text-red-500 border border-custom hover:bg-red-50 hover:border-red-200 rounded font-medium text-[10px] transition-colors" title="Clear">
+                                                Clear
                                             </button>
                                         </div>
-                                        <p class="text-[9px] text-custom-muted mt-1.5 text-center opacity-70">
-                                            <i class="fas fa-sync-alt mr-1"></i>Auto-switches when quota exceeded
+                                        <p class="text-[8px] text-custom-muted mt-1 text-center opacity-70">
+                                            Auto-rotates on limit
                                         </p>
                                         <!-- API Quota Progress Bar -->
-                                        <div id="quota-section" class="mt-3 pt-3 border-t border-custom hidden">
-                                            <div class="flex justify-between items-center mb-1.5">
-                                                <span class="text-[10px] text-custom-muted font-medium">Daily Quota</span>
-                                                <span id="quota-text" class="text-[10px] text-custom-muted">0 / 10,000 units</span>
+                                        <div id="quota-section" class="mt-2 pt-2 border-t border-custom hidden">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="text-[9px] text-custom-muted font-medium">Quota</span>
+                                                <span id="quota-text" class="text-[9px] text-custom-muted">0 / 10k</span>
                                             </div>
-                                            <div class="w-full h-2 bg-custom-card rounded-full overflow-hidden border border-custom">
+                                            <div class="w-full h-1.5 bg-custom-card rounded-full overflow-hidden border border-custom">
                                                 <div id="quota-bar" class="h-full bg-green-500 transition-all duration-300" style="width: 0%"></div>
                                             </div>
-                                            <div class="flex justify-between items-center mt-1">
-                                                <span id="quota-percent" class="text-[9px] text-custom-muted">0% used</span>
-                                                <button onclick="resetQuota()" class="text-[9px] text-custom-muted hover:text-blue-500 transition" title="Reset quota counter">
+                                            <div class="flex justify-between items-center mt-0.5">
+                                                <span id="quota-percent" class="text-[8px] text-custom-muted">0%</span>
+                                                <button onclick="resetQuota()" class="text-[8px] text-custom-muted hover:text-blue-500 transition" title="Reset">
                                                     <i class="fas fa-undo mr-0.5"></i>Reset
                                                 </button>
                                             </div>
@@ -1117,19 +1266,19 @@
                                     </div>
 
                                     <!-- Clear History (moved below settings & playlist) -->
-                                    <div class="p-4 rounded-xl bg-custom-main border border-custom">
-                                        <div class="flex items-center justify-between gap-3">
+                                    <div class="p-2 rounded-lg bg-custom-main border border-custom">
+                                        <div class="flex items-center justify-between gap-2">
                                             <div class="min-w-0">
-                                                <p class="text-xs font-semibold text-custom-main">Playlist History</p>
-                                                <p class="text-[10px] text-custom-muted mt-0.5">Remove all saved playlists from this device.</p>
+                                                <p class="text-[10px] font-semibold text-custom-main">History</p>
+                                                <p class="text-[9px] text-custom-muted">Remove saved playlists</p>
                                             </div>
-                                            <button onclick="event.stopPropagation(); clearHistory()" class="py-2 px-3 rounded text-red-400 hover:text-red-500 transition-colors text-xs font-semibold flex items-center justify-center gap-2 border border-custom flex-shrink-0" title="Clear playlist history">
-                                                <i class="fas fa-trash-alt text-[10px]"></i>Clear
+                                            <button onclick="event.stopPropagation(); clearHistory()" class="py-1 px-2 rounded text-red-400 hover:text-red-500 transition-colors text-[10px] font-semibold flex items-center justify-center gap-1 border border-custom flex-shrink-0" title="Clear">
+                                                <i class="fas fa-trash-alt text-[9px]"></i>Clear
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                                <p id="error-message" class="text-center rounded-lg py-2 px-4 text-sm mt-2 hidden"></p>
+                                <p id="error-message" class="text-center rounded py-1 px-2 text-xs mt-1 hidden"></p>
                             </div>
                         </div>
                     </div>
@@ -1166,6 +1315,42 @@
                             <i class="fas fa-user-circle text-custom-muted"></i>
                             <span></span>
                         </p>
+                    </div>
+                    
+                    <!-- Live Chat Toggle Button -->
+                    <div id="live-chat-toggle-container" class="mt-3 hidden">
+                        <button onclick="toggleLiveChat()" id="live-chat-toggle-btn" class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-sm font-medium shadow-md">
+                            <i class="fas fa-comments"></i>
+                            <span>Open Live Chat</span>
+                            <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron"></i>
+                        </button>
+                        <button onclick="forceShowChat()" class="ml-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline">
+                            (Manual Open)
+                        </button>
+                    </div>
+                    
+                    <!-- Live Chat Container -->
+                    <div id="live-chat-container" class="hidden mt-3 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)]" style="height: 0; transition: height 0.3s ease;">
+                        <div class="flex flex-col h-full">
+                            <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
+                                <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                    Live Chat
+                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] text-[var(--text-muted)] hidden md:inline" title="Domain must be registered with YouTube for chat to work">ℹ️</span>
+                                    <button onclick="toggleLiveChat()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="live-chat-iframe-container" class="flex-1 bg-white" style="min-height: 300px; max-height: 400px;">
+                                <!-- YouTube Live Chat iframe will be loaded here -->
+                            </div>
+                            <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center">
+                                Note: Chat requires domain registration with YouTube
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Mobile Navigation Controls -->
@@ -1277,6 +1462,99 @@
             <div id="search-load-more" class="hidden mt-8 text-center pb-8">
                 <button onclick="searchMore()" id="btn-load-more" class="px-8 py-3 bg-custom-card border border-custom text-custom-main rounded-xl hover:bg-blue-50 hover:border-blue-200 transition font-medium">
                     Load More Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Page -->
+    <div id="live-page" class="hidden h-[calc(100vh-70px)] overflow-y-auto pb-16 md:pb-0" style="background: var(--bg-main);">
+        <div class="max-w-7xl mx-auto">
+            <!-- Hero Section -->
+            <div id="live-hero" class="relative h-[50vh] md:h-[60vh] overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg-main)] via-transparent to-transparent z-10"></div>
+                <div id="hero-content" class="absolute inset-0 flex items-end pb-8 md:pb-16 px-4 md:px-8 z-20">
+                    <div class="max-w-2xl">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold mb-4">
+                            <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                            LIVE NOW
+                        </span>
+                        <h1 id="hero-title" class="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">Discover Live Streams</h1>
+                        <p id="hero-description" class="text-white/80 text-sm md:text-base mb-6 line-clamp-2 drop-shadow">Watch the best live content from around the world - gaming, music, news, and more.</p>
+                        <div class="flex gap-3">
+                            <button onclick="playFeaturedLive()" class="px-6 py-3 bg-white text-black rounded-lg font-semibold hover:bg-white/90 transition flex items-center gap-2">
+                                <i class="fas fa-play"></i> Watch Now
+                            </button>
+                            <button onclick="document.getElementById('live-search-input').focus()" class="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition flex items-center gap-2">
+                                <i class="fas fa-search"></i> Browse
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="hero-thumbnail" class="absolute inset-0 bg-gradient-to-br from-red-900/50 to-black">
+                    <img src="https://images.unsplash.com/photo-1593305841991-05c29736ce52?w=1920&q=80" class="w-full h-full object-cover opacity-60" alt="Live streaming">
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="px-4 md:px-8 py-6">
+                <div class="relative max-w-2xl mx-auto">
+                    <input type="text" id="live-search-input" placeholder="Search live streams (e.g., 'gaming', 'music', 'news')..." 
+                        class="w-full input-styled rounded-xl pl-12 pr-4 py-4 text-sm md:text-base shadow-lg"
+                        onkeydown="if(event.key === 'Enter') searchLiveStreams()">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-custom-muted text-lg"></i>
+                    <button onclick="searchLiveStreams()" class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="px-4 md:px-8 pb-4">
+                <div class="flex flex-wrap gap-2 justify-center">
+                    <button onclick="setLiveCategory('all')" class="live-category-btn active px-4 py-2 rounded-full text-sm font-medium transition bg-red-600 text-white" data-category="all">
+                        <i class="fas fa-fire mr-1"></i> Trending
+                    </button>
+                    <button onclick="setLiveCategory('gaming')" class="live-category-btn px-4 py-2 rounded-full text-sm font-medium transition bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-red-600 hover:text-white" data-category="gaming">
+                        <i class="fas fa-gamepad mr-1"></i> Gaming
+                    </button>
+                    <button onclick="setLiveCategory('music')" class="live-category-btn px-4 py-2 rounded-full text-sm font-medium transition bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-red-600 hover:text-white" data-category="music">
+                        <i class="fas fa-music mr-1"></i> Music
+                    </button>
+                    <button onclick="setLiveCategory('news')" class="live-category-btn px-4 py-2 rounded-full text-sm font-medium transition bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-red-600 hover:text-white" data-category="news">
+                        <i class="fas fa-newspaper mr-1"></i> News
+                    </button>
+                    <button onclick="setLiveCategory('sports')" class="live-category-btn px-4 py-2 rounded-full text-sm font-medium transition bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-red-600 hover:text-white" data-category="sports">
+                        <i class="fas fa-futbol mr-1"></i> Sports
+                    </button>
+                    <button onclick="setLiveCategory('technology')" class="live-category-btn px-4 py-2 rounded-full text-sm font-medium transition bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-red-600 hover:text-white" data-category="technology">
+                        <i class="fas fa-microchip mr-1"></i> Tech
+                    </button>
+                    <button onclick="setLiveCategory('entertainment')" class="live-category-btn px-4 py-2 rounded-full text-sm font-medium transition bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-red-600 hover:text-white" data-category="entertainment">
+                        <i class="fas fa-tv mr-1"></i> Entertainment
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Streams Grid -->
+            <div class="px-4 md:px-8 py-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 id="live-section-title" class="text-xl md:text-2xl font-bold text-[var(--text-main)]">Trending Live Streams</h2>
+                    <span id="live-count" class="text-sm text-[var(--text-muted)]"></span>
+                </div>
+                <div id="live-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                    <div class="col-span-full text-center py-20 opacity-50">
+                        <i class="fas fa-broadcast-tower text-6xl mb-4 text-[var(--text-muted)]"></i>
+                        <p class="text-[var(--text-muted)] text-lg">Select a category to discover live streams</p>
+                        <p class="text-[var(--text-muted)] text-sm mt-2">Real-time content from YouTube creators worldwide</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Load More -->
+            <div id="live-load-more" class="hidden px-4 md:px-8 pb-8 text-center">
+                <button onclick="loadMoreLiveStreams()" id="btn-live-load-more" class="px-8 py-3 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] rounded-xl hover:bg-red-50 hover:border-red-200 transition font-medium">
+                    Load More Streams
                 </button>
             </div>
         </div>
@@ -1765,11 +2043,18 @@
         function showPage(page) {
             document.getElementById('main-page').classList.toggle('hidden', page !== 'main');
             document.getElementById('search-page').classList.toggle('hidden', page !== 'search');
+            document.getElementById('live-page').classList.toggle('hidden', page !== 'live');
             document.getElementById('privacy-page').classList.toggle('hidden', page !== 'privacy');
             
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             const navBtn = document.getElementById('nav-' + page);
             if (navBtn) navBtn.classList.add('active');
+            
+            // Load live streams when navigating to live page
+            if (page === 'live' && !liveStreamsLoaded) {
+                loadLiveCategory('all');
+                liveStreamsLoaded = true;
+            }
             
             closeMobilePanels();
         }
@@ -1892,12 +2177,18 @@
                     }
                 }
 
+                // Track search API usage (100 units per search call)
+                trackApiCall('search', 1);
+                
                 // Fetch video counts for all playlists in one batch call
                 const playlistIds = data.items.map(item => item.id.playlistId).join(',');
                 const detailsResponse = await fetch(
                     `https://www.googleapis.com/youtube/v3/playlists?part=contentDetails&id=${playlistIds}&key=${apiKey}`
                 );
                 const detailsData = await detailsResponse.json();
+                
+                // Track playlists API usage (1 unit)
+                trackApiCall('playlists', 1);
                 
                 // Create a map of playlist ID to video count
                 const videoCountMap = {};
@@ -2143,9 +2434,21 @@
         }
 
         async function loadPlaylist(playlistUrlOverride = '') {
+            // Hide live chat toggle and clear chat when loading a new playlist
+            const chatToggle = document.getElementById('live-chat-toggle-container');
+            const chatContainer = document.getElementById('live-chat-container');
+            if (chatToggle) chatToggle.classList.add('hidden');
+            if (chatContainer) {
+                chatContainer.classList.add('hidden');
+                chatContainer.classList.remove('open');
+            }
+            clearLiveChat();
+            
             // Use multi-key system
             if (!apiKeys || apiKeys.length === 0) {
-                showMessage('Please add at least one API key in Settings', 'error');
+                showMessage('Please add at least one API Key in the Player Settings first.', 'error');
+                showPage('main');
+                toggleInputSection();
                 return;
             }
 
@@ -2188,10 +2491,14 @@
                     }
 
                     const playlistTitle = playlistData.items?.[0]?.snippet?.title || 'Unknown Playlist';
+                    
+                    // Track playlists API usage (1 unit)
+                    trackApiCall('playlists', 1);
 
                     // Fetch playlist items
                     let allItems = [];
                     let nextPageToken = '';
+                    let playlistItemsCalls = 0;
 
                     do {
                         const response = await fetch(
@@ -2208,7 +2515,11 @@
 
                         allItems = allItems.concat(data.items || []);
                         nextPageToken = data.nextPageToken;
+                        playlistItemsCalls++;
                     } while (nextPageToken);
+                    
+                    // Track playlistItems API usage (1 unit per page call)
+                    trackApiCall('playlistItems', playlistItemsCalls);
 
                     if (allItems.length === 0) {
                         showMessage('Playlist is empty or private', 'error');
@@ -2225,6 +2536,7 @@
 
                     // Fetch video statistics (views) in batches of 50
                     const videoIds = currentPlaylist.map(v => v.videoId);
+                    let videosApiCalls = 0;
                     for (let i = 0; i < videoIds.length; i += 50) {
                         const batch = videoIds.slice(i, i + 50).join(',');
                         try {
@@ -2240,9 +2552,15 @@
                                     }
                                 });
                             }
+                            videosApiCalls++;
                         } catch (e) {
                             console.warn('Could not fetch video stats:', e);
                         }
+                    }
+                    
+                    // Track videos API usage (1 unit per batch call)
+                    if (videosApiCalls > 0) {
+                        trackApiCall('videos', videosApiCalls);
                     }
 
                     // Add to history
@@ -2427,6 +2745,12 @@
             document.getElementById('video-title').textContent = video.title || 'Loading...';
             document.getElementById('video-channel').innerHTML = `<i class="fas fa-user-circle text-custom-muted"></i><span>${video.channel || ''}</span>`;
 
+            // Show live chat toggle for all videos (chat will only work for live streams)
+            const chatToggle = document.getElementById('live-chat-toggle-container');
+            if (chatToggle) {
+                chatToggle.classList.remove('hidden');
+            }
+
             try {
                 if (player && typeof player.loadVideoById === 'function') {
                     // Player exists, just load new video
@@ -2466,6 +2790,14 @@
                 // Scroll to active video
                 el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
+            
+            // Check if this is a live stream and show chat toggle if so
+            checkAndShowLiveChat();
+            
+            // Backup check after player is ready
+            setTimeout(() => {
+                checkPlayerForLiveStream();
+            }, 2000);
         }
 
         function playNextVideo() {
@@ -2838,29 +3170,98 @@
 
         // ========== QUOTA TRACKING ==========
         // YouTube API Quota: 10,000 units per day per API key
-        // Costs: Search = 100 units, Playlist details = 1 unit, PlaylistItems = 1 unit
+        // Costs: Search = 100 units, Videos list = 1 unit, Playlists list = 1 unit, PlaylistItems = 1 unit
         const QUOTA_PER_KEY = 10000;
-        let quotaUsed = 0;
+        const QUOTA_COSTS = {
+            search: 100,
+            videos: 1,
+            playlists: 1,
+            playlistItems: 1
+        };
+        
+        // Quota tracking per API key
+        let quotaData = {
+            date: new Date().toDateString(),
+            keys: {} // Format: { 'apiKeyPrefix': { used: 0, operations: [] } }
+        };
         
         function loadQuota() {
-            const savedQuota = getCookie('yt_quota_used');
-            const savedDate = getCookie('yt_quota_date');
+            const savedQuota = getCookie('yt_quota_data');
             const today = new Date().toDateString();
             
-            // Reset quota if it's a new day
-            if (savedDate !== today) {
-                quotaUsed = 0;
-                setCookie('yt_quota_date', today);
-                setCookie('yt_quota_used', '0');
-            } else if (savedQuota) {
-                quotaUsed = parseInt(savedQuota) || 0;
+            if (savedQuota) {
+                try {
+                    const parsed = JSON.parse(savedQuota);
+                    // Reset if it's a new day
+                    if (parsed.date !== today) {
+                        quotaData = { date: today, keys: {} };
+                        saveQuotaData();
+                    } else {
+                        quotaData = parsed;
+                    }
+                } catch (e) {
+                    quotaData = { date: today, keys: {} };
+                    saveQuotaData();
+                }
+            } else {
+                quotaData = { date: today, keys: {} };
+                saveQuotaData();
             }
         }
         
-        function addQuotaUsage(units) {
-            quotaUsed += units;
-            setCookie('yt_quota_used', quotaUsed.toString());
+        function saveQuotaData() {
+            setCookie('yt_quota_data', JSON.stringify(quotaData));
+        }
+        
+        function getApiKeyIdentifier(key) {
+            // Create a short identifier from the API key (first 8 chars + last 4)
+            if (!key || key.length < 12) return 'unknown';
+            return key.substring(0, 8) + '...' + key.substring(key.length - 4);
+        }
+        
+        function getCurrentKeyIdentifier() {
+            const key = getCurrentApiKey();
+            return key ? getApiKeyIdentifier(key) : null;
+        }
+        
+        function addQuotaUsage(operation, count = 1) {
+            const keyId = getCurrentKeyIdentifier();
+            if (!keyId) return;
+            
+            const units = (QUOTA_COSTS[operation] || 1) * count;
+            
+            // Initialize key tracking if not exists
+            if (!quotaData.keys[keyId]) {
+                quotaData.keys[keyId] = {
+                    used: 0,
+                    operations: {}
+                };
+            }
+            
+            // Add to total
+            quotaData.keys[keyId].used += units;
+            
+            // Track by operation type
+            if (!quotaData.keys[keyId].operations[operation]) {
+                quotaData.keys[keyId].operations[operation] = { count: 0, units: 0 };
+            }
+            quotaData.keys[keyId].operations[operation].count += count;
+            quotaData.keys[keyId].operations[operation].units += units;
+            
+            saveQuotaData();
             updateQuotaDisplay();
+        }
+        
+        function getTotalQuotaUsed() {
+            let total = 0;
+            Object.values(quotaData.keys).forEach(keyData => {
+                total += keyData.used;
+            });
+            return total;
+        }
+        
+        function getKeyQuotaUsage(keyId) {
+            return quotaData.keys[keyId] || { used: 0, operations: {} };
         }
         
         function updateQuotaDisplay() {
@@ -2876,12 +3277,15 @@
             
             section.classList.remove('hidden');
             
-            const totalQuota = apiKeys.length * QUOTA_PER_KEY;
-            const percentUsed = Math.min((quotaUsed / totalQuota) * 100, 100);
+            // Calculate totals
+            const totalUsed = getTotalQuotaUsed();
+            const totalAvailable = apiKeys.length * QUOTA_PER_KEY;
+            const percentUsed = Math.min((totalUsed / totalAvailable) * 100, 100);
             
+            // Update main display
             bar.style.width = percentUsed + '%';
-            text.textContent = `${quotaUsed.toLocaleString()} / ${totalQuota.toLocaleString()} units`;
-            percent.textContent = `${percentUsed.toFixed(1)}% used`;
+            text.textContent = `${totalUsed.toLocaleString()} / ${totalAvailable.toLocaleString()} units (${apiKeys.length} key${apiKeys.length > 1 ? 's' : ''})`;
+            percent.textContent = `${percentUsed.toFixed(1)}% used today`;
             
             // Change bar color based on usage
             bar.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-orange-500', 'bg-red-500');
@@ -2894,26 +3298,645 @@
             } else {
                 bar.classList.add('bg-red-500');
             }
+            
+            // Update per-key details
+            updateQuotaDetails();
+        }
+        
+        function updateQuotaDetails() {
+            let detailsHtml = '<div class="mt-3 pt-3 border-t border-[var(--border-color)]">';
+            detailsHtml += '<p class="text-[10px] font-semibold text-[var(--text-muted)] mb-2 uppercase tracking-wide">Per-Key Usage:</p>';
+            
+            apiKeys.forEach((key, index) => {
+                const keyId = getApiKeyIdentifier(key);
+                const usage = getKeyQuotaUsage(keyId);
+                const percent = Math.min((usage.used / QUOTA_PER_KEY) * 100, 100);
+                const isActive = index === currentKeyIndex;
+                
+                // Calculate color based on usage
+                let colorClass = 'bg-green-500';
+                if (percent >= 90) colorClass = 'bg-red-500';
+                else if (percent >= 75) colorClass = 'bg-orange-500';
+                else if (percent >= 50) colorClass = 'bg-yellow-500';
+                
+                detailsHtml += `
+                    <div class="mb-2 ${isActive ? 'opacity-100' : 'opacity-70'}">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] text-[var(--text-main)] font-medium flex items-center gap-1">
+                                ${isActive ? '<i class="fas fa-check-circle text-green-500"></i>' : ''}
+                                Key ${index + 1}: ${keyId}
+                            </span>
+                            <span class="text-[10px] text-[var(--text-muted)]">${usage.used.toLocaleString()} / ${QUOTA_PER_KEY.toLocaleString()}</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-[var(--bg-main)] rounded-full overflow-hidden">
+                            <div class="h-full ${colorClass} transition-all duration-300" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Show operation breakdown for current key
+            const currentKeyId = getCurrentKeyIdentifier();
+            if (currentKeyId && quotaData.keys[currentKeyId]) {
+                const ops = quotaData.keys[currentKeyId].operations;
+                if (Object.keys(ops).length > 0) {
+                    detailsHtml += '<p class="text-[10px] font-semibold text-[var(--text-muted)] mt-3 mb-1 uppercase tracking-wide">Current Key Operations:</p>';
+                    Object.entries(ops).forEach(([op, data]) => {
+                        const opName = op.charAt(0).toUpperCase() + op.slice(1).replace(/([A-Z])/g, ' $1');
+                        detailsHtml += `
+                            <div class="flex justify-between items-center text-[10px] py-0.5">
+                                <span class="text-[var(--text-muted)]">${opName}</span>
+                                <span class="text-[var(--text-main)]">${data.count} calls (${data.units} units)</span>
+                            </div>
+                        `;
+                    });
+                }
+            }
+            
+            detailsHtml += '</div>';
+            
+            // Insert or update details section
+            const detailsId = 'quota-details';
+            let detailsEl = document.getElementById(detailsId);
+            if (!detailsEl) {
+                detailsEl = document.createElement('div');
+                detailsEl.id = detailsId;
+                section.appendChild(detailsEl);
+            }
+            detailsEl.innerHTML = detailsHtml;
         }
         
         function resetQuota() {
-            if (confirm('Reset the quota counter? This only resets the display, not YouTube actual quota.')) {
-                quotaUsed = 0;
-                setCookie('yt_quota_used', '0');
+            if (confirm('Reset the quota counter for all API keys? This only resets the local display, not YouTube\'s actual quota.')) {
+                quotaData = { date: new Date().toDateString(), keys: {} };
+                saveQuotaData();
                 updateQuotaDisplay();
-                showMessage('Quota counter reset', 'success');
+                showMessage('Quota counters reset for all keys', 'success');
             }
         }
         
-        // Override fetch calls to track quota (wrap existing functions)
-        const originalSearchPlaylists = searchPlaylists;
-        searchPlaylists = async function(pageToken = '') {
-            const result = await originalSearchPlaylists(pageToken);
-            // Search costs 100 units + playlist details costs 1 unit per playlist (12 playlists)
-            addQuotaUsage(100 + 12);
-            return result;
+        // Helper function to wrap API calls with quota tracking
+        function trackApiCall(operation, count = 1) {
+            addQuotaUsage(operation, count);
+        }
+
+        // ========== LIVE STREAMS FUNCTIONALITY ==========
+        let liveStreamsLoaded = false;
+        let currentLiveCategory = 'all';
+        let liveNextPageToken = '';
+        let currentLiveQuery = '';
+        let featuredLiveVideo = null;
+
+        const liveCategories = {
+            'all': { query: '', title: 'Trending Live Streams', icon: 'fa-fire' },
+            'gaming': { query: 'gaming live', title: 'Gaming Live Streams', icon: 'fa-gamepad' },
+            'music': { query: 'music live', title: 'Music Live Streams', icon: 'fa-music' },
+            'news': { query: 'news live', title: 'News Live Streams', icon: 'fa-newspaper' },
+            'sports': { query: 'sports live', title: 'Sports Live Streams', icon: 'fa-futbol' },
+            'technology': { query: 'technology live', title: 'Tech Live Streams', icon: 'fa-microchip' },
+            'entertainment': { query: 'entertainment live', title: 'Entertainment Live Streams', icon: 'fa-tv' }
         };
 
+        function setLiveCategory(category) {
+            currentLiveCategory = category;
+            
+            // Update button styling
+            document.querySelectorAll('.live-category-btn').forEach(btn => {
+                const isActive = btn.dataset.category === category;
+                btn.classList.toggle('active', isActive);
+                btn.classList.toggle('bg-red-600', isActive);
+                btn.classList.toggle('text-white', isActive);
+                btn.classList.toggle('bg-[var(--bg-card)]', !isActive);
+                btn.classList.toggle('text-[var(--text-main)]', !isActive);
+            });
+            
+            // Update section title
+            const categoryInfo = liveCategories[category];
+            document.getElementById('live-section-title').textContent = categoryInfo.title;
+            
+            // Load streams for this category
+            loadLiveCategory(category);
+        }
+
+        async function loadLiveCategory(category, pageToken = '') {
+            const apiKey = getCurrentApiKey();
+            
+            if (!apiKey) {
+                showLiveError('Please add at least one API Key in the Player Settings first.');
+                return;
+            }
+
+            const categoryInfo = liveCategories[category];
+            const container = document.getElementById('live-results');
+            const loadMoreBtn = document.getElementById('live-load-more');
+            
+            if (!pageToken) {
+                container.innerHTML = '<div class="col-span-full text-center py-20"><i class="fas fa-circle-notch fa-spin text-4xl text-red-600"></i><p class="mt-4 text-[var(--text-muted)]">Discovering live streams...</p></div>';
+                loadMoreBtn.classList.add('hidden');
+            } else {
+                document.getElementById('btn-live-load-more').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Loading...';
+            }
+
+            try {
+                // Build search query for live streams
+                let searchQuery = categoryInfo.query || '';
+                if (category === 'all') {
+                    searchQuery = 'live streaming';
+                }
+                
+                const response = await fetch(
+                    `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&eventType=live&q=${encodeURIComponent(searchQuery)}&maxResults=12&order=viewCount&key=${apiKey}${pageToken ? '&pageToken=' + pageToken : ''}`
+                );
+                
+                const data = await response.json();
+
+                if (data.error) {
+                    if (data.error.code === 403 && data.error.message.includes('quota')) {
+                        if (rotateToNextApiKey()) {
+                            loadLiveCategory(category, pageToken);
+                            return;
+                        }
+                    }
+                    throw new Error(data.error.message);
+                }
+                
+                // Track search API usage (100 units)
+                trackApiCall('search', 1);
+
+                liveNextPageToken = data.nextPageToken || '';
+                
+                if (!pageToken) {
+                    container.innerHTML = '';
+                    if (data.items.length === 0) {
+                        container.innerHTML = '<div class="col-span-full text-center py-20 text-[var(--text-muted)]"><i class="fas fa-satellite-dish text-4xl mb-4"></i><p>No live streams found for this category</p><p class="text-sm mt-2">Try selecting a different category</p></div>';
+                        return;
+                    }
+                }
+
+                // Get video IDs for stats
+                const videoIds = data.items.map(item => item.id.videoId).join(',');
+                
+                // Fetch video details (duration, views, concurrent viewers if available)
+                const detailsResponse = await fetch(
+                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,liveStreamingDetails&id=${videoIds}&key=${apiKey}`
+                );
+                
+                const detailsData = await detailsResponse.json();
+                
+                // Track videos API usage (1 unit)
+                trackApiCall('videos', 1);
+                
+                // Create map of video details
+                const videoDetailsMap = {};
+                if (detailsData.items) {
+                    detailsData.items.forEach(item => {
+                        videoDetailsMap[item.id] = item;
+                    });
+                }
+
+                // Set featured video for hero section (first video with most viewers)
+                if (!pageToken && data.items.length > 0) {
+                    const featuredId = data.items[0].id.videoId;
+                    const featuredDetails = videoDetailsMap[featuredId];
+                    if (featuredDetails) {
+                        featuredLiveVideo = {
+                            id: featuredId,
+                            title: featuredDetails.snippet.title,
+                            description: featuredDetails.snippet.description,
+                            thumbnail: featuredDetails.snippet.thumbnails.high?.url || featuredDetails.snippet.thumbnails.medium?.url,
+                            channelTitle: featuredDetails.snippet.channelTitle,
+                            channelId: featuredDetails.snippet.channelId
+                        };
+                        updateHeroSection();
+                    }
+                }
+
+                // Render live stream cards
+                data.items.forEach(item => {
+                    const details = videoDetailsMap[item.id.videoId];
+                    if (!details) return;
+                    
+                    const card = createLiveStreamCard(item, details);
+                    container.appendChild(card);
+                });
+
+                // Update count
+                const currentCount = container.querySelectorAll('.live-stream-card').length;
+                document.getElementById('live-count').textContent = `${currentCount} streams found`;
+
+                if (liveNextPageToken) {
+                    loadMoreBtn.classList.remove('hidden');
+                    document.getElementById('btn-live-load-more').innerHTML = 'Load More Streams';
+                } else {
+                    loadMoreBtn.classList.add('hidden');
+                }
+
+            } catch (error) {
+                showLiveError('Error: ' + stripHtml(error.message));
+            }
+        }
+
+        function createLiveStreamCard(item, details) {
+            const el = document.createElement('div');
+            el.className = 'live-stream-card glass rounded-xl overflow-hidden shadow-sm border border-[var(--border-color)] flex flex-col card-hover group cursor-pointer';
+            
+            const thumbnail = details.snippet.thumbnails.medium?.url || details.snippet.thumbnails.default?.url;
+            const title = details.snippet.title;
+            const channel = details.snippet.channelTitle;
+            const viewCount = formatViews(details.statistics?.viewCount || 0);
+            const concurrentViewers = details.liveStreamingDetails?.concurrentViewers;
+            
+            el.innerHTML = `
+                <div class="relative aspect-video bg-slate-800 overflow-hidden">
+                    <img src="${thumbnail}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22><rect fill=%22%23334155%22 width=%22100%%22 height=%22100%%22/><text fill=%22%2394a3b8%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22>Live Stream</text></svg>'">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div class="absolute top-2 left-2 flex items-center gap-2">
+                        <span class="px-2 py-1 rounded bg-red-600 text-white text-xs font-bold flex items-center gap-1 animate-pulse">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                            LIVE
+                        </span>
+                    </div>
+                    <div class="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/70 text-white text-xs font-medium">
+                        <i class="fas fa-user mr-1"></i>${concurrentViewers ? formatViews(concurrentViewers) + ' watching' : viewCount + ' views'}
+                    </div>
+                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="w-16 h-16 rounded-full bg-red-600/90 flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
+                            <i class="fas fa-play text-white text-2xl ml-1"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 flex flex-col flex-1">
+                    <h3 class="font-bold text-[var(--text-main)] line-clamp-2 mb-2 text-sm md:text-base leading-snug group-hover:text-red-500 transition-colors">${escapeHtml(title)}</h3>
+                    <div class="mt-auto flex items-center justify-between">
+                        <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 truncate flex-1">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="truncate">${escapeHtml(channel)}</span>
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            el.onclick = () => playLiveStream(item.id.videoId, title, channel);
+            
+            return el;
+        }
+
+        function updateHeroSection() {
+            if (!featuredLiveVideo) return;
+            
+            document.getElementById('hero-title').textContent = featuredLiveVideo.title;
+            document.getElementById('hero-description').textContent = featuredLiveVideo.description.substring(0, 150) + '...';
+            
+            const heroThumbnail = document.getElementById('hero-thumbnail');
+            if (featuredLiveVideo.thumbnail) {
+                heroThumbnail.innerHTML = `<img src="${featuredLiveVideo.thumbnail}" class="w-full h-full object-cover opacity-60" alt="${escapeHtml(featuredLiveVideo.title)}">`;
+            }
+        }
+
+        function playFeaturedLive() {
+            if (featuredLiveVideo) {
+                playLiveStream(featuredLiveVideo.id, featuredLiveVideo.title, featuredLiveVideo.channelTitle);
+            }
+        }
+
+        function playLiveStream(videoId, title, channel) {
+            // Navigate to main page
+            showPage('main');
+            
+            // Create a single-video "playlist"
+            currentPlaylist = [{
+                videoId: videoId,
+                title: title || 'Live Stream',
+                thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+                channel: channel || 'Unknown Channel',
+                publishedAt: new Date().toISOString(),
+                isLive: true // Mark as live stream
+            }];
+            
+            // Update UI
+            document.getElementById('playlist-title').textContent = 'Live Stream';
+            document.getElementById('playlist-title-mobile').textContent = 'Live Stream';
+            document.getElementById('video-count').textContent = '1 video';
+            document.getElementById('video-count-mobile').textContent = '1 video';
+            
+            renderVideoList();
+            playVideo(0);
+            
+            // Show live chat toggle immediately for live streams
+            showLiveChatToggle();
+            
+            showMessage('Playing live stream', 'success');
+        }
+
+        function searchLiveStreams() {
+            const query = document.getElementById('live-search-input').value.trim();
+            if (!query) return;
+            
+            currentLiveQuery = query;
+            liveNextPageToken = '';
+            
+            // Update section title
+            document.getElementById('live-section-title').textContent = `Search: "${query}"`;
+            
+            // Reset category buttons
+            document.querySelectorAll('.live-category-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-red-600', 'text-white');
+                btn.classList.add('bg-[var(--bg-card)]', 'text-[var(--text-main)]');
+            });
+            
+            loadLiveSearch(query);
+        }
+
+        async function loadLiveSearch(query, pageToken = '') {
+            const apiKey = getCurrentApiKey();
+            
+            if (!apiKey) {
+                showLiveError('Please add at least one API Key in the Player Settings first.');
+                return;
+            }
+
+            const container = document.getElementById('live-results');
+            const loadMoreBtn = document.getElementById('live-load-more');
+            
+            if (!pageToken) {
+                container.innerHTML = '<div class="col-span-full text-center py-20"><i class="fas fa-circle-notch fa-spin text-4xl text-red-600"></i><p class="mt-4 text-[var(--text-muted)]">Searching live streams...</p></div>';
+                loadMoreBtn.classList.add('hidden');
+            }
+
+            try {
+                const response = await fetch(
+                    `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&eventType=live&q=${encodeURIComponent(query)}&maxResults=12&order=relevance&key=${apiKey}${pageToken ? '&pageToken=' + pageToken : ''}`
+                );
+                
+                const data = await response.json();
+
+                if (data.error) {
+                    if (data.error.code === 403 && data.error.message.includes('quota')) {
+                        if (rotateToNextApiKey()) {
+                            loadLiveSearch(query, pageToken);
+                            return;
+                        }
+                    }
+                    throw new Error(data.error.message);
+                }
+                
+                // Track search API usage (100 units)
+                trackApiCall('search', 1);
+
+                liveNextPageToken = data.nextPageToken || '';
+                
+                if (!pageToken) {
+                    container.innerHTML = '';
+                    if (data.items.length === 0) {
+                        container.innerHTML = '<div class="col-span-full text-center py-20 text-[var(--text-muted)]"><i class="fas fa-search text-4xl mb-4"></i><p>No live streams found for "' + escapeHtml(query) + '"</p><p class="text-sm mt-2">Try a different search term</p></div>';
+                        return;
+                    }
+                }
+
+                // Get video details
+                const videoIds = data.items.map(item => item.id.videoId).join(',');
+                const detailsResponse = await fetch(
+                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,liveStreamingDetails&id=${videoIds}&key=${apiKey}`
+                );
+                
+                const detailsData = await detailsResponse.json();
+                
+                // Track videos API usage (1 unit)
+                trackApiCall('videos', 1);
+                const videoDetailsMap = {};
+                if (detailsData.items) {
+                    detailsData.items.forEach(item => {
+                        videoDetailsMap[item.id] = item;
+                    });
+                }
+
+                // Render cards
+                data.items.forEach(item => {
+                    const details = videoDetailsMap[item.id.videoId];
+                    if (!details) return;
+                    
+                    const card = createLiveStreamCard(item, details);
+                    container.appendChild(card);
+                });
+
+                // Update count
+                const currentCount = container.querySelectorAll('.live-stream-card').length;
+                document.getElementById('live-count').textContent = `${currentCount} streams found`;
+
+                if (liveNextPageToken) {
+                    loadMoreBtn.classList.remove('hidden');
+                    document.getElementById('btn-live-load-more').innerHTML = 'Load More Streams';
+                } else {
+                    loadMoreBtn.classList.add('hidden');
+                }
+
+            } catch (error) {
+                showLiveError('Error: ' + stripHtml(error.message));
+            }
+        }
+
+        function loadMoreLiveStreams() {
+            if (liveNextPageToken) {
+                if (currentLiveQuery) {
+                    loadLiveSearch(currentLiveQuery, liveNextPageToken);
+                } else {
+                    loadLiveCategory(currentLiveCategory, liveNextPageToken);
+                }
+            }
+        }
+
+        function showLiveError(message) {
+            const container = document.getElementById('live-results');
+            container.innerHTML = `<div class="col-span-full text-center text-red-500 py-10"><i class="fas fa-exclamation-triangle text-3xl mb-3"></i><p>${escapeHtml(message)}</p></div>`;
+            document.getElementById('live-load-more').classList.add('hidden');
+        }
+
+        // ========== LIVE CHAT FUNCTIONALITY ==========
+        let isLiveChatOpen = false;
+        let currentLiveChatVideoId = null;
+
+        function toggleLiveChat() {
+            const container = document.getElementById('live-chat-container');
+            const chevron = document.getElementById('live-chat-chevron');
+            
+            isLiveChatOpen = !isLiveChatOpen;
+            console.log('Toggling live chat:', isLiveChatOpen ? 'opening' : 'closing');
+            
+            if (isLiveChatOpen) {
+                container.classList.remove('hidden');
+                console.log('Chat container shown');
+                // Small delay to allow display:block to apply before height transition
+                setTimeout(() => {
+                    container.classList.add('open');
+                    console.log('Chat container expanded');
+                }, 10);
+                chevron.classList.add('rotate');
+                
+                // Load chat if we have a video ID and it's different from current
+                const currentVideo = currentPlaylist[currentVideoIndex];
+                console.log('Current video for chat:', currentVideo);
+                if (currentVideo && currentVideo.videoId !== currentLiveChatVideoId) {
+                    console.log('Loading chat for video:', currentVideo.videoId);
+                    loadLiveChat(currentVideo.videoId);
+                } else if (!currentVideo) {
+                    console.warn('No current video available for chat');
+                }
+            } else {
+                container.classList.remove('open');
+                chevron.classList.remove('rotate');
+                setTimeout(() => {
+                    container.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function loadLiveChat(videoId) {
+            if (!videoId) {
+                console.warn('No video ID provided to loadLiveChat');
+                return;
+            }
+            
+            console.log('Loading live chat for video:', videoId);
+            currentLiveChatVideoId = videoId;
+            const container = document.getElementById('live-chat-iframe-container');
+            
+            if (!container) {
+                console.error('Chat iframe container not found');
+                return;
+            }
+            
+            // YouTube Live Chat embed URL
+            // Note: domain must be registered with YouTube for this to work properly
+            const chatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}&dark_theme=1`;
+            console.log('Chat URL:', chatUrl);
+            
+            container.innerHTML = `
+                <iframe 
+                    src="${chatUrl}" 
+                    frameborder="0" 
+                    allowfullscreen
+                    sandbox="allow-scripts allow-same-origin allow-popups"
+                    style="width: 100%; height: 100%; border: none;"
+                ></iframe>
+            `;
+            console.log('Chat iframe loaded');
+        }
+
+        function clearLiveChat() {
+            currentLiveChatVideoId = null;
+            const container = document.getElementById('live-chat-iframe-container');
+            container.innerHTML = '';
+            
+            // Close the chat box
+            if (isLiveChatOpen) {
+                toggleLiveChat();
+            }
+        }
+
+        function showLiveChatToggle() {
+            const toggleContainer = document.getElementById('live-chat-toggle-container');
+            if (toggleContainer) {
+                toggleContainer.classList.remove('hidden');
+                console.log('Live chat toggle shown');
+            }
+        }
+
+        function hideLiveChatToggle() {
+            const toggleContainer = document.getElementById('live-chat-toggle-container');
+            if (toggleContainer) {
+                toggleContainer.classList.add('hidden');
+                console.log('Live chat toggle hidden');
+            }
+            clearLiveChat();
+        }
+
+        // Check if current video is a live stream
+        async function checkAndShowLiveChat() {
+            const currentVideo = currentPlaylist[currentVideoIndex];
+            if (!currentVideo || !currentVideo.videoId) {
+                hideLiveChatToggle();
+                return;
+            }
+            
+            const apiKey = getCurrentApiKey();
+            if (!apiKey) {
+                hideLiveChatToggle();
+                return;
+            }
+            
+            // If video is already marked as live (from Live page), show chat immediately
+            if (currentVideo.isLive) {
+                console.log('Video marked as live, showing chat toggle');
+                showLiveChatToggle();
+                return;
+            }
+            
+            try {
+                console.log('Checking live status for video:', currentVideo.videoId);
+                const response = await fetch(
+                    `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${currentVideo.videoId}&key=${apiKey}`
+                );
+                const data = await response.json();
+                
+                // Track videos API usage (1 unit)
+                trackApiCall('videos', 1);
+                
+                if (data.items && data.items.length > 0) {
+                    const video = data.items[0];
+                    const isLive = video.snippet.liveBroadcastContent === 'live';
+                    const hasChat = video.liveStreamingDetails && video.liveStreamingDetails.activeLiveChatId;
+                    
+                    console.log('Live status check:', { isLive, hasChat, broadcastContent: video.snippet.liveBroadcastContent });
+                    
+                    if (isLive && hasChat) {
+                        showLiveChatToggle();
+                    } else {
+                        hideLiveChatToggle();
+                    }
+                } else {
+                    console.log('No video data found');
+                    hideLiveChatToggle();
+                }
+            } catch (error) {
+                console.warn('Could not check live status:', error);
+                hideLiveChatToggle();
+            }
+        }
+
+        // Manual function to force show chat (for testing or if auto-detection fails)
+        function forceShowChat() {
+            const currentVideo = currentPlaylist[currentVideoIndex];
+            if (currentVideo && currentVideo.videoId) {
+                showLiveChatToggle();
+                // Also try to load the chat immediately
+                if (!isLiveChatOpen) {
+                    toggleLiveChat();
+                }
+                showMessage('Chat opened manually', 'success');
+            } else {
+                showMessage('No video currently playing', 'error');
+            }
+        }
+
+        // Alternative detection using player state
+        function checkPlayerForLiveStream() {
+            if (player && typeof player.getVideoData === 'function') {
+                try {
+                    const videoData = player.getVideoData();
+                    console.log('Player video data:', videoData);
+                    // YouTube player doesn't directly expose live status, but we can check title
+                    if (videoData && videoData.title) {
+                        // Check if this is the same video we think we're playing
+                        const currentVideo = currentPlaylist[currentVideoIndex];
+                        if (currentVideo && currentVideo.isLive) {
+                            showLiveChatToggle();
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not get player video data:', e);
+                }
+            }
+        }
 
     </script>
 </body>
