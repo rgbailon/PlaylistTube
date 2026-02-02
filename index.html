@@ -1381,84 +1381,8 @@
                             </div>
                         </div>
 
-                        <!-- Right Column: Live Chat (Desktop only, hidden on mobile in this position) -->
-                        <div id="live-chat-column" class="hidden md:flex md:flex-col md:w-80">
-                            <!-- Live Chat Toggle Button -->
-                            <div id="live-chat-toggle-container" class="hidden">
-                                <button onclick="toggleLiveChat()" id="live-chat-toggle-btn" class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-sm font-medium shadow-md w-full justify-center">
-                                    <i class="fas fa-comments"></i>
-                                    <span>Open Live Chat</span>
-                                    <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron"></i>
-                                </button>
-                                <button onclick="forceShowChat()" class="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline w-full text-center">
-                                    (Manual Open)
-                                </button>
-                            </div>
-                            
-                            <!-- Live Chat Container -->
-                            <div id="live-chat-container" class="hidden mt-3 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)] flex-1" style="min-height: 400px; max-height: 600px;">
-                                <div class="flex flex-col h-full">
-                                    <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
-                                        <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
-                                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                                            Live Chat
-                                        </span>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-[10px] text-[var(--text-muted)]" title="Domain must be registered with YouTube for chat to work">ℹ️</span>
-                                            <button onclick="toggleLiveChat()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition">
-                                                <i class="fas fa-times text-xs"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div id="live-chat-iframe-container" class="flex-1 bg-white" style="min-height: 300px;">
-                                        <!-- YouTube Live Chat iframe will be loaded here -->
-                                    </div>
-                                    <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center">
-                                        Note: Chat requires domain registration with YouTube
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Mobile Live Chat (shown below video on mobile) -->
-                    <div class="md:hidden mt-3">
-                        <!-- Live Chat Toggle Button -->
-                        <div id="live-chat-toggle-container-mobile" class="hidden">
-                            <button onclick="toggleLiveChatMobile()" id="live-chat-toggle-btn-mobile" class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-sm font-medium shadow-md w-full justify-center">
-                                <i class="fas fa-comments"></i>
-                                <span>Open Live Chat</span>
-                                <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron-mobile"></i>
-                            </button>
-                            <button onclick="forceShowChat()" class="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline w-full text-center">
-                                (Manual Open)
-                            </button>
-                        </div>
-                        
-                        <!-- Live Chat Container -->
-                        <div id="live-chat-container-mobile" class="hidden mt-3 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)]" style="height: 0; transition: height 0.3s ease;">
-                            <div class="flex flex-col h-full">
-                                <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
-                                    <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
-                                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                                        Live Chat
-                                    </span>
-                                    <div class="flex items-center gap-2">
-                                        <button onclick="toggleLiveChatMobile()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition">
-                                            <i class="fas fa-times text-xs"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div id="live-chat-iframe-container-mobile" class="flex-1 bg-white" style="min-height: 300px; max-height: 400px;">
-                                    <!-- YouTube Live Chat iframe will be loaded here -->
-                                </div>
-                                <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center">
-                                    Note: Chat requires domain registration with YouTube
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <!-- Mobile Navigation Controls -->
                     <div class="md:hidden flex gap-3 mt-4 mb-4 px-1">
                         <button onclick="playPreviousVideo()" class="flex-1 bg-custom-card border border-custom py-3 rounded-xl text-sm font-medium hover:bg-custom-main transition-colors flex items-center justify-center gap-2 shadow-sm text-custom-main">
@@ -1478,6 +1402,44 @@
                             <span id="playlist-title" class="truncate">Playlist</span>
                         </h2>
                         <p id="video-count" class="text-xs text-custom-muted mt-1 pl-6"></p>
+                        
+                        <!-- Desktop Live Chat Toggle Button (hidden by default) -->
+                        <div id="live-chat-toggle-container" class="hidden mt-3 pl-6">
+                            <button onclick="toggleLiveChat()" id="live-chat-toggle-btn" class="flex items-center gap-2 px-3 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-xs font-medium shadow-md w-full justify-center">
+                                <i class="fas fa-comments"></i>
+                                <span>Open Live Chat</span>
+                                <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron"></i>
+                            </button>
+                            <button onclick="forceShowChat()" class="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline w-full text-center">
+                                (Manual Open)
+                            </button>
+                        </div>
+                        
+                        <!-- Desktop Live Chat Container (hidden by default) -->
+                        <div id="live-chat-container" class="hidden mt-2 pl-6">
+                            <div class="rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)]" style="height: 300px;">
+                                <div class="flex flex-col h-full">
+                                    <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
+                                        <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
+                                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                            Live Chat
+                                        </span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] text-[var(--text-muted)]" title="Domain must be registered with YouTube for chat to work">ℹ️</span>
+                                            <button onclick="toggleLiveChat()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition">
+                                                <i class="fas fa-times text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="live-chat-iframe-container" class="flex-1 bg-white" style="min-height: 220px;">
+                                        <!-- YouTube Live Chat iframe will be loaded here -->
+                                    </div>
+                                    <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center">
+                                        Chat requires domain registration
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div id="video-list" class="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-2" style="background: var(--bg-main);">
                         <div class="text-center py-10">
@@ -1500,6 +1462,41 @@
                         <span id="playlist-title-mobile" class="truncate">Videos</span>
                     </h2>
                     <p id="video-count-mobile" class="text-xs text-custom-muted mt-0.5"></p>
+                    
+                    <!-- Mobile Live Chat Toggle Button (hidden by default) -->
+                    <div id="live-chat-toggle-container-mobile" class="hidden mt-2">
+                        <button onclick="toggleLiveChatMobile()" id="live-chat-toggle-btn-mobile" class="flex items-center gap-2 px-3 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-xs font-medium shadow-md w-full justify-center">
+                            <i class="fas fa-comments"></i>
+                            <span>Open Live Chat</span>
+                            <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron-mobile"></i>
+                        </button>
+                        <button onclick="forceShowChat()" class="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline w-full text-center">
+                            (Manual Open)
+                        </button>
+                    </div>
+                    
+                    <!-- Mobile Live Chat Container (hidden by default) -->
+                    <div id="live-chat-container-mobile" class="hidden mt-2">
+                        <div class="rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)]" style="height: 250px;">
+                            <div class="flex flex-col h-full">
+                                <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
+                                    <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                        Live Chat
+                                    </span>
+                                    <button onclick="toggleLiveChatMobile()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                                <div id="live-chat-iframe-container-mobile" class="flex-1 bg-white" style="min-height: 180px;">
+                                    <!-- YouTube Live Chat iframe will be loaded here -->
+                                </div>
+                                <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center">
+                                    Chat requires domain registration
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <button onclick="closeMobilePanels()" class="text-custom-muted hover:text-custom-main p-2 rounded-lg hover:bg-custom-main">
                     <i class="fas fa-times"></i>
