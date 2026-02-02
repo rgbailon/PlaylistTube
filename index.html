@@ -1598,13 +1598,24 @@
                         </div>
                         <div class="p-5 rounded-xl border border-custom bg-custom-main">
                             <h4 class="font-bold text-custom-main mb-3 flex items-center gap-2">
-                                <i class="fas fa-cloud-slash text-custom-muted"></i>
-                                Never Stored
+                                <i class="fas fa-chart-line text-custom-muted"></i>
+                                Analytics
                             </h4>
                             <ul class="text-sm text-custom-muted space-y-2">
-                                <li class="flex items-center gap-2"><i class="fas fa-times text-red-400 text-xs"></i>No external servers</li>
-                                <li class="flex items-center gap-2"><i class="fas fa-times text-red-400 text-xs"></i>No analytics</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Google Analytics (page views)</li>
+                                <li class="flex items-center gap-2"><i class="fas fa-times text-red-400 text-xs"></i>No personal data collected</li>
                             </ul>
+                        </div>
+                    </div>
+
+                    <!-- Google Analytics Notice -->
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-info-circle text-yellow-600 mt-0.5"></i>
+                            <div>
+                                <h4 class="font-semibold text-yellow-800 text-sm mb-1">Google Analytics</h4>
+                                <p class="text-xs text-yellow-700">We use Google Analytics to track page views and usage patterns. This helps us improve the application. No personal information or API keys are ever shared with Google.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -3358,12 +3369,15 @@
             // Insert or update details section
             const detailsId = 'quota-details';
             let detailsEl = document.getElementById(detailsId);
-            if (!detailsEl) {
+            const quotaSection = document.getElementById('quota-section');
+            if (!detailsEl && quotaSection) {
                 detailsEl = document.createElement('div');
                 detailsEl.id = detailsId;
-                section.appendChild(detailsEl);
+                quotaSection.appendChild(detailsEl);
             }
-            detailsEl.innerHTML = detailsHtml;
+            if (detailsEl) {
+                detailsEl.innerHTML = detailsHtml;
+            }
         }
         
         function resetQuota() {
