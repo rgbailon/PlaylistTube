@@ -1280,13 +1280,20 @@
                                                 <!-- Keys rendered here -->
                                             </div>
                                         </div>
-                                        <!-- Add New Key -->
+                                         <!-- Add New Key -->
                                         <div class="relative">
                                             <input type="password" id="api-key-input" placeholder="Add API Key" 
                                                 class="w-full input-styled rounded px-2 py-1 text-xs pr-8">
                                             <button onclick="event.stopPropagation(); toggleApiVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 text-custom-muted hover:text-blue-500 transition text-xs">
                                                 <i class="fas fa-eye" id="api-eye"></i>
                                             </button>
+                                        </div>
+                                        <!-- API Quota Warnings (Auto-dismiss) -->
+                                        <div id="api-quota-warning" class="mt-1.5 hidden">
+                                            <div id="api-warning-content" class="rounded px-2 py-1 text-[9px] font-medium flex items-center gap-1.5 transition-all duration-300">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                <span id="api-warning-text"></span>
+                                            </div>
                                         </div>
                                         <div class="flex gap-1.5 mt-1.5">
                                             <button onclick="event.stopPropagation(); addApiKey()" class="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-[10px] shadow-sm btn-hover transition-colors">
@@ -1343,64 +1350,111 @@
             <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
                 <!-- Video Player -->
                 <div class="flex-1 p-3 md:p-6 flex flex-col min-h-0 overflow-y-auto md:overflow-hidden">
-                    <div id="player-wrapper" class="player-container relative aspect-video w-full bg-black shadow-lg">
-                        <div id="player-placeholder" class="absolute inset-0 flex items-center justify-center bg-slate-900">
-                            <div class="text-center px-4">
-                                <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 shadow-inner">
-                                    <i class="fab fa-youtube text-4xl text-slate-600"></i>
+                    <!-- Video and Chat Wrapper -->
+                    <div id="video-chat-wrapper" class="flex flex-col md:flex-row gap-4">
+                        <!-- Left Column: Video Player and Info -->
+                        <div class="flex-1 flex flex-col">
+                            <div id="player-wrapper" class="player-container relative aspect-video w-full bg-black shadow-lg">
+                                <div id="player-placeholder" class="absolute inset-0 flex items-center justify-center bg-slate-900">
+                                    <div class="text-center px-4">
+                                        <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 shadow-inner">
+                                            <i class="fab fa-youtube text-4xl text-slate-600"></i>
+                                        </div>
+                                        <p class="text-slate-400 text-sm font-medium">Ready to play</p>
+                                        <p class="text-slate-600 text-xs mt-1">Load a playlist to start</p>
+                                    </div>
                                 </div>
-                                <p class="text-slate-400 text-sm font-medium">Ready to play</p>
-                                <p class="text-slate-600 text-xs mt-1">Load a playlist to start</p>
+                                <div id="player"></div>
+                                <!-- Mobile Fullscreen Button -->
+                                <button id="fullscreen-btn" onclick="toggleFullscreen()" class="md:hidden absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all z-10">
+                                    <i class="fas fa-expand"></i>
+                                    <span id="fullscreen-text">Fullscreen</span>
+                                </button>
+                            </div>
+
+                            <div id="video-info" class="mt-4 px-1 hidden">
+                                <h3 id="video-title" class="text-lg md:text-xl font-bold mb-1 line-clamp-2 text-custom-main leading-tight"></h3>
+                                <p id="video-channel" class="text-custom-muted text-sm flex items-center gap-2 font-medium">
+                                    <i class="fas fa-user-circle text-custom-muted"></i>
+                                    <span></span>
+                                </p>
                             </div>
                         </div>
-                        <div id="player"></div>
-                        <!-- Mobile Fullscreen Button -->
-                        <button id="fullscreen-btn" onclick="toggleFullscreen()" class="md:hidden absolute bottom-3 right-3 bg-black/70 hover:bg-black/90 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all z-10">
-                            <i class="fas fa-expand"></i>
-                            <span id="fullscreen-text">Fullscreen</span>
-                        </button>
-                    </div>
 
-                    <div id="video-info" class="mt-4 px-1 hidden">
-                        <h3 id="video-title" class="text-lg md:text-xl font-bold mb-1 line-clamp-2 text-custom-main leading-tight"></h3>
-                        <p id="video-channel" class="text-custom-muted text-sm flex items-center gap-2 font-medium">
-                            <i class="fas fa-user-circle text-custom-muted"></i>
-                            <span></span>
-                        </p>
-                    </div>
-                    
-                    <!-- Live Chat Toggle Button -->
-                    <div id="live-chat-toggle-container" class="mt-3 hidden">
-                        <button onclick="toggleLiveChat()" id="live-chat-toggle-btn" class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-sm font-medium shadow-md">
-                            <i class="fas fa-comments"></i>
-                            <span>Open Live Chat</span>
-                            <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron"></i>
-                        </button>
-                        <button onclick="forceShowChat()" class="ml-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline">
-                            (Manual Open)
-                        </button>
-                    </div>
-                    
-                    <!-- Live Chat Container -->
-                    <div id="live-chat-container" class="hidden mt-3 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)]" style="height: 0; transition: height 0.3s ease;">
-                        <div class="flex flex-col h-full">
-                            <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
-                                <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
-                                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                                    Live Chat
-                                </span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] text-[var(--text-muted)] hidden md:inline" title="Domain must be registered with YouTube for chat to work">ℹ️</span>
-                                    <button onclick="toggleLiveChat()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition">
-                                        <i class="fas fa-times text-xs"></i>
-                                    </button>
+                        <!-- Right Column: Live Chat (Desktop only, hidden on mobile in this position) -->
+                        <div id="live-chat-column" class="hidden md:flex md:flex-col md:w-80">
+                            <!-- Live Chat Toggle Button -->
+                            <div id="live-chat-toggle-container" class="hidden">
+                                <button onclick="toggleLiveChat()" id="live-chat-toggle-btn" class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-sm font-medium shadow-md w-full justify-center">
+                                    <i class="fas fa-comments"></i>
+                                    <span>Open Live Chat</span>
+                                    <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron"></i>
+                                </button>
+                                <button onclick="forceShowChat()" class="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline w-full text-center">
+                                    (Manual Open)
+                                </button>
+                            </div>
+                            
+                            <!-- Live Chat Container -->
+                            <div id="live-chat-container" class="hidden mt-3 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)] flex-1" style="min-height: 400px; max-height: 600px;">
+                                <div class="flex flex-col h-full">
+                                    <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
+                                        <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
+                                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                            Live Chat
+                                        </span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] text-[var(--text-muted)]" title="Domain must be registered with YouTube for chat to work">ℹ️</span>
+                                            <button onclick="toggleLiveChat()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition">
+                                                <i class="fas fa-times text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="live-chat-iframe-container" class="flex-1 bg-white" style="min-height: 300px;">
+                                        <!-- YouTube Live Chat iframe will be loaded here -->
+                                    </div>
+                                    <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center">
+                                        Note: Chat requires domain registration with YouTube
+                                    </div>
                                 </div>
                             </div>
-                            <div id="live-chat-iframe-container" class="flex-1 bg-white" style="min-height: 300px; max-height: 400px;">
-                                <!-- YouTube Live Chat iframe will be loaded here -->
-                            </div>
-                            <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center">
-                                Note: Chat requires domain registration with YouTube
+                        </div>
+                    </div>
+
+                    <!-- Mobile Live Chat (shown below video on mobile) -->
+                    <div class="md:hidden mt-3">
+                        <!-- Live Chat Toggle Button -->
+                        <div id="live-chat-toggle-container-mobile" class="hidden">
+                            <button onclick="toggleLiveChatMobile()" id="live-chat-toggle-btn-mobile" class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-sm font-medium shadow-md w-full justify-center">
+                                <i class="fas fa-comments"></i>
+                                <span>Open Live Chat</span>
+                                <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron-mobile"></i>
+                            </button>
+                            <button onclick="forceShowChat()" class="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline w-full text-center">
+                                (Manual Open)
+                            </button>
+                        </div>
+                        
+                        <!-- Live Chat Container -->
+                        <div id="live-chat-container-mobile" class="hidden mt-3 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)]" style="height: 0; transition: height 0.3s ease;">
+                            <div class="flex flex-col h-full">
+                                <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
+                                    <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                        Live Chat
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="toggleLiveChatMobile()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded transition">
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="live-chat-iframe-container-mobile" class="flex-1 bg-white" style="min-height: 300px; max-height: 400px;">
+                                    <!-- YouTube Live Chat iframe will be loaded here -->
+                                </div>
+                                <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center">
+                                    Note: Chat requires domain registration with YouTube
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2498,14 +2552,16 @@
 
         async function loadPlaylist(playlistUrlOverride = '') {
             // Hide live chat toggle and clear chat when loading a new playlist
-            const chatToggle = document.getElementById('live-chat-toggle-container');
-            const chatContainer = document.getElementById('live-chat-container');
-            if (chatToggle) chatToggle.classList.add('hidden');
-            if (chatContainer) {
-                chatContainer.classList.add('hidden');
-                chatContainer.classList.remove('open');
+            hideLiveChatToggle();
+            
+            // Also reset mobile chat state
+            const mobileChatToggle = document.getElementById('live-chat-toggle-container-mobile');
+            const mobileChatContainer = document.getElementById('live-chat-container-mobile');
+            if (mobileChatToggle) mobileChatToggle.classList.add('hidden');
+            if (mobileChatContainer) {
+                mobileChatContainer.classList.add('hidden');
+                mobileChatContainer.style.height = '0';
             }
-            clearLiveChat();
             
             // Use multi-key system
             if (!apiKeys || apiKeys.length === 0) {
@@ -2809,10 +2865,8 @@
             document.getElementById('video-channel').innerHTML = `<i class="fas fa-user-circle text-custom-muted"></i><span>${video.channel || ''}</span>`;
 
             // Show live chat toggle for all videos (chat will only work for live streams)
-            const chatToggle = document.getElementById('live-chat-toggle-container');
-            if (chatToggle) {
-                chatToggle.classList.remove('hidden');
-            }
+            // This will show both desktop and mobile versions
+            showLiveChatToggle();
 
             try {
                 if (player && typeof player.loadVideoById === 'function') {
@@ -3843,20 +3897,22 @@
         let currentLiveChatVideoId = null;
 
         function toggleLiveChat() {
+            const isMobile = window.innerWidth < 768;
+            
+            if (isMobile) {
+                toggleLiveChatMobile();
+                return;
+            }
+            
             const container = document.getElementById('live-chat-container');
             const chevron = document.getElementById('live-chat-chevron');
             
             isLiveChatOpen = !isLiveChatOpen;
-            console.log('Toggling live chat:', isLiveChatOpen ? 'opening' : 'closing');
+            console.log('Toggling desktop live chat:', isLiveChatOpen ? 'opening' : 'closing');
             
             if (isLiveChatOpen) {
                 container.classList.remove('hidden');
-                console.log('Chat container shown');
-                // Small delay to allow display:block to apply before height transition
-                setTimeout(() => {
-                    container.classList.add('open');
-                    console.log('Chat container expanded');
-                }, 10);
+                console.log('Desktop chat container shown');
                 chevron.classList.add('rotate');
                 
                 // Load chat if we have a video ID and it's different from current
@@ -3869,8 +3925,42 @@
                     console.warn('No current video available for chat');
                 }
             } else {
-                container.classList.remove('open');
                 chevron.classList.remove('rotate');
+                container.classList.add('hidden');
+            }
+        }
+
+        let isLiveChatOpenMobile = false;
+
+        function toggleLiveChatMobile() {
+            const container = document.getElementById('live-chat-container-mobile');
+            const chevron = document.getElementById('live-chat-chevron-mobile');
+            
+            isLiveChatOpenMobile = !isLiveChatOpenMobile;
+            console.log('Toggling mobile live chat:', isLiveChatOpenMobile ? 'opening' : 'closing');
+            
+            if (isLiveChatOpenMobile) {
+                container.classList.remove('hidden');
+                console.log('Mobile chat container shown');
+                // Small delay to allow display:block to apply before height transition
+                setTimeout(() => {
+                    container.style.height = '400px';
+                    console.log('Mobile chat container expanded');
+                }, 10);
+                chevron.classList.add('rotate-180');
+                
+                // Load chat if we have a video ID and it's different from current
+                const currentVideo = currentPlaylist[currentVideoIndex];
+                console.log('Current video for mobile chat:', currentVideo);
+                if (currentVideo && currentVideo.videoId !== currentLiveChatVideoId) {
+                    console.log('Loading chat for video (mobile):', currentVideo.videoId);
+                    loadLiveChat(currentVideo.videoId);
+                } else if (!currentVideo) {
+                    console.warn('No current video available for mobile chat');
+                }
+            } else {
+                container.style.height = '0';
+                chevron.classList.remove('rotate-180');
                 setTimeout(() => {
                     container.classList.add('hidden');
                 }, 300);
@@ -3885,55 +3975,113 @@
             
             console.log('Loading live chat for video:', videoId);
             currentLiveChatVideoId = videoId;
-            const container = document.getElementById('live-chat-iframe-container');
             
-            if (!container) {
-                console.error('Chat iframe container not found');
-                return;
+            // Load into desktop container
+            const desktopContainer = document.getElementById('live-chat-iframe-container');
+            if (desktopContainer) {
+                // YouTube Live Chat embed URL
+                // Note: domain must be registered with YouTube for this to work properly
+                const chatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}&dark_theme=1`;
+                console.log('Chat URL:', chatUrl);
+                
+                desktopContainer.innerHTML = `
+                    <iframe 
+                        src="${chatUrl}" 
+                        frameborder="0" 
+                        allowfullscreen
+                        sandbox="allow-scripts allow-same-origin allow-popups"
+                        style="width: 100%; height: 100%; border: none;"
+                    ></iframe>
+                `;
+                console.log('Desktop chat iframe loaded');
             }
             
-            // YouTube Live Chat embed URL
-            // Note: domain must be registered with YouTube for this to work properly
-            const chatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}&dark_theme=1`;
-            console.log('Chat URL:', chatUrl);
-            
-            container.innerHTML = `
-                <iframe 
-                    src="${chatUrl}" 
-                    frameborder="0" 
-                    allowfullscreen
-                    sandbox="allow-scripts allow-same-origin allow-popups"
-                    style="width: 100%; height: 100%; border: none;"
-                ></iframe>
-            `;
-            console.log('Chat iframe loaded');
+            // Load into mobile container
+            const mobileContainer = document.getElementById('live-chat-iframe-container-mobile');
+            if (mobileContainer) {
+                const chatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}&dark_theme=1`;
+                mobileContainer.innerHTML = `
+                    <iframe 
+                        src="${chatUrl}" 
+                        frameborder="0" 
+                        allowfullscreen
+                        sandbox="allow-scripts allow-same-origin allow-popups"
+                        style="width: 100%; height: 100%; border: none;"
+                    ></iframe>
+                `;
+                console.log('Mobile chat iframe loaded');
+            }
         }
 
         function clearLiveChat() {
             currentLiveChatVideoId = null;
-            const container = document.getElementById('live-chat-iframe-container');
-            container.innerHTML = '';
             
-            // Close the chat box
+            // Clear desktop container
+            const desktopContainer = document.getElementById('live-chat-iframe-container');
+            if (desktopContainer) {
+                desktopContainer.innerHTML = '';
+            }
+            
+            // Clear mobile container
+            const mobileContainer = document.getElementById('live-chat-iframe-container-mobile');
+            if (mobileContainer) {
+                mobileContainer.innerHTML = '';
+            }
+            
+            // Close the chat boxes
             if (isLiveChatOpen) {
                 toggleLiveChat();
+            }
+            if (isLiveChatOpenMobile) {
+                toggleLiveChatMobile();
             }
         }
 
         function showLiveChatToggle() {
+            // Show desktop toggle
             const toggleContainer = document.getElementById('live-chat-toggle-container');
             if (toggleContainer) {
                 toggleContainer.classList.remove('hidden');
-                console.log('Live chat toggle shown');
+                console.log('Desktop live chat toggle shown');
+            }
+            
+            // Show mobile toggle
+            const mobileToggleContainer = document.getElementById('live-chat-toggle-container-mobile');
+            if (mobileToggleContainer) {
+                mobileToggleContainer.classList.remove('hidden');
+                console.log('Mobile live chat toggle shown');
+            }
+            
+            // Also show the live chat column wrapper on desktop
+            const liveChatColumn = document.getElementById('live-chat-column');
+            if (liveChatColumn) {
+                liveChatColumn.classList.remove('hidden');
+                liveChatColumn.classList.add('flex');
             }
         }
 
         function hideLiveChatToggle() {
+            // Hide desktop toggle
             const toggleContainer = document.getElementById('live-chat-toggle-container');
             if (toggleContainer) {
                 toggleContainer.classList.add('hidden');
-                console.log('Live chat toggle hidden');
+                console.log('Desktop live chat toggle hidden');
             }
+            
+            // Hide mobile toggle
+            const mobileToggleContainer = document.getElementById('live-chat-toggle-container-mobile');
+            if (mobileToggleContainer) {
+                mobileToggleContainer.classList.add('hidden');
+                console.log('Mobile live chat toggle hidden');
+            }
+            
+            // Hide the live chat column wrapper on desktop
+            const liveChatColumn = document.getElementById('live-chat-column');
+            if (liveChatColumn) {
+                liveChatColumn.classList.add('hidden');
+                liveChatColumn.classList.remove('flex');
+            }
+            
             clearLiveChat();
         }
 
