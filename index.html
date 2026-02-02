@@ -999,31 +999,10 @@
             box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
         }
 
-        /* Hero Section Styles */
-        #live-hero {
-            position: relative;
-        }
-
-        #live-hero::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
-            z-index: 5;
-        }
-
-        #live-hero .absolute {
-            z-index: 20;
-        }
-
         /* Responsive adjustments for live page */
         @media (max-width: 768px) {
             .live-stream-card:hover {
                 transform: scale(1.02);
-            }
-            
-            #live-hero {
-                height: 40vh;
             }
         }
 
@@ -1404,19 +1383,16 @@
                         <p id="video-count" class="text-xs text-custom-muted mt-1 pl-6"></p>
                         
                         <!-- Desktop Live Chat Toggle Button (hidden by default) -->
-                        <div id="live-chat-toggle-container" class="hidden mt-3 pl-6">
+                        <div id="live-chat-toggle-container" class="hidden mt-3 w-full">
                             <button onclick="toggleLiveChat()" id="live-chat-toggle-btn" class="flex items-center gap-2 px-3 py-2 bg-red-600 text-white border border-red-600 rounded-lg hover:bg-red-700 transition-all text-xs font-medium shadow-md w-full justify-center">
                                 <i class="fas fa-comments"></i>
                                 <span>Open Live Chat</span>
                                 <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron"></i>
                             </button>
-                            <button onclick="forceShowChat()" class="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline w-full text-center">
-                                (Manual Open)
-                            </button>
                         </div>
                         
                         <!-- Desktop Live Chat Container (hidden by default) -->
-                        <div id="live-chat-container" class="hidden mt-2 pl-6">
+                        <div id="live-chat-container" class="hidden mt-2 w-full">
                             <div class="rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)]" style="height: 300px;">
                                 <div class="flex flex-col h-full">
                                     <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
@@ -1470,13 +1446,10 @@
                             <span>Open Live Chat</span>
                             <i class="fas fa-chevron-down transition-transform" id="live-chat-chevron-mobile"></i>
                         </button>
-                        <button onclick="forceShowChat()" class="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] underline w-full text-center">
-                            (Manual Open)
-                        </button>
                     </div>
                     
                     <!-- Mobile Live Chat Container (hidden by default) -->
-                    <div id="live-chat-container-mobile" class="hidden mt-2">
+                    <div id="live-chat-container-mobile" class="hidden mt-2 w-full">
                         <div class="rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)]" style="height: 250px;">
                             <div class="flex flex-col h-full">
                                 <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between">
@@ -1573,32 +1546,6 @@
     <!-- Live Page -->
     <div id="live-page" class="hidden h-[calc(100vh-70px)] overflow-y-auto pb-16 md:pb-0" style="background: var(--bg-main);">
         <div class="max-w-7xl mx-auto">
-            <!-- Hero Section -->
-            <div id="live-hero" class="relative h-[50vh] md:h-[60vh] overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg-main)] via-transparent to-transparent z-10"></div>
-                <div id="hero-content" class="absolute inset-0 flex items-end pb-8 md:pb-16 px-4 md:px-8 z-20">
-                    <div class="max-w-2xl">
-                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold mb-4">
-                            <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                            LIVE NOW
-                        </span>
-                        <h1 id="hero-title" class="text-3xl md:text-5xl font-bold text-white mb-3 drop-shadow-lg">Discover Live Streams</h1>
-                        <p id="hero-description" class="text-white/80 text-sm md:text-base mb-6 line-clamp-2 drop-shadow">Watch the best live content from around the world - gaming, music, news, and more.</p>
-                        <div class="flex gap-3">
-                            <button onclick="playFeaturedLive()" class="px-6 py-3 bg-white text-black rounded-lg font-semibold hover:bg-white/90 transition flex items-center gap-2">
-                                <i class="fas fa-play"></i> Watch Now
-                            </button>
-                            <button onclick="document.getElementById('live-search-input').focus()" class="px-6 py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg font-semibold hover:bg-white/30 transition flex items-center gap-2">
-                                <i class="fas fa-search"></i> Browse
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div id="hero-thumbnail" class="absolute inset-0 bg-gradient-to-br from-red-900/50 to-black">
-                    <img src="https://images.unsplash.com/photo-1593305841991-05c29736ce52?w=1920&q=80" class="w-full h-full object-cover opacity-60" alt="Live streaming">
-                </div>
-            </div>
-
             <!-- Search Bar -->
             <div class="px-4 md:px-8 py-6">
                 <div class="relative max-w-2xl mx-auto">
@@ -3523,7 +3470,7 @@
         let currentLiveCategory = 'all';
         let liveNextPageToken = '';
         let currentLiveQuery = '';
-        let featuredLiveVideo = null;
+
 
         const liveCategories = {
             'all': { query: '', title: 'Trending Live Streams', icon: 'fa-fire' },
@@ -3632,23 +3579,6 @@
                     });
                 }
 
-                // Set featured video for hero section (first video with most viewers)
-                if (!pageToken && data.items.length > 0) {
-                    const featuredId = data.items[0].id.videoId;
-                    const featuredDetails = videoDetailsMap[featuredId];
-                    if (featuredDetails) {
-                        featuredLiveVideo = {
-                            id: featuredId,
-                            title: featuredDetails.snippet.title,
-                            description: featuredDetails.snippet.description,
-                            thumbnail: featuredDetails.snippet.thumbnails.high?.url || featuredDetails.snippet.thumbnails.medium?.url,
-                            channelTitle: featuredDetails.snippet.channelTitle,
-                            channelId: featuredDetails.snippet.channelId
-                        };
-                        updateHeroSection();
-                    }
-                }
-
                 // Render live stream cards
                 data.items.forEach(item => {
                     const details = videoDetailsMap[item.id.videoId];
@@ -3718,24 +3648,6 @@
             el.ondblclick = () => playLiveStream(item.id.videoId, title, channel);
             
             return el;
-        }
-
-        function updateHeroSection() {
-            if (!featuredLiveVideo) return;
-            
-            document.getElementById('hero-title').textContent = featuredLiveVideo.title;
-            document.getElementById('hero-description').textContent = featuredLiveVideo.description.substring(0, 150) + '...';
-            
-            const heroThumbnail = document.getElementById('hero-thumbnail');
-            if (featuredLiveVideo.thumbnail) {
-                heroThumbnail.innerHTML = `<img src="${featuredLiveVideo.thumbnail}" class="w-full h-full object-cover opacity-60" alt="${escapeHtml(featuredLiveVideo.title)}">`;
-            }
-        }
-
-        function playFeaturedLive() {
-            if (featuredLiveVideo) {
-                playLiveStream(featuredLiveVideo.id, featuredLiveVideo.title, featuredLiveVideo.channelTitle);
-            }
         }
 
         function playLiveStream(videoId, title, channel) {
