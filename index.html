@@ -3718,6 +3718,7 @@
             `;
             
             el.onclick = () => playLiveStream(item.id.videoId, title, channel);
+            el.ondblclick = () => playLiveStream(item.id.videoId, title, channel);
             
             return el;
         }
