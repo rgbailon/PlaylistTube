@@ -437,45 +437,259 @@
             border-color: var(--border-hover);
         }
         
-        /* Video Player Container */
+        /* Video Player Container - Glass thin glowing border */
         .player-container {
             background: #000;
             border-radius: 16px;
-            box-shadow: var(--shadow-md);
             overflow: hidden;
-            border: 2px solid var(--accent-color);
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                0 0 20px rgba(255, 255, 255, 0.1),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
         
         .player-container:hover {
-            box-shadow: 0 0 20px var(--accent-bg);
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                0 0 30px rgba(255, 255, 255, 0.15),
+                0 4px 40px rgba(0, 0, 0, 0.4);
         }
         
-        /* Theme-specific player glow effects */
-        [data-theme="pink"] .player-container {
-            box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+        /* Theme-specific player glass glow effects */
+        [data-theme="light"] .player-container {
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 
+                0 0 0 1px rgba(59, 130, 246, 0.2),
+                0 0 25px rgba(59, 130, 246, 0.15),
+                0 4px 30px rgba(0, 0, 0, 0.2);
         }
         
-        [data-theme="purple"] .player-container {
-            box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
-        }
-        
-        [data-theme="red"] .player-container {
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
-        }
-        
-        [data-theme="cartoon"] .player-container {
-            border-width: 4px;
-            border-color: #000000;
-            box-shadow: 6px 6px 0px 0px #000000;
+        [data-theme="light"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(59, 130, 246, 0.3),
+                0 0 35px rgba(59, 130, 246, 0.25),
+                0 4px 40px rgba(0, 0, 0, 0.25);
         }
         
         [data-theme="dark"] .player-container {
-            box-shadow: 0 0 30px rgba(96, 165, 250, 0.2);
+            border-color: rgba(96, 165, 250, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(96, 165, 250, 0.2),
+                0 0 25px rgba(96, 165, 250, 0.2),
+                0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        [data-theme="dark"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(96, 165, 250, 0.4),
+                0 0 40px rgba(96, 165, 250, 0.3),
+                0 4px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        [data-theme="bold"] .player-container {
+            border-color: rgba(124, 58, 237, 0.5);
+            box-shadow: 
+                0 0 0 1px rgba(124, 58, 237, 0.3),
+                0 0 30px rgba(124, 58, 237, 0.25),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="bold"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(124, 58, 237, 0.5),
+                0 0 45px rgba(124, 58, 237, 0.35),
+                0 4px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        [data-theme="retro"] .player-container {
+            border-color: rgba(234, 179, 8, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(234, 179, 8, 0.2),
+                0 0 25px rgba(234, 179, 8, 0.2),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="retro"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(234, 179, 8, 0.4),
+                0 0 35px rgba(234, 179, 8, 0.3),
+                0 4px 40px rgba(0, 0, 0, 0.35);
+        }
+        
+        [data-theme="cartoon"] .player-container {
+            border: 3px solid rgba(0, 0, 0, 0.8);
+            box-shadow: 
+                4px 4px 0px 0px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        [data-theme="photo"] .player-container {
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.15),
+                0 0 30px rgba(255, 255, 255, 0.1),
+                0 8px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="photo"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.25),
+                0 0 40px rgba(255, 255, 255, 0.15),
+                0 8px 50px rgba(0, 0, 0, 0.4);
+        }
+        
+        [data-theme="forest"] .player-container {
+            border-color: rgba(16, 185, 129, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(16, 185, 129, 0.2),
+                0 0 25px rgba(16, 185, 129, 0.2),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="forest"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(16, 185, 129, 0.4),
+                0 0 35px rgba(16, 185, 129, 0.3),
+                0 4px 40px rgba(0, 0, 0, 0.35);
+        }
+        
+        [data-theme="ocean"] .player-container {
+            border-color: rgba(6, 182, 212, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(6, 182, 212, 0.2),
+                0 0 25px rgba(6, 182, 212, 0.2),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="ocean"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(6, 182, 212, 0.4),
+                0 0 35px rgba(6, 182, 212, 0.3),
+                0 4px 40px rgba(0, 0, 0, 0.35);
+        }
+        
+        [data-theme="sunset"] .player-container {
+            border-color: rgba(249, 115, 22, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(249, 115, 22, 0.2),
+                0 0 25px rgba(249, 115, 22, 0.2),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="sunset"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(249, 115, 22, 0.4),
+                0 0 35px rgba(249, 115, 22, 0.3),
+                0 4px 40px rgba(0, 0, 0, 0.35);
+        }
+        
+        [data-theme="cyber"] .player-container {
+            border-color: rgba(0, 255, 157, 0.5);
+            box-shadow: 
+                0 0 0 1px rgba(0, 255, 157, 0.3),
+                0 0 30px rgba(0, 255, 157, 0.25),
+                0 0 60px rgba(0, 255, 157, 0.1),
+                0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        [data-theme="cyber"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(0, 255, 157, 0.5),
+                0 0 40px rgba(0, 255, 157, 0.4),
+                0 0 80px rgba(0, 255, 157, 0.2),
+                0 4px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        [data-theme="coffee"] .player-container {
+            border-color: rgba(180, 83, 9, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(180, 83, 9, 0.2),
+                0 0 25px rgba(180, 83, 9, 0.15),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="coffee"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(180, 83, 9, 0.4),
+                0 0 35px rgba(180, 83, 9, 0.25),
+                0 4px 40px rgba(0, 0, 0, 0.35);
+        }
+        
+        [data-theme="netflix"] .player-container {
+            border-color: rgba(229, 9, 20, 0.5);
+            box-shadow: 
+                0 0 0 1px rgba(229, 9, 20, 0.3),
+                0 0 30px rgba(229, 9, 20, 0.25),
+                0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        [data-theme="netflix"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(229, 9, 20, 0.5),
+                0 0 45px rgba(229, 9, 20, 0.35),
+                0 4px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        [data-theme="pink"] .player-container {
+            border-color: rgba(236, 72, 153, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(236, 72, 153, 0.2),
+                0 0 25px rgba(236, 72, 153, 0.2),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="pink"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(236, 72, 153, 0.4),
+                0 0 35px rgba(236, 72, 153, 0.3),
+                0 4px 40px rgba(0, 0, 0, 0.35);
+        }
+        
+        [data-theme="purple"] .player-container {
+            border-color: rgba(168, 85, 247, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(168, 85, 247, 0.2),
+                0 0 25px rgba(168, 85, 247, 0.2),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="purple"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(168, 85, 247, 0.4),
+                0 0 35px rgba(168, 85, 247, 0.3),
+                0 4px 40px rgba(0, 0, 0, 0.35);
+        }
+        
+        [data-theme="red"] .player-container {
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(239, 68, 68, 0.2),
+                0 0 25px rgba(239, 68, 68, 0.2),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="red"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(239, 68, 68, 0.4),
+                0 0 35px rgba(239, 68, 68, 0.3),
+                0 4px 40px rgba(0, 0, 0, 0.35);
         }
         
         [data-theme="gray"] .player-container {
-            box-shadow: 0 0 20px rgba(161, 161, 170, 0.2);
+            border-color: rgba(161, 161, 170, 0.4);
+            box-shadow: 
+                0 0 0 1px rgba(161, 161, 170, 0.2),
+                0 0 25px rgba(161, 161, 170, 0.15),
+                0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        [data-theme="gray"] .player-container:hover {
+            box-shadow: 
+                0 0 0 1px rgba(161, 161, 170, 0.4),
+                0 0 35px rgba(161, 161, 170, 0.25),
+                0 4px 40px rgba(0, 0, 0, 0.35);
         }
         
         /* Input Fields */
@@ -884,16 +1098,29 @@
             max-height: 45vh; /* stays within sidebar boundary */
             overflow-y: auto;
             overflow-x: hidden;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-ui);
         }
         .settings-dock.hidden { display: none; }
 
         /* Close button inside the dock (no float -> prevents width/overflow issues) */
         .settings-dock .dock-close {
             position: absolute;
-            top: 8px;
-            right: 8px;
+            top: 6px;
+            right: 6px;
             margin: 0;
             z-index: 5;
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        .settings-dock .dock-close i {
+            font-size: 10px;
         }
 
         /* Prevent any child from forcing horizontal scroll */
@@ -1061,6 +1288,65 @@
             background: #0f0f0f;
         }
 
+        /* Settings dock border visibility for all themes - glass thin */
+        [data-theme="light"] .settings-dock,
+        [data-theme="retro"] .settings-dock,
+        [data-theme="cartoon"] .settings-dock {
+            border: 1px solid rgba(203, 213, 225, 0.5);
+        }
+
+        [data-theme="dark"] .settings-dock {
+            border: 1px solid rgba(75, 85, 99, 0.5);
+        }
+
+        [data-theme="bold"] .settings-dock {
+            border: 1px solid rgba(124, 58, 237, 0.5);
+        }
+
+        [data-theme="photo"] .settings-dock {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        [data-theme="forest"] .settings-dock {
+            border: 1px solid rgba(6, 95, 70, 0.5);
+        }
+
+        [data-theme="ocean"] .settings-dock {
+            border: 1px solid rgba(14, 116, 144, 0.5);
+        }
+
+        [data-theme="sunset"] .settings-dock {
+            border: 1px solid rgba(194, 65, 12, 0.5);
+        }
+
+        [data-theme="cyber"] .settings-dock {
+            border: 1px solid rgba(0, 255, 157, 0.5);
+        }
+
+        [data-theme="coffee"] .settings-dock {
+            border: 1px solid rgba(146, 64, 14, 0.5);
+        }
+
+        [data-theme="netflix"] .settings-dock {
+            border: 1px solid rgba(229, 9, 20, 0.6);
+        }
+
+        [data-theme="pink"] .settings-dock {
+            border: 1px solid rgba(249, 168, 212, 0.5);
+        }
+
+        [data-theme="purple"] .settings-dock {
+            border: 1px solid rgba(168, 85, 247, 0.5);
+        }
+
+        [data-theme="red"] .settings-dock {
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+
+        [data-theme="gray"] .settings-dock {
+            border: 1px solid rgba(107, 114, 128, 0.5);
+        }
+
         #live-chat-toggle-btn {
             position: relative;
         }
@@ -1181,6 +1467,102 @@
             }
         }
 
+        /* Floating Chat Box Styles */
+        #live-chat-section.floating {
+            position: fixed;
+            right: 0;
+            top: 70px;
+            width: 320px;
+            max-width: 320px;
+            height: 70vh;
+            max-height: 70vh;
+            z-index: 100;
+            margin: 0;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+            box-shadow: -4px 0 15px rgba(0, 0, 0, 0.15);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #live-chat-section.floating #live-chat-container-main {
+            max-height: none !important;
+            opacity: 1 !important;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #live-chat-section.floating #live-chat-iframe-container-main {
+            flex: 1;
+            height: 100% !important;
+            min-height: 0;
+        }
+
+        /* Override hardcoded heights in floating mode */
+        #live-chat-section.floating #live-chat-container-main > div {
+            height: 100% !important;
+            max-height: 100% !important;
+        }
+
+        #live-chat-section.floating #live-chat-container-main > div > .flex-col {
+            height: 100% !important;
+        }
+
+        /* Float toggle button */
+        #chat-float-btn {
+            transition: all 0.2s ease;
+        }
+
+        #chat-float-btn:hover {
+            transform: scale(1.05);
+        }
+
+        #chat-float-btn.floating-active {
+            background: var(--accent-color) !important;
+            color: white !important;
+        }
+
+        /* Keep video list visible below floating chat */
+        body.chat-floating #video-list,
+        body.chat-floating aside.w-80 {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Video player maintains size when chat floats */
+        body.chat-floating #player-wrapper {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        @media (max-width: 1100px) {
+            #live-chat-section.floating {
+                width: 280px;
+                max-width: 280px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #live-chat-section.floating {
+                width: 100%;
+                max-width: 100%;
+                right: 0;
+                left: 0;
+                top: auto;
+                bottom: 64px;
+                max-height: 50vh;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+                box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.15);
+            }
+            
+            #live-chat-section.floating #live-chat-iframe-container-main {
+                height: calc(50vh - 100px) !important;
+            }
+        }
+
     </style>
 
     <!-- Google tag (gtag.js) -->
@@ -1263,7 +1645,7 @@
             <div id="settings-dock-host-desktop" class="px-2 pt-2 pb-2"></div>
             <div class="p-2 border-t border-custom bg-custom-card flex items-center justify-start">
                 <button onclick="toggleSettingsDock()" class="py-1 px-2 rounded text-custom-muted hover:text-custom-main transition-colors font-medium flex items-center justify-center gap-1 border border-custom" title="Settings">
-                    <i class="fas fa-gear text-xs"></i>
+                    <i class="fas fa-gear text-base"></i>
                 </button>
             </div>
         </aside>
@@ -1295,7 +1677,7 @@
             <div id="settings-dock-host-mobile" class="px-2 pt-2 pb-2"></div>
             <div class="p-2 border-t border-custom bg-custom-card flex items-center justify-start">
                 <button onclick="toggleSettingsDock()" class="py-1 px-2 rounded text-custom-muted hover:text-custom-main transition-colors font-medium flex items-center justify-center gap-1 border border-custom" title="Settings">
-                    <i class="fas fa-gear text-xs"></i>
+                    <i class="fas fa-gear text-base"></i>
                 </button>
             </div>
         </aside>
@@ -1462,11 +1844,16 @@
                             <!-- Live Chat Section - Below Video Player (Desktop Only) -->
                             <div id="live-chat-section" class="mt-4 hidden md:block flex-shrink-0">
                                 <!-- Live Chat Toggle Button -->
-                                <button onclick="toggleLiveChat()" id="live-chat-toggle-btn-main" class="flex items-center gap-2 px-4 py-2.5 transition-all text-sm font-medium shadow-md w-full justify-center">
-                                    <i class="fas fa-comments"></i>
-                                    <span id="live-chat-toggle-text">Open Live Chat</span>
-                                    <i class="fas fa-chevron-down transition-transform duration-300" id="live-chat-chevron-main"></i>
-                                </button>
+                                <div class="flex gap-2">
+                                    <button onclick="toggleLiveChat()" id="live-chat-toggle-btn-main" class="flex-1 flex items-center gap-2 px-4 py-2.5 transition-all text-sm font-medium shadow-md justify-center">
+                                        <i class="fas fa-comments"></i>
+                                        <span id="live-chat-toggle-text">Open Live Chat</span>
+                                        <i class="fas fa-chevron-down transition-transform duration-300" id="live-chat-chevron-main"></i>
+                                    </button>
+                                    <button onclick="toggleChatFloat()" id="chat-float-btn" class="flex items-center gap-2 px-3 py-2.5 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-muted)] rounded transition-all text-sm font-medium shadow-md hover:border-[var(--accent-color)] hover:text-[var(--accent-color)]" title="Float chat to right side">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </button>
+                                </div>
                                 
                                 <!-- Live Chat Container (Collapsible) -->
                                 <div id="live-chat-container-main" class="mt-2 overflow-hidden transition-all duration-300" style="max-height: 0; opacity: 0;">
@@ -1565,7 +1952,7 @@
                                 onkeydown="if(event.key === 'Enter') searchPlaylists()">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-custom-muted text-lg"></i>
                         </div>
-                        <button onclick="searchPlaylists()" class="w-full md:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-sm btn-hover transition-colors flex items-center justify-center gap-2 min-w-[140px]">
+                        <button onclick="searchPlaylists()" class="w-full md:w-auto px-8 py-4 bg-[var(--accent-color)] hover:opacity-90 text-white rounded-xl font-medium shadow-sm btn-hover transition-all flex items-center justify-center gap-2 min-w-[140px]">
                             <i class="fas fa-search"></i> Search
                         </button>
                     </div>
@@ -2773,19 +3160,12 @@
             const index = parseInt(videoItem.dataset.index);
             if (isNaN(index)) return;
             
-            // Debounce rapid clicks
-            if (isPlayingVideo) return;
-            
-            isPlayingVideo = true;
+            // Clear any existing debounce to allow immediate play
             clearTimeout(playDebounceTimer);
             
+            // Always play the video when clicked
             playVideo(index);
             closeMobilePanels();
-            
-            // Reset debounce after 500ms
-            playDebounceTimer = setTimeout(() => {
-                isPlayingVideo = false;
-            }, 500);
         }
         
         function setupLazyLoading(container) {
@@ -2849,14 +3229,8 @@
         function playVideo(index) {
             if (index < 0 || index >= currentPlaylist.length) return;
             
-            // Prevent duplicate plays of same video
-            if (index === currentVideoIndex && player && typeof player.getPlayerState === 'function') {
-                const state = player.getPlayerState();
-                // If already playing or buffering, don't reload
-                if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
-                    return;
-                }
-            }
+            // Always force play when clicked - reset player state
+            const isSameVideo = index === currentVideoIndex;
             
             currentVideoIndex = index;
             const video = currentPlaylist[index];
@@ -2872,12 +3246,23 @@
             hideLiveChatToggle();
 
             try {
-                if (player && typeof player.loadVideoById === 'function') {
-                    // Player exists, just load new video
+                if (player && typeof player.loadVideoById === 'function' && !isSameVideo) {
+                    // Player exists and different video, load new video
                     player.loadVideoById({
                         videoId: video.videoId,
                         startSeconds: 0
                     });
+                } else if (player && typeof player.loadVideoById === 'function' && isSameVideo) {
+                    // Same video clicked - force play
+                    player.playVideo();
+                    // If paused, ensure it plays
+                    setTimeout(() => {
+                        try {
+                            if (player.getPlayerState && player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                                player.playVideo();
+                            }
+                        } catch (e) {}
+                    }, 100);
                 } else if (player && typeof player.destroy === 'function') {
                     // Player exists but in bad state, destroy and recreate
                     player.destroy();
@@ -3920,7 +4305,6 @@
                         src="${chatUrl}" 
                         frameborder="0" 
                         allowfullscreen
-                        sandbox="allow-scripts allow-same-origin allow-popups"
                         style="width: 100%; height: 100%; border: none;"
                     ></iframe>
                 `;
@@ -4048,6 +4432,63 @@
                 } catch (e) {
                     console.warn('Could not get player video data:', e);
                 }
+            }
+        }
+
+        // ========== FLOATING CHAT FUNCTIONALITY ==========
+        let isChatFloating = false;
+
+        function toggleChatFloat() {
+            const chatSection = document.getElementById('live-chat-section');
+            const floatBtn = document.getElementById('chat-float-btn');
+            const btnIcon = floatBtn.querySelector('i');
+            const container = document.getElementById('live-chat-container-main');
+            const chevron = document.getElementById('live-chat-chevron-main');
+            const toggleText = document.getElementById('live-chat-toggle-text');
+            
+            isChatFloating = !isChatFloating;
+            
+            if (isChatFloating) {
+                // Enable floating mode
+                chatSection.classList.add('floating');
+                floatBtn.classList.add('floating-active');
+                document.body.classList.add('chat-floating');
+                btnIcon.className = 'fas fa-compress-alt';
+                floatBtn.title = 'Dock chat below video';
+                
+                // Auto-open the chat when floating
+                if (!isLiveChatOpen) {
+                    isLiveChatOpen = true;
+                    container.style.maxHeight = '500px';
+                    container.style.opacity = '1';
+                    chevron.style.transform = 'rotate(180deg)';
+                    if (toggleText) toggleText.textContent = 'Close Live Chat';
+                    
+                    // Load chat if needed
+                    const currentVideo = currentPlaylist[currentVideoIndex];
+                    if (currentVideo && currentVideo.videoId !== currentLiveChatVideoId) {
+                        loadLiveChat(currentVideo.videoId);
+                    }
+                }
+                
+
+            } else {
+                // Disable floating mode
+                chatSection.classList.remove('floating');
+                floatBtn.classList.remove('floating-active');
+                document.body.classList.remove('chat-floating');
+                btnIcon.className = 'fas fa-external-link-alt';
+                floatBtn.title = 'Float chat to right side';
+                
+                // Reset container styles
+                if (!isLiveChatOpen) {
+                    container.style.maxHeight = '0';
+                    container.style.opacity = '0';
+                    chevron.style.transform = 'rotate(0deg)';
+                    if (toggleText) toggleText.textContent = 'Open Live Chat';
+                }
+                
+                showMessage('Chat docked below video', 'info');
             }
         }
 
