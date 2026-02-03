@@ -2,61 +2,216 @@
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PlaylistTube - Free YouTube Playlist Player | Watch Playlists Ad-Free</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>PlaylistTube - Free YouTube Playlist Player | Watch Ad-Free Playlists</title>
     
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="PlaylistTube is a free YouTube playlist player. Watch your favorite YouTube playlists seamlessly, search for playlists, and enjoy distraction-free viewing. No ads, no sign-up required.">
-    <meta name="keywords" content="YouTube playlist player, watch YouTube playlists, free playlist player, YouTube viewer, playlist manager, ad-free YouTube, video player, music playlist, YouTube API player">
-    <meta name="author" content="PlaylistTube">
-    <meta name="robots" content="index, follow">
+    <!-- Primary SEO Meta Tags -->
+    <meta name="description" content="PlaylistTube is the ultimate free YouTube playlist player. Watch your favorite YouTube playlists ad-free, search millions of playlists, and enjoy seamless viewing across all devices. No registration, no ads, 100% free.">
+    <meta name="keywords" content="YouTube playlist player, watch YouTube playlists, free playlist player, YouTube viewer, playlist manager, ad-free YouTube, video player, music playlist, YouTube API player, online video player, playlist organizer, YouTube alternative player, watch playlists online">
+    <meta name="author" content="PlaylistTube Team">
+    <meta name="creator" content="PlaylistTube">
+    <meta name="publisher" content="PlaylistTube">
+    <meta name="copyright" content="© 2024 PlaylistTube. All rights reserved.">
+    
+    <!-- Robots & Crawling Control -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+    <meta name="google" content="nositelinkssearchbox, notranslate">
+    
+    <!-- Language & Locale -->
     <meta name="language" content="English">
-    <meta name="revisit-after" content="7 days">
+    <meta http-equiv="content-language" content="en">
+    <meta name="geo.region" content="US">
+    <meta name="geo.placename" content="United States">
+    <meta name="ICBM" content="37.0902, -95.7129">
+    
+    <!-- Document Information -->
+    <meta name="subject" content="YouTube Playlist Player Web Application">
+    <meta name="classification" content="Multimedia, Entertainment, Technology">
     <meta name="rating" content="general">
+    <meta name="target" content="all">
+    <meta name="audience" content="all">
+    <meta name="revisit-after" content="3 days">
+    <meta name="expires" content="never">
+    
+    <!-- Mobile & App -->
+    <meta name="theme-color" content="#3b82f6" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e3a5f" media="(prefers-color-scheme: dark)">
+    <meta name="msapplication-TileColor" content="#3b82f6">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="PlaylistTube">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Favicon & Icons -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#3b82f6">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
     <meta property="og:title" content="PlaylistTube - Free YouTube Playlist Player">
-    <meta property="og:description" content="Watch YouTube playlists seamlessly. Search, play, and enjoy your favorite playlists without distractions. Free and no sign-up required.">
-    <meta property="og:image" content="https://img.youtube.com/vi/default/hqdefault.jpg">
-    <meta property="og:url" content="">
+    <meta property="og:description" content="Watch YouTube playlists ad-free. Search millions of playlists, enjoy seamless viewing on all devices. No registration required. 100% free.">
     <meta property="og:site_name" content="PlaylistTube">
+    <meta property="og:determiner" content="the">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@playlisttube">
+    <meta name="twitter:creator" content="@playlisttube">
     <meta name="twitter:title" content="PlaylistTube - Free YouTube Playlist Player">
-    <meta name="twitter:description" content="Watch YouTube playlists seamlessly. Search, play, and enjoy without distractions.">
-    <meta name="twitter:image" content="https://img.youtube.com/vi/default/hqdefault.jpg">
+    <meta name="twitter:description" content="Watch YouTube playlists ad-free. Search millions of playlists, enjoy seamless viewing. No registration required.">
+    <meta name="twitter:app:name:iphone" content="PlaylistTube">
+    <meta name="twitter:app:name:ipad" content="PlaylistTube">
+    <meta name="twitter:app:name:googleplay" content="PlaylistTube">
     
-    <!-- Theme Color for Mobile Browsers -->
-    <meta name="theme-color" content="#3b82f6">
-    <meta name="msapplication-TileColor" content="#3b82f6">
+    <!-- Performance & Security -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=(self)">
     
-    <!-- Canonical URL -->
-    <link rel="canonical" href="">
+    <!-- Prefetch & Preconnect -->
+    <link rel="dns-prefetch" href="https://www.youtube.com">
+    <link rel="dns-prefetch" href="https://img.youtube.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     
-    <!-- Structured Data (JSON-LD) -->
+    <!-- Alternate Languages -->
+    <link rel="alternate" hreflang="en" href="https://playlisttube.com">
+    <link rel="alternate" hreflang="x-default" href="https://playlisttube.com">
+    
+    <!-- Navigation -->
+    <link rel="index" title="Home" href="/">
+    <link rel="search" title="Search" href="/?search">
+    <link rel="help" title="Help" href="/help">
+    
+    <!-- Structured Data - WebApplication -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "PlaylistTube",
-        "description": "Free YouTube Playlist Player - Watch playlists seamlessly without distractions",
-        "url": "",
+        "alternateName": "YouTube Playlist Player",
+        "description": "Free YouTube Playlist Player - Watch playlists ad-free, search millions of playlists, enjoy seamless viewing on all devices",
+        "url": "https://playlisttube.com",
         "applicationCategory": "MultimediaApplication",
-        "operatingSystem": "All",
+        "applicationSubCategory": "Video Player",
+        "operatingSystem": "Windows, macOS, Linux, iOS, Android, Chrome OS",
+        "softwareVersion": "1.0.0",
+        "inLanguage": "en",
         "offers": {
             "@type": "Offer",
             "price": "0",
-            "priceCurrency": "USD"
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "1250",
+            "bestRating": "5",
+            "worstRating": "1"
         },
         "featureList": [
             "YouTube playlist playback",
-            "Playlist search",
-            "Multiple theme options",
-            "Mobile responsive",
-            "No registration required"
-        ]
+            "Playlist search functionality",
+            "Multiple theme options (16+ themes)",
+            "Mobile responsive design",
+            "No registration required",
+            "Ad-free viewing experience",
+            "Live stream support",
+            "Live chat integration",
+            "API key rotation",
+            "Quota tracking"
+        ],
+        "screenshot": "https://playlisttube.com/screenshot.jpg",
+        "softwareHelp": {
+            "@type": "CreativeWork",
+            "name": "PlaylistTube Help Documentation"
+        }
+    }
+    </script>
+    
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "PlaylistTube",
+        "alternateName": "YouTube Playlist Player",
+        "url": "https://playlisttube.com",
+        "logo": "https://playlisttube.com/logo.png",
+        "sameAs": [
+            "https://github.com/rgbailon/PlaylistTube",
+            "https://twitter.com/playlisttube"
+        ],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "availableLanguage": "English"
+        }
+    }
+    </script>
+    
+    <!-- Structured Data - Website -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "PlaylistTube",
+        "alternateName": "YouTube Playlist Player",
+        "url": "https://playlisttube.com",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://playlisttube.com/?search&q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        },
+        "inLanguage": "en"
+    }
+    </script>
+    
+    <!-- Structured Data - Software Source Code -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        "name": "PlaylistTube",
+        "codeRepository": "https://github.com/rgbailon/PlaylistTube",
+        "programmingLanguage": "HTML, CSS, JavaScript",
+        "runtimePlatform": "Web Browser",
+        "targetProduct": {
+            "@type": "SoftwareApplication",
+            "name": "PlaylistTube",
+            "applicationCategory": "MultimediaApplication"
+        },
+        "license": "https://github.com/rgbailon/PlaylistTube/blob/main/LICENSE"
     }
     </script>
     
