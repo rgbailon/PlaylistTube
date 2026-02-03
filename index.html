@@ -1087,7 +1087,8 @@
             transform: translateY(-1px);
         }
         /* Fix contrast for light-accent themes */
-        [data-theme="photo"] .btn-add {
+        [data-theme="photo"] .btn-add,
+        [data-theme="photo"] button[class*="bg-[var(--accent-color)]"] {
             color: #000000;
         }
         /* Minimalist/Retro/Cartoon accents are dark enough for white text */
@@ -1139,6 +1140,11 @@
             border-top-color: var(--text-main);
             z-index: 1000;
             pointer-events: none;
+        }
+        
+        /* Ensure video list has enough top padding for first item tooltip */
+        #video-list, #video-list-mobile {
+            padding-top: 16px !important;
         }
 
         /* Mobile Fullscreen Mode */
@@ -1540,6 +1546,19 @@
             border-color: var(--accent-hover) !important;
             color: #ffffff !important;
         }
+        
+        /* Photography theme - fix contrast for chat button */
+        [data-theme="photo"] #live-chat-toggle-btn-main {
+            background-color: var(--text-main) !important;
+            border-color: var(--text-main) !important;
+            color: var(--bg-main) !important;
+        }
+        
+        [data-theme="photo"] #live-chat-toggle-btn-main:hover {
+            background-color: var(--text-muted) !important;
+            border-color: var(--text-muted) !important;
+            color: var(--bg-main) !important;
+        }
 
         /* Video and Chat Scrollable Container */
         #video-chat-scroll-container {
@@ -1642,11 +1661,21 @@
         }
 
         #live-chat-section.floating #live-chat-container-main {
-            max-height: none !important;
-            opacity: 1 !important;
             flex: 1;
             display: flex;
             flex-direction: column;
+        }
+        
+        /* When chat is floating AND open, show it fully */
+        #live-chat-section.floating.chat-open #live-chat-container-main {
+            max-height: none;
+            opacity: 1;
+        }
+        
+        /* When chat is floating AND closed, collapse it */
+        #live-chat-section.floating.chat-closed #live-chat-container-main {
+            max-height: 0;
+            opacity: 0;
         }
 
         #live-chat-section.floating #live-chat-iframe-container-main {
@@ -1677,6 +1706,12 @@
         #chat-float-btn.floating-active {
             background: var(--accent-color) !important;
             color: white !important;
+        }
+        
+        /* Photography theme - fix contrast for floating-active state */
+        [data-theme="photo"] #chat-float-btn.floating-active {
+            background: var(--text-main) !important;
+            color: var(--bg-main) !important;
         }
 
         /* Keep video list visible below floating chat */
@@ -2973,8 +3008,9 @@
                         const count = item.contentDetails.itemCount;
                         const url = `https://www.youtube.com/playlist?list=${playlistId}`;
                         const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || null;
+                        const channel = item.snippet.channelTitle || 'Unknown Channel';
 
-                        addToHistory(playlistId, title, url, count, thumbnail);
+                        addToHistory(playlistId, title, url, count, thumbnail, channel);
                         
                         btns.forEach(btn => {
                             btn.innerHTML = '<i class="fas fa-check"></i>';
@@ -3157,6 +3193,7 @@
                     }
 
                     const playlistTitle = playlistData.items?.[0]?.snippet?.title || 'Unknown Playlist';
+                    const playlistChannel = playlistData.items?.[0]?.snippet?.channelTitle || 'Unknown Channel';
                     
                     // Track playlists API usage (1 unit)
                     trackApiCall('playlists', 1);
@@ -3231,7 +3268,7 @@
 
                     // Add to history with thumbnail from first video
                     const playlistThumbnail = currentPlaylist[0]?.thumbnail || null;
-                    addToHistory(playlistId, playlistTitle, playlistUrl, currentPlaylist.length, playlistThumbnail);
+                    addToHistory(playlistId, playlistTitle, playlistUrl, currentPlaylist.length, playlistThumbnail, playlistChannel);
 
                     // Update UI
                     document.getElementById('playlist-title').textContent = playlistTitle;
@@ -3409,6 +3446,12 @@
                         videoId: video.videoId,
                         startSeconds: 0
                     });
+                    // Explicitly ensure video plays after loading
+                    setTimeout(() => {
+                        try {
+                            player.playVideo();
+                        } catch (e) {}
+                    }, 100);
                 } else if (player && typeof player.loadVideoById === 'function' && isSameVideo) {
                     // Same video clicked - force play
                     player.playVideo();
@@ -3601,7 +3644,7 @@
         }
 
         // History Management
-        function addToHistory(playlistId, title, url, videoCount, thumbnail = null) {
+        function addToHistory(playlistId, title, url, videoCount, thumbnail = null, channel = 'Unknown Channel') {
             // Remove if already exists
             playlistHistory = playlistHistory.filter(p => p.id !== playlistId);
             
@@ -3612,7 +3655,7 @@
                 url: url,
                 videoCount: videoCount,
                 thumbnail: thumbnail,
-                addedAt: Date.now()
+                channel: channel
             });
 
             // Keep only last 20
@@ -3643,7 +3686,7 @@
                     // Find actual index in main history array for deletion
                     const originalIndex = playlistHistory.findIndex(p => p.id === playlist.id);
                     const thumbnailUrl = playlist.thumbnail || `https://img.youtube.com/vi/default/mqdefault.jpg`;
-                    const addedTime = playlist.addedAt ? formatTimeAgo(playlist.addedAt) : '';
+                    const channelName = playlist.channel || 'Unknown Channel';
                     return `
                     <div class="glass rounded-lg p-2 cursor-pointer card-hover group history-item relative" 
                          data-index="${originalIndex}">
@@ -3661,9 +3704,9 @@
                                         <i class="fas fa-video text-blue-400"></i>
                                         ${playlist.videoCount}
                                     </span>
-                                    <span class="flex items-center gap-1" title="Added ${new Date(playlist.addedAt).toLocaleString()}">
-                                        <i class="fas fa-clock"></i>
-                                        ${addedTime}
+                                    <span class="flex items-center gap-1">
+                                        <i class="fas fa-user-circle"></i>
+                                        ${escapeHtml(channelName)}
                                     </span>
                                 </div>
                             </div>
@@ -4472,6 +4515,7 @@
             const container = document.getElementById('live-chat-container-main');
             const chevron = document.getElementById('live-chat-chevron-main');
             const toggleText = document.getElementById('live-chat-toggle-text');
+            const chatSection = document.getElementById('live-chat-section');
             
             isLiveChatOpen = !isLiveChatOpen;
             console.log('Toggling live chat:', isLiveChatOpen ? 'opening' : 'closing');
@@ -4481,6 +4525,8 @@
                 container.style.opacity = '1';
                 chevron.style.transform = 'rotate(180deg)';
                 if (toggleText) toggleText.textContent = 'Close Live Chat';
+                chatSection?.classList.add('chat-open');
+                chatSection?.classList.remove('chat-closed');
                 console.log('Chat container opened');
                 
                 // Load chat if we have a video ID and it's different from current
@@ -4497,6 +4543,8 @@
                 container.style.opacity = '0';
                 chevron.style.transform = 'rotate(0deg)';
                 if (toggleText) toggleText.textContent = 'Open Live Chat';
+                chatSection?.classList.add('chat-closed');
+                chatSection?.classList.remove('chat-open');
                 console.log('Chat container closed');
             }
         }
@@ -4681,6 +4729,8 @@
                     container.style.opacity = '1';
                     chevron.style.transform = 'rotate(180deg)';
                     if (toggleText) toggleText.textContent = 'Close Live Chat';
+                    chatSection.classList.add('chat-open');
+                    chatSection.classList.remove('chat-closed');
                     
                     // Load chat if needed
                     const currentVideo = currentPlaylist[currentVideoIndex];
