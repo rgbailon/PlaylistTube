@@ -2972,8 +2972,9 @@
                         const title = item.snippet.title;
                         const count = item.contentDetails.itemCount;
                         const url = `https://www.youtube.com/playlist?list=${playlistId}`;
+                        const thumbnail = item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || null;
 
-                        addToHistory(playlistId, title, url, count);
+                        addToHistory(playlistId, title, url, count, thumbnail);
                         
                         btns.forEach(btn => {
                             btn.innerHTML = '<i class="fas fa-check"></i>';
@@ -3228,8 +3229,9 @@
                         trackApiCall('videos', videosApiCalls);
                     }
 
-                    // Add to history
-                    addToHistory(playlistId, playlistTitle, playlistUrl, currentPlaylist.length);
+                    // Add to history with thumbnail from first video
+                    const playlistThumbnail = currentPlaylist[0]?.thumbnail || null;
+                    addToHistory(playlistId, playlistTitle, playlistUrl, currentPlaylist.length, playlistThumbnail);
 
                     // Update UI
                     document.getElementById('playlist-title').textContent = playlistTitle;
@@ -3599,7 +3601,7 @@
         }
 
         // History Management
-        function addToHistory(playlistId, title, url, videoCount) {
+        function addToHistory(playlistId, title, url, videoCount, thumbnail = null) {
             // Remove if already exists
             playlistHistory = playlistHistory.filter(p => p.id !== playlistId);
             
@@ -3609,6 +3611,7 @@
                 title: title,
                 url: url,
                 videoCount: videoCount,
+                thumbnail: thumbnail,
                 addedAt: Date.now()
             });
 
@@ -3639,19 +3642,35 @@
                 : items.map((playlist, index) => {
                     // Find actual index in main history array for deletion
                     const originalIndex = playlistHistory.findIndex(p => p.id === playlist.id);
+                    const thumbnailUrl = playlist.thumbnail || `https://img.youtube.com/vi/default/mqdefault.jpg`;
+                    const addedTime = playlist.addedAt ? formatTimeAgo(playlist.addedAt) : '';
                     return `
-                    <div class="glass rounded-lg p-3 cursor-pointer card-hover group history-item relative" 
+                    <div class="glass rounded-lg p-2 cursor-pointer card-hover group history-item relative" 
                          data-index="${originalIndex}">
-                        <p class="font-medium text-xs md:text-sm line-clamp-2 text-custom-main group-hover:text-blue-600 transition pr-6">${escapeHtml(playlist.title)}</p>
-                        <div class="flex items-center justify-between mt-2 text-[10px] md:text-xs text-custom-muted">
-                            <span class="flex items-center gap-1.5">
-                                <i class="fas fa-video text-blue-400"></i>
-                                ${playlist.videoCount} videos
-                            </span>
+                        <div class="flex gap-2">
+                            <div class="flex-shrink-0 w-16 h-10 rounded overflow-hidden bg-slate-200">
+                                <img src="${thumbnailUrl}" 
+                                     class="w-full h-full object-cover" 
+                                     alt=""
+                                     onerror="this.src='https://img.youtube.com/vi/default/mqdefault.jpg'">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-xs line-clamp-2 text-custom-main group-hover:text-blue-600 transition pr-6">${escapeHtml(playlist.title)}</p>
+                                <div class="flex items-center justify-between mt-1 text-[10px] text-custom-muted">
+                                    <span class="flex items-center gap-1">
+                                        <i class="fas fa-video text-blue-400"></i>
+                                        ${playlist.videoCount}
+                                    </span>
+                                    <span class="flex items-center gap-1" title="Added ${new Date(playlist.addedAt).toLocaleString()}">
+                                        <i class="fas fa-clock"></i>
+                                        ${addedTime}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <button class="remove-history-btn absolute top-2 right-2 text-custom-muted hover:text-red-500 hover:bg-red-50 rounded p-1 transition" 
+                        <button class="remove-history-btn absolute top-1 right-1 text-custom-muted hover:text-red-500 hover:bg-red-50 rounded p-1 transition" 
                                 data-id="${playlist.id}" title="Remove from history">
-                            <i class="fas fa-times text-xs"></i>
+                            <i class="fas fa-times text-[10px]"></i>
                         </button>
                     </div>
                 `}).join('');
