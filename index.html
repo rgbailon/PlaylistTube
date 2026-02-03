@@ -3473,11 +3473,17 @@
         }
 
         function createPlayer(videoId) {
+            console.log('Creating player for video:', videoId);
+            
             // Clear the player div first
             const playerDiv = document.getElementById('player');
             if (playerDiv) {
                 playerDiv.innerHTML = '';
             }
+            
+            // Check if current video is a live stream
+            const currentVideo = currentPlaylist[currentVideoIndex];
+            const isLiveStream = currentVideo && currentVideo.isLive;
             
             // Small delay to ensure DOM is ready
             setTimeout(() => {
@@ -3492,7 +3498,10 @@
                             playsinline: 1,
                             origin: window.location.origin,
                             enablejsapi: 1,
-                            modestbranding: 1
+                            modestbranding: 1,
+                            ...(isLiveStream && {
+                                live_stream: 1
+                            })
                         },
                         events: {
                             onReady: onPlayerReady,
@@ -3500,17 +3509,35 @@
                             onError: onPlayerError
                         }
                     });
+                    console.log('Player created successfully');
                 } catch (e) {
                     console.error('Error creating player:', e);
                     showMessage('Error loading video player. Please refresh the page.', 'error');
                 }
-            }, 100);
+            }, isLiveStream ? 200 : 100);
         }
         
         function onPlayerReady(event) {
             // Player is ready, ensure it plays
+            console.log('Player ready, attempting to play');
             try {
                 event.target.playVideo();
+                
+                // For live streams, verify playback started
+                const currentVideo = currentPlaylist[currentVideoIndex];
+                if (currentVideo && currentVideo.isLive) {
+                    setTimeout(() => {
+                        try {
+                            const state = event.target.getPlayerState();
+                            if (state !== YT.PlayerState.PLAYING && state !== YT.PlayerState.BUFFERING) {
+                                console.log('Live stream not playing, retrying...');
+                                event.target.playVideo();
+                            }
+                        } catch (e) {
+                            console.warn('Could not check player state:', e);
+                        }
+                    }, 1000);
+                }
             } catch (e) {
                 console.error('Error starting playback:', e);
             }
@@ -4250,6 +4277,8 @@
         }
 
         function playLiveStream(videoId, title, channel) {
+            console.log('Playing live stream:', videoId, title, channel);
+            
             // Navigate to main page
             showPage('main');
             
@@ -4270,12 +4299,27 @@
             document.getElementById('video-count-mobile').textContent = '1 video';
             
             renderVideoList();
-            playVideo(0);
             
-            // Show live chat toggle immediately for live streams
-            showLiveChatToggle();
+            // Force reset player before playing live stream
+            if (player && typeof player.destroy === 'function') {
+                try {
+                    player.destroy();
+                    player = null;
+                } catch (e) {
+                    console.warn('Error destroying player:', e);
+                }
+            }
+            player = null;
             
-            showMessage('Playing live stream', 'success');
+            // Small delay to ensure clean state
+            setTimeout(() => {
+                playVideo(0);
+                
+                // Show live chat toggle immediately for live streams
+                showLiveChatToggle();
+                
+                showMessage('Playing live stream', 'success');
+            }, 150);
         }
 
         function searchLiveStreams() {
