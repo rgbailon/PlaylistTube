@@ -1918,72 +1918,82 @@
                                     </div>
 
                                     <div class="p-2 rounded-lg bg-custom-main border border-custom">
-                                        <label class="block text-[10px] font-semibold text-custom-muted uppercase tracking-wide mb-1">
-                                            API Keys
-                                        </label>
-                                        <!-- API Keys List (Collapsible) -->
-                                        <div id="api-keys-container" class="mb-1">
-                                            <button onclick="event.stopPropagation(); toggleApiKeysList()" id="api-keys-toggle" class="hidden w-full text-left text-[10px] py-1 px-1.5 rounded border border-custom bg-custom-card text-custom-muted hover:bg-custom-main transition flex items-center justify-between">
-                                                <span><i class="fas fa-key mr-1"></i><span id="api-keys-summary">0</span></span>
-                                                <i class="fas fa-chevron-down text-[9px] transition-transform" id="api-keys-chevron"></i>
-                                            </button>
-                                            <div id="api-keys-list" class="space-y-1 max-h-20 overflow-y-auto scrollbar-thin text-[10px]">
-                                                <!-- Keys rendered here -->
-                                            </div>
-                                        </div>
-                                         <!-- Add New Key -->
-                                        <div class="relative">
-                                            <input type="password" id="api-key-input" placeholder="Add API Key" 
-                                                class="w-full input-styled rounded px-2 py-1 text-xs pr-8">
-                                            <button onclick="event.stopPropagation(); toggleApiVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 text-custom-muted hover:text-blue-500 transition text-xs">
-                                                <i class="fas fa-eye" id="api-eye"></i>
-                                            </button>
-                                        </div>
-                                        <!-- API Quota Warnings (Auto-dismiss) -->
-                                        <div id="api-quota-warning" class="mt-1.5 hidden">
+                                        <button onclick="toggleApiKeysSection()" class="w-full flex items-center justify-between">
+                                            <label class="block text-[10px] font-semibold text-custom-muted uppercase tracking-wide flex items-center gap-1">
+                                                <i class="fas fa-key"></i> API Keys
+                                            </label>
+                                            <i class="fas fa-chevron-down text-[9px] transition-transform" id="api-keys-chevron"></i>
+                                        </button>
+                                        <!-- API Warning (outside collapsible section) -->
+                                        <div id="api-quota-warning" class="mt-2 hidden">
                                             <div id="api-warning-content" class="rounded px-2 py-1 text-[9px] font-medium flex items-center gap-1.5 transition-all duration-300">
                                                 <i class="fas fa-exclamation-triangle"></i>
                                                 <span id="api-warning-text"></span>
                                             </div>
                                         </div>
-                                        <div class="flex gap-1.5 mt-1.5">
-                                            <button onclick="event.stopPropagation(); addApiKey()" class="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-[10px] shadow-sm btn-hover transition-colors">
-                                                <i class="fas fa-plus mr-0.5"></i>Add
-                                            </button>
-                                            <button onclick="event.stopPropagation(); clearAllApiKeys()" class="px-2 py-1 bg-custom-card text-red-500 border border-custom hover:bg-red-50 hover:border-red-200 rounded font-medium text-[10px] transition-colors" title="Clear">
-                                                Clear
-                                            </button>
-                                        </div>
-                                        <p class="text-[8px] text-custom-muted mt-1 text-center opacity-70">
-                                            Auto-rotates on limit
-                                        </p>
-                                        <!-- API Quota Progress Bar -->
-                                        <div id="quota-section" class="mt-2 pt-2 border-t border-custom hidden">
-                                            <div class="flex justify-between items-center mb-1">
-                                                <span class="text-[9px] text-custom-muted font-medium">Quota</span>
-                                                <span id="quota-text" class="text-[9px] text-custom-muted">0 / 10k</span>
-                                            </div>
-                                            <div class="w-full h-1.5 bg-custom-card rounded-full overflow-hidden border border-custom">
-                                                <div id="quota-bar" class="h-full bg-green-500 transition-all duration-300" style="width: 0%"></div>
-                                            </div>
-                                            <div class="flex justify-between items-center mt-0.5">
-                                                <span id="quota-percent" class="text-[8px] text-custom-muted">0%</span>
-                                                <button onclick="resetQuota()" class="text-[8px] text-custom-muted hover:text-blue-500 transition" title="Reset">
-                                                    <i class="fas fa-undo mr-0.5"></i>Reset
+                                        <!-- API Keys Section Content -->
+                                        <div id="api-keys-section" class="mt-2 space-y-1.5">
+                                            <!-- API Keys List (Collapsible) -->
+                                            <div id="api-keys-container" class="mb-1">
+                                                <button onclick="event.stopPropagation(); toggleApiKeysList()" id="api-keys-toggle" class="hidden w-full text-left text-[10px] py-1 px-1.5 rounded border border-custom bg-custom-card text-custom-muted hover:bg-custom-main transition flex items-center justify-between">
+                                                    <span><i class="fas fa-key mr-1"></i><span id="api-keys-summary">0</span></span>
+                                                    <i class="fas fa-chevron-down text-[9px] transition-transform" id="api-keys-list-chevron"></i>
                                                 </button>
+                                                <div id="api-keys-list" class="space-y-1 max-h-20 overflow-y-auto scrollbar-thin text-[10px]">
+                                                    <!-- Keys rendered here -->
+                                                </div>
+                                            </div>
+                                            <!-- Add New Key -->
+                                            <div class="relative">
+                                                <input type="password" id="api-key-input" placeholder="Add API Key" 
+                                                    class="w-full input-styled rounded px-2 py-1 text-xs pr-8">
+                                                <button onclick="event.stopPropagation(); toggleApiVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 text-custom-muted hover:text-blue-500 transition text-xs">
+                                                    <i class="fas fa-eye" id="api-eye"></i>
+                                                </button>
+                                            </div>
+                                            <div class="flex gap-1.5">
+                                                <button onclick="event.stopPropagation(); addApiKey()" class="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-[10px] shadow-sm btn-hover transition-colors">
+                                                    <i class="fas fa-plus mr-0.5"></i>Add
+                                                </button>
+                                                <button onclick="event.stopPropagation(); clearAllApiKeys()" class="px-2 py-1 bg-custom-card text-red-500 border border-custom hover:bg-red-50 hover:border-red-200 rounded font-medium text-[10px] transition-colors" title="Clear">
+                                                    Clear
+                                                </button>
+                                            </div>
+                                            <p class="text-[8px] text-custom-muted mt-1 text-center opacity-70">
+                                                Auto-rotates on limit
+                                            </p>
+                                            <!-- API Quota Progress Bar -->
+                                            <div id="quota-section" class="mt-2 pt-2 border-t border-custom hidden">
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <span class="text-[9px] text-custom-muted font-medium">Quota</span>
+                                                    <span id="quota-text" class="text-[9px] text-custom-muted">0 / 10k</span>
+                                                </div>
+                                                <div class="w-full h-1.5 bg-custom-card rounded-full overflow-hidden border border-custom">
+                                                    <div id="quota-bar" class="h-full bg-green-500 transition-all duration-300" style="width: 0%"></div>
+                                                </div>
+                                                <div class="flex justify-between items-center mt-0.5">
+                                                    <span id="quota-percent" class="text-[8px] text-custom-muted">0%</span>
+                                                    <button onclick="resetQuota()" class="text-[8px] text-custom-muted hover:text-blue-500 transition" title="Reset">
+                                                        <i class="fas fa-undo mr-0.5"></i>Reset
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Chatbot API Settings -->
                                     <div class="p-2 rounded-lg bg-custom-main border border-custom">
-                                        <div class="flex items-center justify-between mb-1">
+                                        <button onclick="toggleChatbotApiSection()" class="w-full flex items-center justify-between">
                                             <label class="block text-[10px] font-semibold text-custom-muted uppercase tracking-wide flex items-center gap-1">
                                                 <i class="fas fa-robot text-blue-500"></i> Chatbot AI
                                             </label>
-                                            <span id="chatbot-api-status" class="text-[8px] px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-600">Not Set</span>
-                                        </div>
-                                        <div class="space-y-1.5">
+                                            <div class="flex items-center gap-2">
+                                                <span id="chatbot-api-status" class="text-[8px] px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-600">Not Set</span>
+                                                <i class="fas fa-chevron-down text-[9px] transition-transform" id="chatbot-api-chevron"></i>
+                                            </div>
+                                        </button>
+                                        <!-- Chatbot API Section Content -->
+                                        <div id="chatbot-api-section" class="mt-2 space-y-1.5">
                                             <div>
                                                 <select id="chatbot-provider" class="w-full input-styled rounded px-2 py-1 text-[10px]" onchange="updateChatbotEndpointHint()">
                                                     <option value="openai">OpenAI</option>
@@ -2530,6 +2540,34 @@
                 }
             }
 
+            // Restore API Keys section state
+            const apiKeysSectionOpen = getCookie('yt_api_keys_section_open') === '1';
+            const apiKeysSection = document.getElementById('api-keys-section');
+            const apiKeysChevron = document.getElementById('api-keys-chevron');
+            if (apiKeysSection && apiKeysChevron) {
+                if (apiKeysSectionOpen) {
+                    apiKeysSection.classList.remove('hidden');
+                    apiKeysChevron.classList.add('rotate-180');
+                } else {
+                    apiKeysSection.classList.add('hidden');
+                    apiKeysChevron.classList.remove('rotate-180');
+                }
+            }
+
+            // Restore Chatbot API section state
+            const chatbotApiSectionOpen = getCookie('yt_chatbot_api_section_open') === '1';
+            const chatbotApiSection = document.getElementById('chatbot-api-section');
+            const chatbotApiChevron = document.getElementById('chatbot-api-chevron');
+            if (chatbotApiSection && chatbotApiChevron) {
+                if (chatbotApiSectionOpen) {
+                    chatbotApiSection.classList.remove('hidden');
+                    chatbotApiChevron.classList.add('rotate-180');
+                } else {
+                    chatbotApiSection.classList.add('hidden');
+                    chatbotApiChevron.classList.remove('rotate-180');
+                }
+            }
+
             // Load and display quota
             loadQuota();
             updateQuotaDisplay();
@@ -2550,10 +2588,19 @@
         // Collapsed by default when multiple keys exist
         let apiKeysExpanded = false;
         
+        function toggleApiKeysSection() {
+            const section = document.getElementById('api-keys-section');
+            const chevron = document.getElementById('api-keys-chevron');
+            const isOpen = !section.classList.contains('hidden');
+            section.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+            setCookie('yt_api_keys_section_open', isOpen ? '0' : '1');
+        }
+        
         function toggleApiKeysList() {
             apiKeysExpanded = !apiKeysExpanded;
             const list = document.getElementById('api-keys-list');
-            const chevron = document.getElementById('api-keys-chevron');
+            const chevron = document.getElementById('api-keys-list-chevron');
             
             list.classList.toggle('hidden', !apiKeysExpanded);
             chevron.classList.toggle('rotate-180', apiKeysExpanded);
@@ -2584,13 +2631,13 @@
 
                 // Default to collapsed when multiple keys exist (unless user expanded)
                 container.classList.toggle('hidden', !apiKeysExpanded);
-                document.getElementById('api-keys-chevron').classList.toggle('rotate-180', apiKeysExpanded);
+                document.getElementById('api-keys-list-chevron').classList.toggle('rotate-180', apiKeysExpanded);
 
                 // If many keys, keep collapsed by default
                 if (apiKeys.length > 2 && apiKeysExpanded) {
                     apiKeysExpanded = false;
                     container.classList.add('hidden');
-                    document.getElementById('api-keys-chevron').classList.remove('rotate-180');
+                    document.getElementById('api-keys-list-chevron').classList.remove('rotate-180');
                     setCookie('yt_api_keys_expanded', '0');
                 }
             } else {
@@ -4950,6 +4997,15 @@
             const modal = document.getElementById('chatbot-modal');
             modal.classList.toggle('hidden');
             if (!modal.classList.contains('hidden')) renderChatbotMessages();
+        }
+
+        function toggleChatbotApiSection() {
+            const section = document.getElementById('chatbot-api-section');
+            const chevron = document.getElementById('chatbot-api-chevron');
+            const isOpen = !section.classList.contains('hidden');
+            section.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+            setCookie('yt_chatbot_api_section_open', isOpen ? '0' : '1');
         }
 
         function updateChatbotEndpointHint() {
