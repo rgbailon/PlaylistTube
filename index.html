@@ -4920,40 +4920,26 @@
     </style>
 
     <script>
-        function setCookie(name, value, days = 365) {
-            const expires = new Date(Date.now() + days * 864e5).toUTCString();
-            const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + '=' + encodeURIComponent(JSON.stringify(value)) + '; expires=' + expires + '; path=/; SameSite=Lax' + secure;
-        }
-
-        function getCookie(name) {
-            try {
-                const value = document.cookie.split('; ').find(row => row.startsWith(name + '='));
-                if (value) {
-                    return JSON.parse(decodeURIComponent(value.split('=')[1]));
-                }
-            } catch (e) {
-                return null;
-            }
-            return null;
-        }
-
         let chatbotMessages = JSON.parse(localStorage.getItem('chatbotMessages') || '[]');
-        let chatbotSettings = null;
+        let chatbotSettings = {};
         
         function loadChatbotSettings() {
-            chatbotSettings = getCookie('chatbotSettings');
-            if (!chatbotSettings) {
+            const cookieVal = getCookie('chatbotSettings');
+            if (cookieVal) {
+                try {
+                    chatbotSettings = JSON.parse(cookieVal);
+                } catch (e) {
+                    chatbotSettings = {};
+                }
+            } else {
                 const localSettings = localStorage.getItem('chatbotSettings');
                 if (localSettings) {
                     try {
                         chatbotSettings = JSON.parse(localSettings);
-                        setCookie('chatbotSettings', chatbotSettings);
+                        setCookie('chatbotSettings', localSettings);
                     } catch (e) {
                         chatbotSettings = {};
                     }
-                } else {
-                    chatbotSettings = {};
                 }
             }
         }
@@ -5051,7 +5037,7 @@
                 model: document.getElementById('chatbot-model').value
             };
             localStorage.setItem('chatbotSettings', JSON.stringify(chatbotSettings));
-            setCookie('chatbotSettings', chatbotSettings);
+            setCookie('chatbotSettings', JSON.stringify(chatbotSettings));
             const status = document.getElementById('chatbot-api-status');
             if (chatbotSettings.apiKey && chatbotSettings.apiUrl) {
                 status.textContent = 'Active';
