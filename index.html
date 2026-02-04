@@ -1975,6 +1975,55 @@
                                         </div>
                                     </div>
 
+                                    <!-- Chatbot API Settings -->
+                                    <div class="p-2 rounded-lg bg-custom-main border border-custom">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="block text-[10px] font-semibold text-custom-muted uppercase tracking-wide flex items-center gap-1">
+                                                <i class="fas fa-robot text-blue-500"></i> Chatbot AI
+                                            </label>
+                                            <span id="chatbot-api-status" class="text-[8px] px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-600">Not Set</span>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <div>
+                                                <select id="chatbot-provider" class="w-full input-styled rounded px-2 py-1 text-[10px]" onchange="updateChatbotEndpointHint()">
+                                                    <option value="openai">OpenAI</option>
+                                                    <option value="anthropic">Anthropic</option>
+                                                    <option value="deepseek">DeepSeek</option>
+                                                    <option value="gemini">Google Gemini</option>
+                                                    <option value="custom">Custom</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <input type="text" id="chatbot-api-url" placeholder="API Base URL" 
+                                                    class="w-full input-styled rounded px-2 py-1 text-[10px]">
+                                            </div>
+                                            <div>
+                                                <input type="password" id="chatbot-api-key" placeholder="API Key" 
+                                                    class="w-full input-styled rounded px-2 py-1 text-[10px]">
+                                            </div>
+                                            <div class="relative">
+                                                <input type="hidden" id="chatbot-model" value="">
+                                                <button onclick="toggleChatbotModelDropdown()" class="w-full text-left input-styled rounded px-2 py-1 text-[10px] flex items-center justify-between" id="chatbot-model-btn">
+                                                    <span id="chatbot-model-label">Select Model</span>
+                                                    <i class="fas fa-chevron-down text-[9px] transition-transform" id="chatbot-model-chevron"></i>
+                                                </button>
+                                                <div id="chatbot-model-dropdown" class="hidden absolute left-0 right-0 mt-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg shadow-lg z-50 max-h-32 overflow-y-auto">
+                                                    <!-- Models populated by JS -->
+                                                </div>
+                                            </div>
+                                            <div class="flex gap-1">
+                                                <button onclick="validateChatbotAPI()" class="flex-1 px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded font-medium text-[10px] transition-colors">
+                                                    <i class="fas fa-check-circle mr-0.5"></i> Validate
+                                                </button>
+                                                <button onclick="saveChatbotSettings()" class="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-[10px] transition-colors">
+                                                    <i class="fas fa-save mr-0.5"></i> Save
+                                                </button>
+                                            </div>
+                                            <div id="chatbot-error" class="hidden text-[9px] px-2 py-1 rounded bg-red-100 text-red-700"></div>
+                                            <div id="chatbot-success" class="hidden text-[9px] px-2 py-1 rounded bg-green-100 text-green-700"></div>
+                                        </div>
+                                    </div>
+
                                     <!-- Clear History (moved below settings & playlist) -->
                                     <div class="p-2 rounded-lg bg-custom-main border border-custom">
                                         <div class="flex items-center justify-between gap-2">
@@ -4775,6 +4824,466 @@
             });
         }
 
+    </script>
+    <!-- AI Chatbot -->
+    <button onclick="toggleChatbot()" id="chatbot-floating-btn" class="fixed bottom-20 md:bottom-6 right-6 z-50 bg-[var(--accent-color)] text-white p-4 rounded-full shadow-lg hover:bg-[var(--accent-hover)] transition-all hover:scale-105">
+        <i class="fas fa-robot text-2xl"></i>
+    </button>
+
+    <div id="chatbot-modal" class="fixed bottom-36 md:bottom-24 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] h-[450px] max-h-[calc(100vh-10rem)] md:h-[500px] md:max-h-[calc(100vh-8rem)] rounded-2xl shadow-2xl hidden flex flex-col overflow-hidden" style="background: var(--bg-card); border: 1px solid var(--border-color);">
+        <div class="flex-shrink-0 p-4 flex items-center justify-between" style="background: var(--accent-color);">
+            <h3 class="font-semibold flex items-center gap-2 text-white">
+                <i class="fas fa-robot"></i> AI Assistant
+            </h3>
+            <button onclick="toggleChatbot()" class="p-1 rounded transition hover:opacity-80" style="background: rgba(255,255,255,0.2);">
+                <i class="fas fa-times text-white"></i>
+            </button>
+        </div>
+        <div id="chatbot-messages" class="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-3 min-h-0" style="background: var(--bg-main);"></div>
+        <div class="flex-shrink-0 p-3 border-t" style="border-color: var(--border-color); background: var(--bg-card);">
+            <div class="flex gap-2 items-center">
+                <button onclick="clearChatbotChat()" class="p-2 rounded-full hover:bg-[var(--bg-hover)] transition" style="color: var(--text-muted);" title="Clear Chat">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <input type="text" id="chatbot-input" placeholder="Type a message..." 
+                    class="flex-1 px-4 py-2 rounded-full focus:outline-none"
+                    style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">
+                <button onclick="sendChatbotMessage()" class="px-4 py-2 rounded-full transition text-white"
+                    style="background: var(--accent-color);">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        #chatbot-modal { animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .chatbot-message { max-width: 85%; padding: 10px 14px; border-radius: 16px; line-height: 1.4; }
+        .chatbot-user { background: var(--accent-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; margin-left: auto; }
+        .chatbot-assistant { background: var(--bg-hover); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chatbot-typing { display: flex; gap: 4px; padding: 10px 14px; background: var(--bg-hover); border-radius: 16px; align-self: flex-start; }
+        .chatbot-typing span { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; animation: typing 1s infinite; }
+        .chatbot-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .chatbot-typing span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 100% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+        
+        #chatbot-modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+        }
+        #chatbot-modal > div:first-child {
+            background: var(--accent-color) !important;
+        }
+        #chatbot-modal > div:first-child button:hover {
+            background: var(--accent-hover) !important;
+        }
+        #chatbot-modal #chatbot-messages {
+            background: var(--bg-main);
+            min-height: 0;
+            overflow-y: auto;
+            flex-shrink: 1;
+        }
+        .chatbot-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            line-height: 1.5;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        #chatbot-modal input {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        #chatbot-modal input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+        #chatbot-modal > div:last-child {
+            border-color: var(--border-color) !important;
+            background: var(--bg-card) !important;
+        }
+        #chatbot-modal > div:last-child button:last-child {
+            background: var(--accent-color) !important;
+        }
+        #chatbot-modal > div:last-child button:last-child:hover {
+            background: var(--accent-hover) !important;
+        }
+        #chatbot-floating-btn {
+            background: var(--accent-color) !important;
+        }
+        #chatbot-floating-btn:hover {
+            background: var(--accent-hover) !important;
+        }
+    </style>
+
+    <script>
+        function setCookie(name, value, days = 365) {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = name + '=' + encodeURIComponent(JSON.stringify(value)) + '; expires=' + expires + '; path=/; SameSite=Lax';
+        }
+
+        function getCookie(name) {
+            const value = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+            if (value) {
+                try {
+                    return JSON.parse(decodeURIComponent(value.split('=')[1]));
+                } catch (e) { return null; }
+            }
+            return null;
+        }
+
+        let chatbotMessages = JSON.parse(localStorage.getItem('chatbotMessages') || '[]');
+        let chatbotSettings = getCookie('chatbotSettings') || JSON.parse(localStorage.getItem('chatbotSettings') || '{}');
+
+        function toggleChatbot() {
+            const modal = document.getElementById('chatbot-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) renderChatbotMessages();
+        }
+
+        function updateChatbotEndpointHint() {
+            const provider = document.getElementById('chatbot-provider').value;
+            const urls = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com/v1', deepseek: 'https://api.deepseek.com/v1', gemini: 'https://generativelanguage.googleapis.com/v1beta', custom: '' };
+            document.getElementById('chatbot-api-url').value = urls[provider];
+            updateChatbotModels();
+        }
+
+        const chatbotModels = {
+            openai: [
+                { value: 'gpt-4o', label: 'GPT-4o' },
+                { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+                { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+                { value: 'gpt-4', label: 'GPT-4' },
+                { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+            ],
+            anthropic: [
+                { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
+                { value: 'claude-haiku-3-20250507', label: 'Claude Haiku 3' },
+                { value: 'claude-opus-4-20250514', label: 'Claude Opus 4' },
+                { value: 'claude-3-7-sonnet-20250519', label: 'Claude 3.7 Sonnet' },
+                { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' }
+            ],
+            deepseek: [
+                { value: 'deepseek-chat', label: 'DeepSeek Chat' },
+                { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner' }
+            ],
+            gemini: [
+                { value: 'gemini-3.5-pro', label: 'Gemini 3.5 Pro' },
+                { value: 'gemini-3.0-pro', label: 'Gemini 3.0 Pro' },
+                { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+                { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+                { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (Exp)' },
+                { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
+                { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' }
+            ],
+            custom: []
+        };
+
+        function updateChatbotModels() {
+            const provider = document.getElementById('chatbot-provider').value;
+            const dropdown = document.getElementById('chatbot-model-dropdown');
+            const label = document.getElementById('chatbot-model-label');
+            const models = chatbotModels[provider] || [];
+            
+            dropdown.innerHTML = models.map(m => `<div class="px-2 py-1 text-[10px] hover:bg-[var(--bg-hover)] cursor-pointer" onclick="selectChatbotModel('${m.value}', '${m.label}')">${m.label}</div>`).join('');
+            
+            if (models.length > 0) {
+                const savedModel = chatbotSettings.model;
+                const savedLabel = models.find(m => m.value === savedModel)?.label || models[0].label;
+                const savedValue = savedModel || models[0].value;
+                label.textContent = savedLabel;
+                document.getElementById('chatbot-model').value = savedValue;
+            } else {
+                label.textContent = 'Custom Model';
+                document.getElementById('chatbot-model').value = '';
+            }
+        }
+
+        function toggleChatbotModelDropdown() {
+            const dropdown = document.getElementById('chatbot-model-dropdown');
+            const chevron = document.getElementById('chatbot-model-chevron');
+            dropdown.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function selectChatbotModel(value, label) {
+            document.getElementById('chatbot-model').value = value;
+            document.getElementById('chatbot-model-label').textContent = label;
+            document.getElementById('chatbot-model-dropdown').classList.add('hidden');
+            document.getElementById('chatbot-model-chevron').classList.remove('rotate-180');
+        }
+
+        function closeChatbotModelDropdown() {
+            document.getElementById('chatbot-model-dropdown').classList.add('hidden');
+            document.getElementById('chatbot-model-chevron').classList.remove('rotate-180');
+        }
+
+        function saveChatbotSettings() {
+            chatbotSettings = {
+                provider: document.getElementById('chatbot-provider').value,
+                apiUrl: document.getElementById('chatbot-api-url').value,
+                apiKey: document.getElementById('chatbot-api-key').value,
+                model: document.getElementById('chatbot-model').value
+            };
+            localStorage.setItem('chatbotSettings', JSON.stringify(chatbotSettings));
+            setCookie('chatbotSettings', chatbotSettings);
+            const status = document.getElementById('chatbot-api-status');
+            if (chatbotSettings.apiKey && chatbotSettings.apiUrl) {
+                status.textContent = 'Active';
+                status.className = 'text-[8px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700';
+            } else {
+                status.textContent = 'Not Set';
+                status.className = 'text-[8px] px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-600';
+            }
+            loadChatbotSettingsToInputs();
+        }
+
+        async function validateChatbotAPI() {
+            const provider = document.getElementById('chatbot-provider').value;
+            const apiUrl = document.getElementById('chatbot-api-url').value.trim();
+            const apiKey = document.getElementById('chatbot-api-key').value.trim();
+            const model = document.getElementById('chatbot-model').value;
+            const errorDiv = document.getElementById('chatbot-error');
+            const successDiv = document.getElementById('chatbot-success');
+            
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            
+            if (!apiUrl) {
+                showChatbotError('Please enter API Base URL');
+                return;
+            }
+            if (!apiKey) {
+                showChatbotError('Please enter API Key');
+                return;
+            }
+            if (!model) {
+                showChatbotError('Please select a Model');
+                return;
+            }
+            
+            try {
+                let testUrl, headers, body;
+                
+                if (provider === 'gemini') {
+                    testUrl = `${apiUrl}/models/${model}:generateContent?key=${apiKey}`;
+                    headers = { 'Content-Type': 'application/json' };
+                    body = JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }] });
+                } else if (provider === 'anthropic') {
+                    testUrl = `${apiUrl}/messages`;
+                    headers = { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01'
+                    };
+                    body = JSON.stringify({ model, max_tokens: 10, messages: [{ role: 'user', content: 'Hi' }] });
+                } else {
+                    testUrl = `${apiUrl}/chat/completions`;
+                    headers = { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    };
+                    body = JSON.stringify({ model, messages: [{ role: 'user', content: 'Hi' }] });
+                }
+                
+                const response = await fetch(testUrl, { method: 'POST', headers, body });
+                
+                if (response.ok) {
+                    successDiv.textContent = 'API validated successfully!';
+                    successDiv.classList.remove('hidden');
+                    setTimeout(() => successDiv.classList.add('hidden'), 3000);
+                    saveChatbotSettings();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    let errorMsg = errorData.error?.message || errorData.message || `HTTP ${response.status}`;
+                    
+                    if (errorMsg.includes('api_key') || errorMsg.includes('API key') || errorMsg.includes('authentication') || errorMsg.includes('invalid')) {
+                        errorMsg = 'Invalid API key';
+                    } else if (errorMsg.includes('not found') || errorMsg.includes('NOT_FOUND')) {
+                        errorMsg = 'Model not found. Check model name.';
+                    } else if (errorMsg.includes('quota') || errorMsg.includes('QUOTA') || errorMsg.includes('rate limit')) {
+                        errorMsg = 'Quota exceeded';
+                    }
+                    showChatbotError(errorMsg);
+                }
+            } catch (error) {
+                showChatbotError('Connection error: ' + error.message);
+            }
+        }
+
+        function loadChatbotSettingsToInputs() {
+            document.getElementById('chatbot-provider').value = chatbotSettings.provider || 'openai';
+            const urls = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com/v1', deepseek: 'https://api.deepseek.com/v1', gemini: 'https://generativelanguage.googleapis.com/v1beta', custom: '' };
+            if (!chatbotSettings.apiUrl) {
+                document.getElementById('chatbot-api-url').value = urls[chatbotSettings.provider || 'openai'];
+            } else {
+                document.getElementById('chatbot-api-url').value = chatbotSettings.apiUrl || '';
+            }
+            document.getElementById('chatbot-api-key').value = chatbotSettings.apiKey || '';
+            updateChatbotModels();
+        }
+
+        function renderChatbotMessages() {
+            const container = document.getElementById('chatbot-messages');
+            container.innerHTML = chatbotMessages.map(m => {
+                const cleanContent = stripMarkdown(m.content);
+                return `<div class="chatbot-message ${m.role === 'user' ? 'chatbot-user' : 'chatbot-assistant'}">${cleanContent}</div>`;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function stripMarkdown(text) {
+            if (!text) return '';
+            let cleaned = text
+                .replace(/\*\*([^*]+)\*\*/g, '$1')
+                .replace(/\*([^*]+)\*/g, '$1')
+                .replace(/__([^_]+)__/g, '$1')
+                .replace(/_([^_]+)_/g, '$1')
+                .replace(/`([^`]+)`/g, '$1')
+                .replace(/```[\s\S]*?```/g, '')
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                .replace(/^\s*[-*+]\s/gm, '')
+                .replace(/^\s*\d+\.\s/gm, '')
+                .replace(/\n{2,}/g, '\n\n')
+                .trim();
+            return escapeHtml(cleaned).replace(/\n/g, '<br>');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function addChatbotMessage(role, content) {
+            chatbotMessages.push({ role, content });
+            localStorage.setItem('chatbotMessages', JSON.stringify(chatbotMessages));
+            renderChatbotMessages();
+        }
+
+        function showChatbotTyping() {
+            const container = document.getElementById('chatbot-messages');
+            container.innerHTML += '<div class="chatbot-typing" id="chatbot-typing"><span></span><span></span><span></span></div>';
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function hideChatbotTyping() {
+            const typing = document.getElementById('chatbot-typing');
+            if (typing) typing.remove();
+        }
+
+        function clearChatbotChat() {
+            chatbotMessages = [];
+            localStorage.setItem('chatbotMessages', JSON.stringify(chatbotMessages));
+            renderChatbotMessages();
+        }
+
+        async function sendChatbotMessage() {
+            const input = document.getElementById('chatbot-input');
+            const message = input.value.trim();
+            if (!message) return;
+            if (!chatbotSettings.apiKey || !chatbotSettings.apiUrl) {
+                addChatbotMessage('assistant', 'Please configure your API key in Settings first.');
+                return;
+            }
+            input.value = '';
+            addChatbotMessage('user', message);
+            showChatbotTyping();
+            
+            const errorDiv = document.getElementById('chatbot-error');
+            errorDiv.classList.add('hidden');
+            
+            try {
+                let response, url, body, headers;
+                const provider = chatbotSettings.provider || 'openai';
+                
+                if (provider === 'gemini') {
+                    const model = chatbotSettings.model || 'gemini-1.5-flash';
+                    url = `${chatbotSettings.apiUrl}/models/${model}:generateContent?key=${chatbotSettings.apiKey}`;
+                    headers = { 'Content-Type': 'application/json' };
+                    body = JSON.stringify({
+                        contents: [{ parts: [{ text: message }] }]
+                    });
+                } else {
+                    url = `${chatbotSettings.apiUrl}/chat/completions`;
+                    headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${chatbotSettings.apiKey}` };
+                    body = JSON.stringify({
+                        model: chatbotSettings.model || 'gpt-3.5-turbo',
+                        messages: chatbotMessages.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })),
+                        temperature: 0.7
+                    });
+                }
+                
+                response = await fetch(url, { method: 'POST', headers, body });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    let errorMsg = errorData.error?.message || `HTTP ${response.status}`;
+                    
+                    if (errorMsg.includes('not found') || errorMsg.includes('NOT_FOUND') || errorMsg.includes('not supported')) {
+                        errorMsg = 'Model not found. Check model name in Settings.';
+                        showChatbotError(errorMsg);
+                    } else if (errorMsg.includes('api_key') || errorMsg.includes('API key') || errorMsg.includes('authentication')) {
+                        errorMsg = 'Invalid API key. Check your API key in Settings.';
+                        showChatbotError(errorMsg);
+                    } else if (errorMsg.includes('quota') || errorMsg.includes('QUOTA') || errorMsg.includes('rate limit')) {
+                        errorMsg = 'API quota/rate limit exceeded.';
+                        showChatbotError(errorMsg);
+                    } else if (errorMsg.includes('permission') || errorMsg.includes('PERMISSION_DENIED')) {
+                        errorMsg = 'Permission denied. Check API key permissions.';
+                        showChatbotError(errorMsg);
+                    }
+                    throw new Error(errorMsg);
+                }
+                
+                const data = await response.json();
+                
+                let reply;
+                if (provider === 'gemini') {
+                    reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                } else {
+                    reply = data.choices?.[0]?.message?.content;
+                }
+                
+                if (reply) { hideChatbotTyping(); addChatbotMessage('assistant', reply); }
+                else throw new Error('No response from API');
+            } catch (error) {
+                hideChatbotTyping();
+                addChatbotMessage('assistant', 'Error: ' + error.message);
+            }
+        }
+        
+        function showChatbotError(message) {
+            const errorDiv = document.getElementById('chatbot-error');
+            const successDiv = document.getElementById('chatbot-success');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            successDiv.classList.add('hidden');
+        }
+
+        document.getElementById('chatbot-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatbotMessage(); });
+        document.getElementById('chatbot-provider').addEventListener('change', updateChatbotEndpointHint);
+        
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('chatbot-model-dropdown');
+            const btn = document.getElementById('chatbot-model-btn');
+            if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.add('hidden');
+                document.getElementById('chatbot-model-chevron').classList.remove('rotate-180');
+            }
+        });
+        
+        // Initialize chatbot settings status
+        loadChatbotSettingsToInputs();
+        const status = document.getElementById('chatbot-api-status');
+        if (chatbotSettings.apiKey && chatbotSettings.apiUrl) {
+            status.textContent = 'Active';
+            status.className = 'text-[8px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700';
+        }
+        updateChatbotModels();
     </script>
 </body>
 </html>
