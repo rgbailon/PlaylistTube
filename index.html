@@ -1952,11 +1952,8 @@
                                                 </button>
                                             </div>
                                             <div class="flex gap-1.5">
-                                                <button onclick="validateYouTubeApiKey()" class="flex-1 px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded font-medium text-[10px] shadow-sm btn-hover transition-colors">
-                                                    <i class="fas fa-check-circle mr-0.5"></i>Validate
-                                                </button>
-                                                <button onclick="event.stopPropagation(); addApiKey()" class="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-[10px] shadow-sm btn-hover transition-colors">
-                                                    <i class="fas fa-plus mr-0.5"></i>Add
+                                                <button onclick="addApiKey()" class="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-[10px] shadow-sm btn-hover transition-colors">
+                                                    <i class="fas fa-plus mr-0.5"></i>Add & Validate
                                                 </button>
                                                 <button onclick="event.stopPropagation(); clearAllApiKeys()" class="px-2 py-1 bg-custom-card text-red-500 border border-custom hover:bg-red-50 hover:border-red-200 rounded font-medium text-[10px] transition-colors" title="Clear">
                                                     Clear
@@ -2700,28 +2697,32 @@
             const newKey = input.value.trim();
             
             if (!newKey) {
-                showMessage('Please enter an API key', 'error');
+                showYouTubeApiStatus('Please enter an API key', 'error');
                 return;
             }
             
             // Check if key already exists
             if (apiKeys.includes(newKey)) {
-                showMessage('This API key is already added', 'error');
+                showYouTubeApiStatus('This API key is already added', 'error');
                 return;
             }
             
-            // Validate key
+            // Validate key first
             const btn = document.querySelector('button[onclick*="addApiKey"]');
             const originalHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Checking...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Validating...';
             
             try {
                 const resp = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&maxResults=1&key=${newKey}`);
                 const data = await resp.json();
                 
                 if (!resp.ok || data.error) {
-                    throw new Error(stripHtml(data?.error?.message || 'Invalid API key'));
+                    const errorMsg = data?.error?.message || 'Invalid API key';
+                    showYouTubeApiStatus('Invalid API key: ' + errorMsg, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    return;
                 }
                 
                 // Key is valid, add it
@@ -2730,63 +2731,10 @@
                 input.value = '';
                 renderApiKeysList();
                 updateApiStatus();
-                showMessage('API key verified and added!', 'success');
+                showYouTubeApiStatus('API key verified and added!', 'success');
                 
             } catch (err) {
-                showMessage('Invalid API key: ' + stripHtml(err.message), 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
-            }
-        }
-        
-        async function validateYouTubeApiKey() {
-            const input = document.getElementById('api-key-input');
-            const keyToValidate = input.value.trim();
-            const statusDiv = document.getElementById('youtube-api-status');
-            
-            if (!keyToValidate) {
-                // Validate current active key
-                const currentKey = getCurrentApiKey();
-                if (!currentKey) {
-                    showYouTubeApiStatus('No API key to validate', 'error');
-                    return;
-                }
-                await validateAndShowStatus(currentKey);
-            } else {
-                // Validate the input key
-                await validateAndShowStatus(keyToValidate);
-            }
-        }
-        
-        async function validateAndShowStatus(key) {
-            const statusDiv = document.getElementById('youtube-api-status');
-            const btn = document.querySelector('button[onclick*="validateYouTubeApiKey"]');
-            const originalHtml = btn.innerHTML;
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
-            
-            try {
-                const resp = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&maxResults=1&key=${key}`);
-                const data = await resp.json();
-                
-                if (resp.ok && !data.error) {
-                    showYouTubeApiStatus('API key is valid!', 'success');
-                    input.value = '';
-                    // Optionally add it
-                    if (!apiKeys.includes(key)) {
-                        apiKeys.push(key);
-                        setCookie('yt_api_keys', JSON.stringify(apiKeys));
-                        renderApiKeysList();
-                        updateApiStatus();
-                    }
-                } else {
-                    const errorMsg = data?.error?.message || 'Invalid API key';
-                    showYouTubeApiStatus('Invalid: ' + errorMsg, 'error');
-                }
-            } catch (err) {
-                showYouTubeApiStatus('Connection error: ' + err.message, 'error');
+                showYouTubeApiStatus('Invalid API key', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
