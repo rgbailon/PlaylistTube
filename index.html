@@ -2001,6 +2001,7 @@
                                                     <option value="anthropic">Anthropic</option>
                                                     <option value="deepseek">DeepSeek</option>
                                                     <option value="gemini">Google Gemini</option>
+                                                    <option value="openrouter">OpenRouter</option>
                                                     <option value="custom">Custom</option>
                                                 </select>
                                             </div>
@@ -5073,7 +5074,7 @@
 
         function updateChatbotEndpointHint() {
             const provider = document.getElementById('chatbot-provider').value;
-            const urls = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com/v1', deepseek: 'https://api.deepseek.com/v1', gemini: 'https://generativelanguage.googleapis.com/v1beta', custom: '' };
+            const urls = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com/v1', deepseek: 'https://api.deepseek.com/v1', gemini: 'https://generativelanguage.googleapis.com/v1beta', openrouter: 'https://openrouter.ai/api/v1', custom: '' };
             document.getElementById('chatbot-api-url').value = urls[provider];
             updateChatbotModels();
         }
@@ -5105,6 +5106,18 @@
                 { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (Exp)' },
                 { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
                 { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' }
+            ],
+            openrouter: [
+                { value: 'openrouter/auto', label: 'Auto (Best)' },
+                { value: 'anthropic/claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
+                { value: 'anthropic/claude-haiku-3-20250507', label: 'Claude Haiku 3' },
+                { value: 'openai/gpt-4o', label: 'GPT-4o' },
+                { value: 'openai/gpt-4o-mini', label: 'GPT-4o Mini' },
+                { value: 'google/gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash' },
+                { value: 'deepseek/deepseek-chat', label: 'DeepSeek Chat' },
+                { value: 'meta-llama/llama-3.3-70b-instruct', label: 'Llama 3.3 70B' },
+                { value: 'qwen/qwen-2.5-72b-instruct', label: 'Qwen 2.5 72B' },
+                { value: 'mistralai/mistral-nemo', label: 'Mistral Nemo' }
             ],
             custom: []
         };
