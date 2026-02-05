@@ -5289,7 +5289,7 @@
                 .replace(/^\s*\d+\.\s/gm, (match) => match)
                 // Horizontal rule
                 .replace(/^[\s]*[-*_]{3,}[\s]*$/gm, '')
-                // Headers -> UPPERCASE
+                // Headers -> plain text
                 .replace(/^### (.+)$/gm, '$1')
                 .replace(/^## (.+)$/gm, '$1')
                 .replace(/^# (.+)$/gm, '$1')
@@ -5299,6 +5299,10 @@
                 .replace(/<[^>]+>/g, '')
                 // Clean up multiple newlines
                 .replace(/\n{3,}/g, '\n\n')
+                // Clean up <br> tags before list items and special lines
+                .replace(/<br>\s*[-*+]\s*/g, '<br>- ')
+                .replace(/<br>\s*\d+\.\s*/g, '<br>1. ')
+                .replace(/<br><br>/g, '<br>')
                 .trim();
             
             return escapeHtml(cleaned).replace(/\n/g, '<br>');
