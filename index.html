@@ -979,7 +979,7 @@
         }
         
         .collapse-content.open {
-            max-height: 600px;
+            max-height: 2000px;
         }
         
         /* Status Indicator */
@@ -1932,7 +1932,7 @@
                                             </div>
                                         </div>
                                         <!-- API Keys Section Content -->
-                                        <div id="api-keys-section" class="mt-2 space-y-1.5">
+                                        <div id="api-keys-section" class="mt-2 space-y-1.5 hidden">
                                             <!-- API Keys List (Collapsible) -->
                                             <div id="api-keys-container" class="mb-1">
                                                 <button onclick="event.stopPropagation(); toggleApiKeysList()" id="api-keys-toggle" class="hidden w-full text-left text-[10px] py-1 px-1.5 rounded border border-custom bg-custom-card text-custom-muted hover:bg-custom-main transition flex items-center justify-between">
@@ -1994,7 +1994,7 @@
                                             </div>
                                         </button>
                                         <!-- Chatbot API Section Content -->
-                                        <div id="chatbot-api-section" class="mt-2 space-y-1.5">
+                                        <div id="chatbot-api-section" class="mt-2 space-y-1.5 hidden">
                                             <div>
                                                 <select id="chatbot-provider" class="w-full input-styled rounded px-2 py-1 text-[10px]" onchange="updateChatbotEndpointHint()">
                                                     <option value="openai">OpenAI</option>
@@ -3255,7 +3255,7 @@
                 willShow = !dock.classList.contains('hidden');
             }
 
-            // When opening the dock, expand all settings sections
+            // When opening the dock, expand main settings content
             if (willShow) {
                 const section = document.getElementById('input-section');
                 const icon = document.getElementById('input-toggle-icon');
@@ -3265,21 +3265,8 @@
                     setCookie('yt_settings_open', '1');
                 }
                 
-                // Expand API Keys section
-                const apiKeysSection = document.getElementById('api-keys-section');
-                const apiKeysChevron = document.getElementById('api-keys-chevron');
-                if (apiKeysSection && apiKeysChevron) {
-                    apiKeysSection.classList.remove('hidden');
-                    apiKeysChevron.classList.add('rotate-180');
-                }
-                
-                // Expand Chatbot API section
-                const chatbotApiSection = document.getElementById('chatbot-api-section');
-                const chatbotApiChevron = document.getElementById('chatbot-api-chevron');
-                if (chatbotApiSection && chatbotApiChevron) {
-                    chatbotApiSection.classList.remove('hidden');
-                    chatbotApiChevron.classList.add('rotate-180');
-                }
+                // Keep API Keys and Chatbot AI collapsed by default
+                // User can manually expand them
             }
         }
 
@@ -5278,82 +5265,43 @@
         function stripMarkdown(text) {
             if (!text) return '';
             
-            // First, convert common markdown to HTML
-            let html = text
-                // Code blocks -> pre/code
-                .replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
-                // Inline code -> code
-                .replace(/`([^`]+)`/g, '<code>$1</code>')
-                // Bold **text** -> <strong>text</strong>
-                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                // Bold __text__ -> <strong>text</strong>
-                .replace(/__([^_]+)__/g, '<strong>$1</strong>')
-                // Italic *text* -> <em>text</em>
-                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                // Italic _text_ -> <em>text</em>
-                .replace(/_([^_]+)_/g, '<em>$1</em>')
-                // Strikethrough ~~text~~ -> <del>text</del>
-                .replace(/~~([^~]+)~~/g, '<del>$1</del>')
-                // Links [text](url) -> <a href="url">text</a>
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                // Unordered lists -> ul/li
-                .replace(/^\s*[-*+]\s(.+)$/gm, '<li>$1</li>')
-                .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-                // Ordered lists -> ol/li
-                .replace(/^\s*\d+\.\s(.+)$/gm, '<li>$1</li>')
-                // Horizontal rule --- or ***
-                .replace(/^[\s]*[-*_]{3,}[\s]*$/gm, '<hr>')
-                // Headers
-                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-                // Blockquotes
-                .replace(/^>\s+(.+)$/gm, '<blockquote>$1</blockquote>')
-                // Paragraphs (double newlines)
-                .replace(/\n\n/g, '</p><p>')
-                // Single newlines -> <br>
-                .replace(/\n/g, '<br>');
+            // Convert markdown to plain text (strip HTML tags)
+            let cleaned = text
+                // Code blocks -> plain text
+                .replace(/```[\s\S]*?```/g, (match) => match.replace(/```|`/g, ''))
+                // Inline code -> plain text
+                .replace(/`([^`]+)`/g, '$1')
+                // Bold **text** -> plain text
+                .replace(/\*\*([^*]+)\*\*/g, '$1')
+                // Bold __text__ -> plain text
+                .replace(/__([^_]+)__/g, '$1')
+                // Italic *text* -> plain text
+                .replace(/\*([^*]+)\*/g, '$1')
+                // Italic _text_ -> plain text
+                .replace(/_([^_]+)_/g, '$1')
+                // Strikethrough ~~text~~ -> plain text
+                .replace(/~~([^~]+)~~/g, '$1')
+                // Links [text](url) -> text
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                // Unordered lists -> dash
+                .replace(/^\s*[-*+]\s/gm, '- ')
+                // Ordered lists -> number.
+                .replace(/^\s*\d+\.\s/gm, (match) => match)
+                // Horizontal rule
+                .replace(/^[\s]*[-*_]{3,}[\s]*$/gm, '')
+                // Headers -> UPPERCASE
+                .replace(/^### (.+)$/gm, '$1')
+                .replace(/^## (.+)$/gm, '$1')
+                .replace(/^# (.+)$/gm, '$1')
+                // Blockquotes ->
+                .replace(/^>\s+/gm, '')
+                // Strip any remaining HTML tags
+                .replace(/<[^>]+>/g, '')
+                // Clean up multiple newlines
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
             
-            // Now sanitize: escape HTML but allow safe tags
-            const allowedTags = ['b', 'i', 'u', 'strong', 'em', 'del', 's', 'strike', 'br', 'hr', 'p', 'span', 'div', 'a', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-            const allowedAttrs = ['href', 'target', 'class', 'style'];
-            
-            // Split by tags to preserve them
-            const parts = html.split(/(<[^>]+>)/g);
-            let result = '';
-            
-            for (let part of parts) {
-                if (part.startsWith('<') && part.endsWith('>')) {
-                    // It's a tag, check if allowed
-                    const tagName = part.match(/^<(\w+)/)?.[1]?.toLowerCase();
-                    if (tagName && allowedTags.includes(tagName)) {
-                        // Allow the tag
-                        result += part;
-                    } else {
-                        // Escape the tag
-                        result += escapeHtml(part);
-                    }
-                } else {
-                    // Escape regular text
-                    result += escapeHtml(part);
-                }
-            }
-            
-            // Wrap in paragraph if not already wrapped
-            if (!result.startsWith('<')) {
-                result = '<p>' + result;
-            }
-            if (!result.endsWith('>')) {
-                result = result + '</p>';
-            }
-            
-            return result;
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            return escapeHtml(cleaned).replace(/\n/g, '<br>');
         }
 
         function addChatbotMessage(role, content, useTypewriter = false) {
