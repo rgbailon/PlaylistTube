@@ -2232,7 +2232,7 @@
             </div>
 
             <!-- Results Grid -->
-            <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div id="search-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 <div class="col-span-full text-center py-20 opacity-50">
                     <i class="fab fa-youtube text-6xl mb-4 text-custom-muted"></i>
                     <p class="text-custom-muted text-lg">Search YouTube for playlists</p>
@@ -2917,31 +2917,48 @@
             
             items.forEach(item => {
                 const el = document.createElement('div');
-                el.className = 'glass rounded-xl overflow-hidden shadow-sm border border-custom flex flex-col card-hover';
+                el.className = 'live-stream-card glass rounded-xl overflow-hidden shadow-sm border border-[var(--border-color)] flex flex-col card-hover group cursor-pointer';
+                
+                const thumbnail = item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url;
+                const title = item.snippet.title;
+                const channel = item.snippet.channelTitle;
+                const videoCount = item.videoCount || 0;
+                
                 el.innerHTML = `
-                    <div class="relative aspect-video bg-slate-200">
-                        <img src="${item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22><rect fill=%22%23cbd5e1%22 width=%22100%%22 height=%22100%%22/></svg>'">
+                    <div class="relative aspect-video bg-slate-200 overflow-hidden">
+                        <img src="${thumbnail}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22><rect fill=%22%23cbd5e1%22 width=%22100%%22 height=%22100%%22/></svg>'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/70 text-white text-xs font-medium">
+                            <i class="fas fa-video mr-1"></i>${videoCount} videos
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="w-16 h-16 rounded-full bg-blue-600/90 flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform">
+                                <i class="fas fa-play text-white text-2xl ml-1"></i>
+                            </div>
+                        </div>
                     </div>
                     <div class="p-4 flex flex-col flex-1">
-                        <h3 class="font-bold text-custom-main line-clamp-2 mb-2 text-sm md:text-base leading-snug">${escapeHtml(item.snippet.title)}</h3>
-                        <p class="text-xs text-custom-muted mb-4 flex items-center gap-1">
-                            <i class="fas fa-user-circle"></i> ${escapeHtml(item.snippet.channelTitle)}
-                        </p>
+                        <h3 class="font-bold text-[var(--text-main)] line-clamp-2 mb-2 text-sm md:text-base leading-snug group-hover:text-blue-500 transition-colors">${escapeHtml(title)}</h3>
                         <div class="mt-auto flex items-center justify-between">
-                            <div class="flex gap-2">
-                                <button onclick="importPlaylist('${item.id.playlistId}')" class="btn-add w-9 h-9 rounded-lg transition flex items-center justify-center shadow-sm" title="Add to History">
-                                    <i class="fas fa-plus"></i>
+                            <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 truncate flex-1">
+                                <i class="fas fa-user-circle"></i>
+                                <span class="truncate">${escapeHtml(channel)}</span>
+                            </p>
+                            <div class="flex gap-1 ml-2">
+                                <button onclick="event.stopPropagation(); importPlaylist('${item.id.playlistId}')" class="btn-add w-7 h-7 rounded-lg transition flex items-center justify-center shadow-sm" title="Add to History">
+                                    <i class="fas fa-plus text-xs"></i>
                                 </button>
-                                <button onclick="playPlaylistDirect('${item.id.playlistId}')" class="btn-add w-9 h-9 rounded-lg transition flex items-center justify-center shadow-sm" title="Play Now">
-                                    <i class="fas fa-play"></i>
+                                <button onclick="event.stopPropagation(); playPlaylistDirect('${item.id.playlistId}')" class="btn-add w-7 h-7 rounded-lg transition flex items-center justify-center shadow-sm" title="Play Now">
+                                    <i class="fas fa-play text-xs"></i>
                                 </button>
                             </div>
-                            <span class="text-xs text-custom-muted font-medium flex items-center gap-1">
-                                <i class="fas fa-video text-[10px]"></i> ${item.videoCount || 0}
-                            </span>
                         </div>
                     </div>
                 `;
+                
+                el.onclick = () => playPlaylistDirect(item.id.playlistId);
+                el.ondblclick = () => playPlaylistDirect(item.id.playlistId);
+                
                 container.appendChild(el);
             });
         }
