@@ -3254,7 +3254,7 @@
                 willShow = !dock.classList.contains('hidden');
             }
 
-            // When opening the dock, expand the settings content once to reveal Theme/API UI
+            // When opening the dock, expand all settings sections
             if (willShow) {
                 const section = document.getElementById('input-section');
                 const icon = document.getElementById('input-toggle-icon');
@@ -3262,6 +3262,22 @@
                     section.classList.add('open');
                     icon.classList.add('rotate-180');
                     setCookie('yt_settings_open', '1');
+                }
+                
+                // Expand API Keys section
+                const apiKeysSection = document.getElementById('api-keys-section');
+                const apiKeysChevron = document.getElementById('api-keys-chevron');
+                if (apiKeysSection && apiKeysChevron) {
+                    apiKeysSection.classList.remove('hidden');
+                    apiKeysChevron.classList.add('rotate-180');
+                }
+                
+                // Expand Chatbot API section
+                const chatbotApiSection = document.getElementById('chatbot-api-section');
+                const chatbotApiChevron = document.getElementById('chatbot-api-chevron');
+                if (chatbotApiSection && chatbotApiChevron) {
+                    chatbotApiSection.classList.remove('hidden');
+                    chatbotApiChevron.classList.add('rotate-180');
                 }
             }
         }
