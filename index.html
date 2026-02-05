@@ -4949,7 +4949,7 @@
     <style>
         #chatbot-modal { animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .chatbot-message { max-width: 85%; padding: 10px 14px; border-radius: 16px; line-height: 1.4; }
+        .chatbot-message { max-width: 85%; padding: 10px 14px; border-radius: 16px; line-height: 1.5; white-space: pre-line; word-wrap: break-word; }
         .chatbot-user { background: var(--accent-color); color: white; align-self: flex-end; border-bottom-right-radius: 4px; margin-left: auto; }
         .chatbot-assistant { background: var(--bg-hover); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 4px; }
         .chatbot-typing { display: flex; gap: 4px; padding: 10px 14px; background: var(--bg-hover); border-radius: 16px; align-self: flex-start; }
@@ -5019,6 +5019,19 @@
 
     <script>
         let chatbotMessages = JSON.parse(localStorage.getItem('chatbotMessages') || '[]');
+        
+        // Clean up any stored messages with <br> tags
+        let hasBrTags = chatbotMessages.some(m => m.content && m.content.includes('<br>'));
+        if (hasBrTags) {
+            chatbotMessages = chatbotMessages.map(m => {
+                if (m.content) {
+                    m.content = m.content.replace(/<br\s*\/?>/gi, '\n');
+                }
+                return m;
+            });
+            localStorage.setItem('chatbotMessages', JSON.stringify(chatbotMessages));
+        }
+        
         let chatbotSettings = {};
         
         function loadChatbotSettings() {
@@ -5299,13 +5312,10 @@
                 .replace(/<[^>]+>/g, '')
                 // Clean up multiple newlines
                 .replace(/\n{3,}/g, '\n\n')
-                // Clean up <br> tags before list items and special lines
-                .replace(/<br>\s*[-*+]\s*/g, '<br>- ')
-                .replace(/<br>\s*\d+\.\s*/g, '<br>1. ')
-                .replace(/<br><br>/g, '<br>')
                 .trim();
             
-            return escapeHtml(cleaned).replace(/\n/g, '<br>');
+            // Don't use <br> - CSS white-space: pre-line handles newlines
+            return escapeHtml(cleaned);
         }
 
         function addChatbotMessage(role, content, useTypewriter = false) {
