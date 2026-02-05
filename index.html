@@ -4937,6 +4937,14 @@
         .chatbot-typing span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typing { 0%, 100% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
         
+        .typewriter-cursor {
+            border-right: 2px solid var(--accent-color);
+            animation: blink-cursor 0.8s step-end infinite;
+        }
+        @keyframes blink-cursor {
+            50% { border-color: transparent; }
+        }
+        
         #chatbot-modal {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -5244,10 +5252,40 @@
             return div.innerHTML;
         }
 
-        function addChatbotMessage(role, content) {
+        function addChatbotMessage(role, content, useTypewriter = false) {
             chatbotMessages.push({ role, content });
             localStorage.setItem('chatbotMessages', JSON.stringify(chatbotMessages));
-            renderChatbotMessages();
+            
+            const container = document.getElementById('chatbot-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chatbot-message ${role === 'user' ? 'chatbot-user' : 'chatbot-assistant'}`;
+            
+            if (useTypewriter && role === 'assistant') {
+                messageDiv.innerHTML = '<span class="typewriter-cursor"></span>';
+                container.appendChild(messageDiv);
+                container.scrollTop = container.scrollHeight;
+                
+                const cursor = messageDiv.querySelector('.typewriter-cursor');
+                let index = 0;
+                const text = stripMarkdown(content);
+                
+                function typeChar() {
+                    if (index < text.length) {
+                        cursor.textContent = text.substring(0, index + 1);
+                        index++;
+                        container.scrollTop = container.scrollHeight;
+                        setTimeout(typeChar, 15 + Math.random() * 20);
+                    } else {
+                        cursor.replaceWith(document.createTextNode(text));
+                    }
+                }
+                
+                typeChar();
+            } else {
+                messageDiv.innerHTML = stripMarkdown(content);
+                container.appendChild(messageDiv);
+                container.scrollTop = container.scrollHeight;
+            }
         }
 
         function showChatbotTyping() {
@@ -5272,7 +5310,7 @@
             const message = input.value.trim();
             if (!message) return;
             if (!chatbotSettings.apiKey || !chatbotSettings.apiUrl) {
-                addChatbotMessage('assistant', 'Please configure your API key in Settings first.');
+                addChatbotMessage('assistant', 'Please configure your API key in Settings first.', false);
                 return;
             }
             input.value = '';
@@ -5334,7 +5372,10 @@
                     reply = data.choices?.[0]?.message?.content;
                 }
                 
-                if (reply) { hideChatbotTyping(); addChatbotMessage('assistant', reply); }
+                if (reply) { 
+                    hideChatbotTyping(); 
+                    addChatbotMessage('assistant', reply, true); 
+                }
                 else throw new Error('No response from API');
             } catch (error) {
                 hideChatbotTyping();
