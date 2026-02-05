@@ -5277,21 +5277,79 @@
 
         function stripMarkdown(text) {
             if (!text) return '';
-            let cleaned = text
-                .replace(/\*\*([^*]+)\*\*/g, '$1')
-                .replace(/\*([^*]+)\*/g, '$1')
-                .replace(/__([^_]+)__/g, '$1')
-                .replace(/_([^_]+)_/g, '$1')
-                .replace(/`([^`]+)`/g, '$1')
-                .replace(/```[\s\S]*?```/g, '')
-                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-                .replace(/^\s*[-*+]\s/gm, '')
-                .replace(/^\s*\d+\.\s/gm, '')
-                .replace(/\n{2,}/g, '\n\n')
-                .trim();
-            return escapeHtml(cleaned).replace(/\n/g, '<br>');
+            
+            // First, convert common markdown to HTML
+            let html = text
+                // Code blocks -> pre/code
+                .replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+                // Inline code -> code
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                // Bold **text** -> <strong>text</strong>
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                // Bold __text__ -> <strong>text</strong>
+                .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+                // Italic *text* -> <em>text</em>
+                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+                // Italic _text_ -> <em>text</em>
+                .replace(/_([^_]+)_/g, '<em>$1</em>')
+                // Strikethrough ~~text~~ -> <del>text</del>
+                .replace(/~~([^~]+)~~/g, '<del>$1</del>')
+                // Links [text](url) -> <a href="url">text</a>
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                // Unordered lists -> ul/li
+                .replace(/^\s*[-*+]\s(.+)$/gm, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+                // Ordered lists -> ol/li
+                .replace(/^\s*\d+\.\s(.+)$/gm, '<li>$1</li>')
+                // Horizontal rule --- or ***
+                .replace(/^[\s]*[-*_]{3,}[\s]*$/gm, '<hr>')
+                // Headers
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                // Blockquotes
+                .replace(/^>\s+(.+)$/gm, '<blockquote>$1</blockquote>')
+                // Paragraphs (double newlines)
+                .replace(/\n\n/g, '</p><p>')
+                // Single newlines -> <br>
+                .replace(/\n/g, '<br>');
+            
+            // Now sanitize: escape HTML but allow safe tags
+            const allowedTags = ['b', 'i', 'u', 'strong', 'em', 'del', 's', 'strike', 'br', 'hr', 'p', 'span', 'div', 'a', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+            const allowedAttrs = ['href', 'target', 'class', 'style'];
+            
+            // Split by tags to preserve them
+            const parts = html.split(/(<[^>]+>)/g);
+            let result = '';
+            
+            for (let part of parts) {
+                if (part.startsWith('<') && part.endsWith('>')) {
+                    // It's a tag, check if allowed
+                    const tagName = part.match(/^<(\w+)/)?.[1]?.toLowerCase();
+                    if (tagName && allowedTags.includes(tagName)) {
+                        // Allow the tag
+                        result += part;
+                    } else {
+                        // Escape the tag
+                        result += escapeHtml(part);
+                    }
+                } else {
+                    // Escape regular text
+                    result += escapeHtml(part);
+                }
+            }
+            
+            // Wrap in paragraph if not already wrapped
+            if (!result.startsWith('<')) {
+                result = '<p>' + result;
+            }
+            if (!result.endsWith('>')) {
+                result = result + '</p>';
+            }
+            
+            return result;
         }
-
+        
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
