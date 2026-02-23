@@ -5852,18 +5852,14 @@
                         typeof player.loadVideoById === "function" &&
                         isSameVideo
                     ) {
-                        // Same video clicked - force play
-                        player.playVideo();
-                        // If paused, ensure it plays
+                        // Same video clicked - restart from beginning
+                        player.loadVideoById({
+                            videoId: video.videoId,
+                            startSeconds: 0,
+                        });
                         setTimeout(() => {
                             try {
-                                if (
-                                    player.getPlayerState &&
-                                    player.getPlayerState() !==
-                                        YT.PlayerState.PLAYING
-                                ) {
-                                    player.playVideo();
-                                }
+                                player.playVideo();
                             } catch (e) {}
                         }, 100);
                     } else if (player && typeof player.destroy === "function") {
