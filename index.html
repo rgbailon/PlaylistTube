@@ -5808,11 +5808,13 @@
             function playVideo(index) {
                 if (index < 0 || index >= currentPlaylist.length) return;
 
-                // Always force play when clicked - reset player state
-                const isSameVideo = index === currentVideoIndex;
+                const video = currentPlaylist[index];
+                
+                // Check if it's actually the same video by comparing videoId
+                const previousVideoId = currentPlaylist[currentVideoIndex]?.videoId;
+                const isSameVideo = video.videoId === previousVideoId;
 
                 currentVideoIndex = index;
-                const video = currentPlaylist[index];
 
                 document
                     .getElementById("player-placeholder")
