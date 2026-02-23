@@ -1487,7 +1487,7 @@
             /* Ensure video list has enough top padding for first item tooltip */
             #video-list,
             #video-list-mobile {
-                padding-top: 16px !important;
+                padding-top: 50px !important;
             }
 
             /* Mobile Fullscreen Mode */
@@ -5686,6 +5686,12 @@
                              alt="" class="w-20 md:w-24 h-12 md:h-14 object-cover rounded shadow-sm bg-slate-200 video-thumb">
                         <div class="thumbnail-overlay rounded"></div>
                         <span class="absolute bottom-1 left-1 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded font-medium">${index + 1}</span>
+                        ${video.liveViewers ? `
+                        <span class="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-red-600 text-white text-[8px] font-bold flex items-center gap-0.5">
+                            <span class="w-1 h-1 bg-white rounded-full animate-pulse"></span>
+                            LIVE
+                        </span>
+                        ` : ''}
                     </div>
                     <div class="flex-1 min-w-0 flex flex-col">
                         <p class="text-xs md:text-sm font-medium line-clamp-1 text-custom-main leading-snug">${escapeHtml(video.title)}</p>
@@ -5694,9 +5700,13 @@
                             ${escapeHtml(video.channel || "")}
                         </p>
                         <p class="text-[9px] text-custom-muted mt-auto flex items-center gap-2">
+                            ${video.liveViewers ? `
+                            <span class="text-red-500 font-medium"><i class="fas fa-user mr-0.5"></i>${formatViews(video.liveViewers)} watching</span>
+                            ` : `
                             <span>${formatViews(video.viewCount)} views</span>
                             <span>•</span>
                             <span>${formatTimeAgo(video.publishedAt)}</span>
+                            `}
                         </p>
                     </div>
                 </div>
@@ -7091,7 +7101,7 @@
                             <span class="truncate">${escapeHtml(channel)}</span>
                         </p>
                         <div class="relative ml-2">
-                            <button onclick="event.stopPropagation(); addToPlaylistFromLive('${item.id.videoId}', '${escapeHtml(title)}', '${escapeHtml(channel)}', this)" class="btn-add w-7 h-7 rounded-full transition flex items-center justify-center shadow-sm add-to-playlist-btn" title="Add to Playlist">
+                            <button onclick="event.stopPropagation(); addToPlaylistFromLive('${item.id.videoId}', '${escapeHtml(title)}', '${escapeHtml(channel)}', this, ${concurrentViewers || 'null'})" class="btn-add w-7 h-7 rounded-full transition flex items-center justify-center shadow-sm add-to-playlist-btn" title="Add to Playlist">
                                 <i class="fas fa-plus text-xs"></i>
                                 <span class="added-text absolute inset-0 flex items-center justify-center bg-green-600 text-white rounded-full opacity-0 scale-0 transition-all duration-300">
                                     <i class="fas fa-check text-xs"></i>
@@ -7110,6 +7120,7 @@
                 title,
                 channel,
                 buttonElement,
+                liveViewers = null,
             ) {
                 // Create a single-video "playlist" and add it to history
                 const liveVideo = {
@@ -7119,6 +7130,7 @@
                     channel: channel || "Unknown Channel",
                     publishedAt: new Date().toISOString(),
                     isLive: true, // Mark as live stream
+                    liveViewers: liveViewers, // Store live viewers count
                 };
 
                 // Add to current playlist if we're on the main page
