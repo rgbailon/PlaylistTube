@@ -3594,6 +3594,43 @@
                                 This Month
                             </button>
                         </div>
+                        
+                        <!-- Region Filter -->
+                        <div class="flex flex-wrap gap-2 justify-center md:justify-start">
+                            <span class="text-sm text-custom-muted py-2 mr-2"><i class="fas fa-globe mr-1"></i>Region:</span>
+                            <select
+                                id="single-video-region"
+                                onchange="setSingleVideoRegion(this.value)"
+                                class="input-styled rounded-lg px-3 py-2 text-sm font-medium"
+                            >
+                                <option value="">Any Region</option>
+                                <option value="US">United States</option>
+                                <option value="GB">United Kingdom</option>
+                                <option value="CA">Canada</option>
+                                <option value="AU">Australia</option>
+                                <option value="PH">Philippines</option>
+                                <option value="JP">Japan</option>
+                                <option value="KR">South Korea</option>
+                                <option value="IN">India</option>
+                                <option value="DE">Germany</option>
+                                <option value="FR">France</option>
+                                <option value="BR">Brazil</option>
+                                <option value="MX">Mexico</option>
+                                <option value="ES">Spain</option>
+                                <option value="IT">Italy</option>
+                                <option value="NL">Netherlands</option>
+                                <option value="SG">Singapore</option>
+                                <option value="TH">Thailand</option>
+                                <option value="VN">Vietnam</option>
+                                <option value="ID">Indonesia</option>
+                                <option value="MY">Malaysia</option>
+                                <option value="TW">Taiwan</option>
+                                <option value="HK">Hong Kong</option>
+                                <option value="NZ">New Zealand</option>
+                                <option value="AE">United Arab Emirates</option>
+                                <option value="SA">Saudi Arabia</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -4846,19 +4883,7 @@
             let currentSingleVideoSortOrder = "relevance";
             let currentSingleVideoTimeFilter = "anytime";
             let allSingleVideoResults = [];
-            let userRegionCode = null;
-
-            function getUserRegionCode() {
-                if (userRegionCode) return userRegionCode;
-                try {
-                    const locale = navigator.language || 'en-US';
-                    const regionCode = locale.split('-')[1] || locale.split('_')[1] || 'US';
-                    userRegionCode = regionCode.toUpperCase();
-                } catch (e) {
-                    userRegionCode = 'US';
-                }
-                return userRegionCode;
-            }
+            let currentSingleVideoRegion = "";
             
             // Separate playlist for single videos
             let singleVideosPlaylist = [];
@@ -4879,6 +4904,13 @@
                 document.querySelectorAll(".single-video-time-btn").forEach((btn) => {
                     btn.classList.toggle("active", btn.dataset.time === time);
                 });
+                if (currentSingleVideoQuery) {
+                    searchSingleVideos();
+                }
+            }
+
+            function setSingleVideoRegion(region) {
+                currentSingleVideoRegion = region;
                 if (currentSingleVideoQuery) {
                     searchSingleVideos();
                 }
@@ -4982,9 +5014,10 @@
                             publishedAfter = "";
                     }
 
-                    let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=12&order=${currentSingleVideoSortOrder}&regionCode=${getUserRegionCode()}&key=${apiKey}`;
+                    let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=12&order=${currentSingleVideoSortOrder}&key=${apiKey}`;
                     if (pageToken) url += "&pageToken=" + pageToken;
                     if (publishedAfter) url += "&publishedAfter=" + publishedAfter;
+                    if (currentSingleVideoRegion) url += "&regionCode=" + currentSingleVideoRegion;
 
                     const response = await fetch(url);
                     const data = await response.json();
