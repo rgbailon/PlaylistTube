@@ -4846,6 +4846,19 @@
             let currentSingleVideoSortOrder = "relevance";
             let currentSingleVideoTimeFilter = "anytime";
             let allSingleVideoResults = [];
+            let userRegionCode = null;
+
+            function getUserRegionCode() {
+                if (userRegionCode) return userRegionCode;
+                try {
+                    const locale = navigator.language || 'en-US';
+                    const regionCode = locale.split('-')[1] || locale.split('_')[1] || 'US';
+                    userRegionCode = regionCode.toUpperCase();
+                } catch (e) {
+                    userRegionCode = 'US';
+                }
+                return userRegionCode;
+            }
             
             // Separate playlist for single videos
             let singleVideosPlaylist = [];
@@ -4969,7 +4982,7 @@
                             publishedAfter = "";
                     }
 
-                    let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=12&order=${currentSingleVideoSortOrder}&key=${apiKey}`;
+                    let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&maxResults=12&order=${currentSingleVideoSortOrder}&regionCode=${getUserRegionCode()}&key=${apiKey}`;
                     if (pageToken) url += "&pageToken=" + pageToken;
                     if (publishedAfter) url += "&publishedAfter=" + publishedAfter;
 
