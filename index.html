@@ -3874,7 +3874,7 @@
                     encodeURIComponent(value) +
                     "; expires=" +
                     expires +
-                    "; path=/; SameSite=Strict";
+                    "; path=/; SameSite=Lax";
             }
 
             function getCookie(name) {
@@ -3886,7 +3886,7 @@
 
             function deleteCookie(name) {
                 document.cookie =
-                    name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+                    name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax";
             }
 
             // State
