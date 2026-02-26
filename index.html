@@ -2053,17 +2053,12 @@
             }
 
             #chat-float-btn.floating-active,
-            #chat-float-btn-header.floating-active {
+            #chat-float-btn_header.floating-active {
                 background: var(--accent-color) !important;
                 color: white !important;
             }
 
             /* Photography theme - fix contrast for floating-active state */
-            [data-theme="photo"] #chat-float-btn.floating-active,
-            [data-theme="photo"] #chat-float-btn-header.floating-active {
-                background: var(--text-main) !important;
-                color: var(--bg-main) !important;
-            }
 
             /* Keep video list visible below floating chat */
             body.chat-floating #video-list,
@@ -2984,73 +2979,70 @@
                                         <span></span>
                                     </p>
                                 </div>
+                            </div>
+                        </div>
 
-                                <!-- Live Chat Section - Below Video Player (Desktop Only) -->
+                        <!-- Live Chat Section -->
+                        <div
+                            id="live-chat-section"
+                            class="mt-4 hidden md:block flex-shrink-0"
+                        >
+                            <div
+                                id="live-chat-container-main"
+                                class="mt-2 overflow-hidden flex-1"
+                            >
                                 <div
-                                    id="live-chat-section"
-                                    class="mt-4 hidden md:block flex-shrink-0"
+                                    class="border border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col h-full"
                                 >
-                                    <!-- Live Chat Container (Always Visible) -->
-                                    <div
-                                        id="live-chat-container-main"
-                                        class="mt-2 overflow-hidden flex-1"
-                                    >
+                                    <div class="flex flex-col h-full">
                                         <div
-                                            class="border border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col h-full"
+                                            class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between flex-shrink-0"
                                         >
-                                            <div class="flex flex-col h-full">
-                                                <div
-                                                    class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between flex-shrink-0"
-                                                >
-                                                    <span
-                                                        class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2"
-                                                    >
-                                                        <span
-                                                            class="w-2 h-2 bg-[var(--accent-color)] animate-pulse"
-                                                        ></span>
-                                                        Live Chat
-                                                    </span>
-                                                    <button
-                                                        onclick="toggleChatFloat()"
-                                                        class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 transition"
-                                                        title="Float chat to right"
-                                                    >
-                                                        <i class="fas fa-external-link-alt text-xs"></i>
-                                                    </button>
-                                                </div>
-                                                <div id="live-chat-iframe-container-main" class="flex-1 bg-white w-full" style="
-                                                        overflow: auto;
-                                                        -webkit-overflow-scrolling: touch;
-                                                    ">
-                                                    <!-- YouTube Live Chat iframe will be loaded here -->
-                                                </div>
-                                                <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center flex-shrink-0">
-                                                    Chat requires domain registration
-                                                </div>
-                                            </div>
+                                            <span
+                                                class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2"
+                                            >
+                                                <span
+                                                    class="w-2 h-2 bg-[var(--accent-color)] animate-pulse"
+                                                ></span>
+                                                Live Chat
+                                            </span>
+                                            <button
+                                                onclick="toggleChatFloat()"
+                                                class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 transition"
+                                                title="Float chat to right"
+                                            >
+                                                <i class="fas fa-external-link-alt text-xs"></i>
+                                            </button>
+                                        </div>
+                                        <div id="live-chat-iframe-container-main" class="flex-1 bg-white w-full" style="
+                                                overflow: auto;
+                                                -webkit-overflow-scrolling: touch;
+                                            ">
+                                        </div>
+                                        <div class="px-3 py-1.5 bg-[var(--bg-hover)] border-t border-[var(--border-color)] text-[10px] text-[var(--text-muted)] text-center flex-shrink-0">
+                                            Chat requires domain registration
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                <!-- Floating Live Chat (Hidden by default) -->
-                                <div
-                                    id="live-chat-floating"
-                                    class="fixed right-2 top-2 bottom-2 w-80 hidden z-50 flex flex-col rounded-lg"
-                                    style="background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.15)"
-                                >
-                                    <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between flex-shrink-0 rounded-t-lg">
-                                        <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
-                                            <span class="w-2 h-2 bg-[var(--accent-color)] animate-pulse"></span>
-                                            Live Chat
-                                        </span>
-                                        <button onclick="toggleChatFloat()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 transition">
-                                            <i class="fas fa-times text-xs"></i>
-                                        </button>
-                                    </div>
-                                    <div id="live-chat-iframe-floating" class="flex-1 bg-white w-full rounded-b-lg" style="overflow: auto; -webkit-overflow-scrolling: touch;">
-                                        <!-- YouTube Live Chat iframe will be loaded here -->
-                                    </div>
-                                </div>
+                        <!-- Floating Live Chat -->
+                        <div
+                            id="live-chat-floating"
+                            class="fixed right-2 top-2 bottom-2 w-80 hidden z-50 flex flex-col rounded-lg"
+                            style="background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 4px 20px rgba(0,0,0,0.15)"
+                        >
+                            <div class="px-3 py-2 border-b border-[var(--border-color)] bg-[var(--bg-hover)] flex items-center justify-between flex-shrink-0 rounded-t-lg">
+                                <span class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
+                                    <span class="w-2 h-2 bg-[var(--accent-color)] animate-pulse"></span>
+                                    Live Chat
+                                </span>
+                                <button onclick="toggleChatFloat()" class="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 transition">
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
+                            </div>
+                            <div id="live-chat-iframe-floating" class="flex-1 bg-white w-full rounded-b-lg" style="overflow: auto; -webkit-overflow-scrolling: touch;">
                             </div>
                         </div>
 
@@ -3289,25 +3281,39 @@
         <!-- AI Chat Page -->
         <div
             id="chat-page"
-            class="hidden h-[calc(100vh-70px)] flex flex-col items-center justify-center"
+            class="hidden h-[calc(100vh-70px)] flex flex-col"
             style="background: var(--bg-main)"
         >
+            <!-- Chat Header -->
+            <div class="flex items-center justify-between px-4 py-2" style="background: var(--bg-card); border-bottom: 1px solid var(--border-color)">
+                <h2 class="text-lg font-semibold" style="color: var(--text-main)">
+                    <i class="fas fa-robot mr-2" style="color: var(--accent-color)"></i>AI Chat
+                </h2>
+                <button
+                    onclick="showChatHistory()"
+                    class="p-2 rounded-lg transition hover:bg-[var(--bg-hover)]"
+                    style="color: var(--text-muted)"
+                    title="Chat History"
+                >
+                    <i class="fas fa-history"></i>
+                </button>
+            </div>
             <!-- Chat Messages -->
             <div
                 id="chat-page-messages"
-                class="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4 min-h-0 w-[90%] max-w-3xl"
+                class="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4 min-h-0 w-[60%] max-w-5xl mx-auto"
                 style="background: var(--bg-main)"
             >
                 <!-- Welcome Message -->
                 <div class="flex items-start gap-3">
                     <div
                         class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                        style="background: linear-gradient(135deg, var(--accent-color), #6366f1)"
+                        style="background: var(--accent-color)"
                     >
                         <i class="fas fa-robot text-white text-sm"></i>
                     </div>
                     <div
-                        class="rounded-2xl p-4 max-w-[85%] shadow-sm"
+                        class="rounded-2xl p-4 max-w-[75%] shadow-sm"
                         style="background: var(--bg-card); border: 1px solid var(--border-color)"
                     >
                         <p style="color: var(--text-main); line-height: 1.6">
@@ -3324,39 +3330,36 @@
             
             <!-- Chat Input -->
             <div
-                class="flex-shrink-0 p-4 w-[90%] max-w-3xl"
+                class="flex-shrink-0 px-4 py-3 w-[60%] max-w-5xl mx-auto"
                 style="background: var(--bg-card); border-top: 1px solid var(--border-color)"
             >
-                <div class="relative max-w-full mx-auto flex items-center gap-2">
+                <div class="relative max-w-full mx-auto flex items-center gap-3">
                     <button
                         onclick="clearChat()"
-                        class="p-2 rounded-full transition flex-shrink-0"
+                        class="w-8 h-8 rounded-full transition flex-shrink-0 flex items-center justify-center hover:scale-110"
                         style="background: var(--bg-hover); color: var(--text-muted)"
                         title="Clear chat"
                     >
-                        <i class="fas fa-trash-alt"></i>
+                        <i class="fas fa-redo text-xs"></i>
                     </button>
                     <textarea
                         id="chat-page-input"
-                        placeholder="Type your message..."
+                        placeholder="Message AI Assistant..."
                         rows="1"
-                        class="flex-1 input-styled rounded-2xl pl-5 pr-12 py-3 text-sm md:text-base resize-none"
-                        style="min-height: 50px; max-height: 150px; background: var(--bg-main); border: 1px solid var(--border-color)"
+                        class="flex-1 input-styled rounded-2xl pl-4 pr-12 py-2.5 text-sm resize-none shadow-inner"
+                        style="min-height: 44px; max-height: 120px; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main)"
                         oninput="autoResizeChatInput(this)"
                         onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendChatMessage(); }"
                     ></textarea>
                     <button
                         onclick="sendChatMessage()"
                         id="chat-page-send-btn"
-                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-full transition"
-                        style="background: #4b5563; color: white; width: 36px; height: 36px;"
+                        class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl flex items-center justify-center transition hover:scale-110 shadow-md"
+                        style="background: var(--accent-color); color: white"
                     >
-                        <i class="fas fa-paper-plane"></i>
+                        <i class="fas fa-paper-plane text-xs"></i>
                     </button>
                 </div>
-                <p class="text-center text-xs mt-2" style="color: var(--text-muted)">
-                    Press Enter to send, Shift+Enter for new line
-                </p>
             </div>
         </div>
 
@@ -4434,6 +4437,15 @@
                 document
                     .getElementById("single-videos-page")
                     .classList.toggle("hidden", page !== "single-videos");
+
+                // Initialize chat history when navigating to chat page
+                if (page === "chat") {
+                    const conversations = getConversations();
+                    if (conversations.length === 0 || !currentConversationId) {
+                        createNewConversation();
+                    }
+                    renderChatPageMessages();
+                }
 
                 document
                     .querySelectorAll(".nav-btn")
@@ -5688,7 +5700,7 @@
                 const totalVideos = currentPlaylist.length;
 
                 const renderVideoItem = (video, index) => `
-                <div class="video-item glass p-2.5 rounded-lg cursor-pointer card-hover flex gap-3 ${index === currentVideoIndex ? "active" : ""}"
+                <div class="video-item group glass p-2.5 rounded-lg cursor-pointer card-hover flex gap-3 ${index === currentVideoIndex ? "active" : ""}"
                      data-index="${index}"
                      data-tooltip="${escapeHtml(video.title)}">
                     <div class="relative flex-shrink-0">
@@ -5713,6 +5725,8 @@
                         <p class="text-[9px] text-custom-muted mt-auto flex items-center gap-2">
                             ${video.liveViewers ? `
                             <span class="text-red-500 font-medium"><i class="fas fa-user mr-0.5"></i>${formatViews(video.liveViewers)} watching</span>
+                            ` : video.isLive ? `
+                            <span class="text-red-500 font-medium"><i class="fas fa-broadcast-tower mr-0.5"></i>LIVE</span>
                             ` : `
                             <span>${formatViews(video.viewCount)} views</span>
                             <span>•</span>
@@ -5720,6 +5734,11 @@
                             `}
                         </p>
                     </div>
+                    ${video.isLive ? `
+                    <button onclick="event.stopPropagation(); removeLiveFromPlaylist(${index})" class="ml-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100" title="Remove from playlist">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                    ` : ''}
                 </div>
             `;
 
@@ -6491,6 +6510,23 @@
                 }
             }
 
+            function removeLiveFromPlaylist(index) {
+                if (currentPlaylist[index]) {
+                    const video = currentPlaylist[index];
+                    currentPlaylist.splice(index, 1);
+                    renderVideoList();
+                    document.getElementById("video-count").textContent =
+                        `${currentPlaylist.length} videos`;
+                    document.getElementById("video-count-mobile").textContent =
+                        `${currentPlaylist.length} videos`;
+                    updateLiveVideosPanel();
+                    showMessage(
+                        "Live removed from playlist",
+                        "success",
+                    );
+                }
+            }
+
             // UI Helpers
             function showMessage(message, type = "info") {
                 const el = document.getElementById("error-message");
@@ -7133,6 +7169,13 @@
                 buttonElement,
                 liveViewers = null,
             ) {
+                // Check if already in playlist
+                const existingIndex = currentPlaylist.findIndex(v => v.videoId === videoId);
+                if (existingIndex !== -1) {
+                    showMessage("Already in playlist", "error");
+                    return;
+                }
+
                 // Create a single-video "playlist" and add it to history
                 const liveVideo = {
                     videoId: videoId,
@@ -7545,6 +7588,55 @@
                 }
             }
 
+            // ========== FLOATING CHAT FUNCTIONALITY ==========
+            let isChatFloating = false;
+
+            function toggleChatFloat() {
+                const chatSection = document.getElementById("live-chat-section");
+                const floatBtn = document.getElementById("chat-float-btn-header");
+                const btnIcon = floatBtn ? floatBtn.querySelector("i") : null;
+                const floatingChat = document.getElementById("live-chat-floating");
+
+                isChatFloating = !isChatFloating;
+
+                if (isChatFloating) {
+                    floatingChat.classList.remove("hidden");
+                    
+                    if (floatBtn) {
+                        floatBtn.classList.add("floating-active");
+                        if (btnIcon) btnIcon.className = "fas fa-compress-alt";
+                        floatBtn.title = "Dock chat below video";
+                    }
+                    document.body.classList.add("chat-floating");
+
+                    const currentVideo = currentPlaylist[currentVideoIndex];
+                    if (currentVideo) {
+                        loadLiveChatToFloating(currentVideo.videoId);
+                    }
+                } else {
+                    floatingChat.classList.add("hidden");
+                    
+                    if (floatBtn) {
+                        floatBtn.classList.remove("floating-active");
+                        if (btnIcon) btnIcon.className = "fas fa-external-link-alt";
+                        floatBtn.title = "Float chat to right side";
+                    }
+                    document.body.classList.remove("chat-floating");
+
+                    showMessage("Chat docked below video", "info");
+                }
+            }
+
+            function loadLiveChatToFloating(videoId) {
+                if (!videoId) return;
+                
+                const chatContainer = document.getElementById("live-chat-iframe-floating");
+                if (chatContainer) {
+                    const chatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}&dark_theme=1`;
+                    chatContainer.innerHTML = `<iframe src="${chatUrl}" frameborder="0" allowfullscreen style="width: 100%; height: 100%; border: none;"></iframe>`;
+                }
+            }
+
             function loadLiveChat(videoId) {
                 if (!videoId) {
                     console.warn("No video ID provided to loadLiveChat");
@@ -7715,58 +7807,6 @@
                 }
             }
 
-            // ========== FLOATING CHAT FUNCTIONALITY ==========
-            let isChatFloating = false;
-
-            function toggleChatFloat() {
-                const chatSection = document.getElementById("live-chat-section");
-                const floatBtn = document.getElementById("chat-float-btn-header");
-                const btnIcon = floatBtn ? floatBtn.querySelector("i") : null;
-                const floatingChat = document.getElementById("live-chat-floating");
-
-                isChatFloating = !isChatFloating;
-
-                if (isChatFloating) {
-                    // Show floating chat panel
-                    floatingChat.classList.remove("hidden");
-                    
-                    if (floatBtn) {
-                        floatBtn.classList.add("floating-active");
-                        if (btnIcon) btnIcon.className = "fas fa-compress-alt";
-                        floatBtn.title = "Dock chat below video";
-                    }
-                    document.body.classList.add("chat-floating");
-
-                    // Load chat when floating
-                    const currentVideo = currentPlaylist[currentVideoIndex];
-                    if (currentVideo) {
-                        loadLiveChatToFloating(currentVideo.videoId);
-                    }
-                } else {
-                    // Hide floating chat panel
-                    floatingChat.classList.add("hidden");
-                    
-                    if (floatBtn) {
-                        floatBtn.classList.remove("floating-active");
-                        if (btnIcon) btnIcon.className = "fas fa-external-link-alt";
-                        floatBtn.title = "Float chat to right side";
-                    }
-                    document.body.classList.remove("chat-floating");
-
-                    showMessage("Chat docked below video", "info");
-                }
-            }
-
-            function loadLiveChatToFloating(videoId) {
-                if (!videoId) return;
-                
-                const chatContainer = document.getElementById("live-chat-iframe-floating");
-                if (chatContainer) {
-                    const chatUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}&dark_theme=1`;
-                    chatContainer.innerHTML = `<iframe src="${chatUrl}" frameborder="0" allowfullscreen style="width: 100%; height: 100%; border: none;"></iframe>`;
-                }
-            }
-
             // Scrollbar visibility on scroll
             let scrollTimeout;
             const scrollContainer = document.getElementById(
@@ -7784,72 +7824,6 @@
                 });
             }
         </script>
-
-        <div
-            id="chatbot-modal"
-            class="fixed bottom-36 md:bottom-24 right-6 z-60 w-96 max-w-[calc(100vw-2rem)] h-[450px] max-h-[calc(100vh-10rem)] md:h-[500px] md:max-h-[calc(100vh-8rem)] rounded-2xl shadow-2xl hidden flex flex-col overflow-hidden"
-            style="
-                background: var(--bg-card);
-                border: 1px solid var(--border-color);
-            "
-        >
-            <div
-                class="flex-shrink-0 p-4 flex items-center justify-between"
-                style="background: var(--accent-color)"
-            >
-                <h3 class="font-semibold flex items-center gap-2 text-white">
-                    <i class="fas fa-robot"></i> AI Assistant
-                </h3>
-                <button
-                    onclick="toggleChatbot()"
-                    class="p-1 rounded transition hover:opacity-80"
-                    style="background: rgba(255, 255, 255, 0.2)"
-                >
-                    <i class="fas fa-times text-white"></i>
-                </button>
-            </div>
-            <div
-                id="chatbot-messages"
-                class="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-3 min-h-0"
-                style="background: var(--bg-main)"
-            ></div>
-            <div
-                class="flex-shrink-0 p-3 border-t"
-                style="
-                    border-color: var(--border-color);
-                    background: var(--bg-card);
-                "
-            >
-                <div class="flex gap-2 items-center">
-                    <button
-                        onclick="clearChatbotChat()"
-                        class="p-2 rounded-full hover:bg-[var(--bg-hover)] transition"
-                        style="color: var(--text-muted)"
-                        title="Clear Chat"
-                    >
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                    <input
-                        type="text"
-                        id="chatbot-input"
-                        placeholder="Type a message..."
-                        class="flex-1 px-4 py-2 rounded-full focus:outline-none"
-                        style="
-                            background: var(--bg-main);
-                            border: 1px solid var(--border-color);
-                            color: var(--text-main);
-                        "
-                    />
-                    <button
-                        onclick="sendChatbotMessage()"
-                        class="px-4 py-2 rounded-full transition text-white"
-                        style="background: var(--accent-color)"
-                    >
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
 
         <style>
             /* Chat page send button */
@@ -7879,158 +7853,137 @@
                 margin: 4px 0;
                 line-height: 1.5;
             }
-
-            #chatbot-modal {
-                animation: slideUp 0.3s ease;
-            }
-            @keyframes slideUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            .chatbot-message {
-                max-width: 85%;
-                padding: 10px 14px;
-                border-radius: 16px;
-                line-height: 1.5;
-                white-space: pre-line;
-                word-wrap: break-word;
-            }
-            .chatbot-user {
-                background: var(--accent-color);
-                color: white;
-                align-self: flex-end;
-                border-bottom-right-radius: 4px;
-                margin-left: auto;
-            }
-            .chatbot-assistant {
-                background: var(--bg-hover);
-                color: var(--text-main);
-                align-self: flex-start;
-                border-bottom-left-radius: 4px;
-            }
-            .chatbot-typing {
-                display: flex;
-                gap: 4px;
-                padding: 10px 14px;
-                background: var(--bg-hover);
-                border-radius: 16px;
-                align-self: flex-start;
-            }
-            .chatbot-typing span {
-                width: 8px;
-                height: 8px;
-                background: var(--text-muted);
-                border-radius: 50%;
-                animation: typing 1s infinite;
-            }
-            .chatbot-typing span:nth-child(2) {
-                animation-delay: 0.2s;
-            }
-            .chatbot-typing span:nth-child(3) {
-                animation-delay: 0.4s;
-            }
-            @keyframes typing {
-                0%,
-                100% {
-                    opacity: 0.4;
-                    transform: translateY(0);
-                }
-                50% {
-                    opacity: 1;
-                    transform: translateY(-4px);
-                }
-            }
-
-            .typewriter-cursor {
-                border-right: 2px solid var(--accent-color);
-                animation: blink-cursor 0.8s step-end infinite;
-            }
-            @keyframes blink-cursor {
-                50% {
-                    border-color: transparent;
-                }
-            }
-
-            #chatbot-modal {
-                background: var(--bg-card);
-                border: 1px solid var(--border-color);
-            }
-            #chatbot-modal > div:first-child {
-                background: var(--accent-color) !important;
-            }
-            #chatbot-modal > div:first-child button:hover {
-                background: var(--accent-hover) !important;
-            }
-            #chatbot-modal #chatbot-messages {
-                background: var(--bg-main);
-                min-height: 0;
-                overflow-y: auto;
-                flex-shrink: 1;
-            }
-            .chatbot-message {
-                max-width: 85%;
-                padding: 10px 14px;
-                border-radius: 16px;
-                line-height: 1.5;
-                word-break: break-word;
-                overflow-wrap: anywhere;
-            }
-            #chatbot-modal input {
-                background: var(--bg-main);
-                border: 1px solid var(--border-color);
-                color: var(--text-main);
-            }
-            #chatbot-modal input:focus {
-                border-color: var(--accent-color);
-                outline: none;
-            }
-            #chatbot-modal > div:last-child {
-                border-color: var(--border-color) !important;
-                background: var(--bg-card) !important;
-            }
-            #chatbot-modal > div:last-child button:last-child {
-                background: var(--accent-color) !important;
-            }
-            #chatbot-modal > div:last-child button:last-child:hover {
-                background: var(--accent-hover) !important;
-            }
-            #chatbot-floating-btn {
-                background: var(--accent-color) !important;
-            }
-            #chatbot-floating-btn:hover {
-                background: var(--accent-hover) !important;
-            }
         </style>
 
         <script>
-            let chatbotMessages = JSON.parse(
-                localStorage.getItem("chatbotMessages") || "[]",
-            );
-
-            // Clean up any stored messages with <br> tags
-            let hasBrTags = chatbotMessages.some(
-                (m) => m.content && m.content.includes("<br>"),
-            );
-            if (hasBrTags) {
+            const CHATBOT_CHUNK_SIZE = 500000;
+            const CHATBOT_META_KEY = "chatbotMessages_meta";
+            
+            function saveChatbotMessages(messages) {
+                try {
+                    const fullStr = JSON.stringify(messages);
+                    const totalSize = fullStr.length;
+                    const numChunks = Math.ceil(totalSize / CHATBOT_CHUNK_SIZE);
+                    
+                    localStorage.setItem(CHATBOT_META_KEY, JSON.stringify({
+                        chunks: numChunks,
+                        totalMessages: messages.length,
+                        lastUpdated: Date.now()
+                    }));
+                    
+                    for (let i = 0; i < numChunks; i++) {
+                        const chunk = fullStr.slice(i * CHATBOT_CHUNK_SIZE, (i + 1) * CHATBOT_CHUNK_SIZE);
+                        localStorage.setItem(`chatbotMessages_${i}`, chunk);
+                    }
+                    
+                    const oldMeta = localStorage.getItem("chatbotMessages");
+                    if (oldMeta) {
+                        localStorage.removeItem("chatbotMessages");
+                    }
+                    
+                    for (let i = numChunks; i < 100; i++) {
+                        const chunk = localStorage.getItem(`chatbotMessages_${i}`);
+                        if (chunk) {
+                            localStorage.removeItem(`chatbotMessages_${i}`);
+                        } else {
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed to save chatbot messages:", e);
+                }
+            }
+            
+            function loadChatbotMessages() {
+                try {
+                    const metaStr = localStorage.getItem(CHATBOT_META_KEY);
+                    if (metaStr) {
+                        const meta = JSON.parse(metaStr);
+                        let fullStr = "";
+                        for (let i = 0; i < meta.chunks; i++) {
+                            const chunk = localStorage.getItem(`chatbotMessages_${i}`);
+                            if (chunk) {
+                                fullStr += chunk;
+                            }
+                        }
+                        if (fullStr) {
+                            return JSON.parse(fullStr);
+                        }
+                    }
+                    
+                    const oldMessages = localStorage.getItem("chatbotMessages");
+                    if (oldMessages) {
+                        const messages = JSON.parse(oldMessages);
+                        saveChatbotMessages(messages);
+                        return messages;
+                    }
+                } catch (e) {
+                    console.error("Failed to load chatbot messages:", e);
+                }
+                return [];
+            }
+            
+            function clearChatbotMessages() {
+                const metaStr = localStorage.getItem(CHATBOT_META_KEY);
+                if (metaStr) {
+                    try {
+                        const meta = JSON.parse(metaStr);
+                        for (let i = 0; i < meta.chunks; i++) {
+                            localStorage.removeItem(`chatbotMessages_${i}`);
+                        }
+                    } catch (e) {}
+                }
+                localStorage.removeItem(CHATBOT_META_KEY);
+                localStorage.removeItem("chatbotMessages");
+            }
+            
+            let chatbotMessages = loadChatbotMessages();
+            
+            if (chatbotMessages.some((m) => m.content && m.content.includes("<br>"))) {
                 chatbotMessages = chatbotMessages.map((m) => {
                     if (m.content) {
                         m.content = m.content.replace(/<br\s*\/?>/gi, "\n");
                     }
                     return m;
                 });
-                localStorage.setItem(
-                    "chatbotMessages",
-                    JSON.stringify(chatbotMessages),
-                );
+                saveChatbotMessages(chatbotMessages);
             }
 
             let chatbotSettings = {};
+
+            function getChatbotProviderFavicon(provider, model) {
+                const faviconMap = {
+                    'openai': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2310a37f"><path d="M22.2819 9.82163a5.5 5.5 0 0 0-2.7037-4.7521 5.5 5.5 0 0 0-5.8782-.4123l-3.6798 2.1367a5.5 5.5 0 0 0-2.7037 4.7521v4.2734a5.5 5.5 0 0 0 2.7037 4.7521 5.5 5.5 0 0 0 5.8782.4123l3.6798-2.1367a5.5 5.5 0 0 0 2.7037-4.7521V9.82163zM12 19.5a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z"/></svg>',
+                    'openrouter': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236366f1"><circle cx="12" cy="12" r="10"/></svg>',
+                    'anthropic': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23d97757"><path d="M12 2L2 19.5h20L12 2z"/></svg>',
+                    'google': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%234285f4"/></svg>',
+                    'meta': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230681ff"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8z"/></svg>',
+                    'arcee-ai': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%237c3aed"><rect x="4" y="4" width="16" height="16" rx="3"/></svg>',
+                    'stepfun': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f59e0b"><polygon points="12,2 22,12 12,22 2,12"/></svg>',
+                    'z-ai': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2306b6d4"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5z"/></svg>',
+                    'nvidia': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2376b900"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z"/></svg>',
+                    'upstage': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ec4899"><circle cx="12" cy="8" r="6"/><rect x="8" y="16" width="8" height="6" rx="2"/></svg>',
+                    'liquid': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2325d1da"><path d="M12 2c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10-4.477-10-10-10z"/></svg>',
+                    'deepseek': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234f46e5"><path d="M12 2L3 7v10l9 5 9-5V7l-9-5z"/></svg>',
+                    'mistralai': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ff7000"><circle cx="12" cy="12" r="10"/></svg>',
+                    'qwen': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236366f1"><path d="M12 2L2 12l10 10 10-10L12 2z"/></svg>',
+                    'ollama': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23000"><circle cx="12" cy="12" r="10"/></svg>',
+                    'ollama-cloud': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23000"><circle cx="12" cy="12" r="10"/></svg>',
+                    'bytedance-seed': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e11d48"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>',
+                    'gemini': 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234285f4"><circle cx="12" cy="12" r="10"/></svg>',
+                };
+                
+                if (model) {
+                    const modelLower = model.toLowerCase();
+                    for (const [key, favicon] of Object.entries(faviconMap)) {
+                        if (modelLower.startsWith(key + '/') || modelLower.includes(key)) {
+                            return favicon;
+                        }
+                    }
+                }
+                
+                return faviconMap[provider] || faviconMap['openai'];
+            }
 
             function loadChatbotSettings() {
                 const cookieVal = getCookie("chatbotSettings");
@@ -8056,15 +8009,151 @@
 
             loadChatbotSettings();
 
-            function toggleChatbot() {
-                const modal = document.getElementById("chatbot-modal");
-                modal.classList.toggle("hidden");
-                if (!modal.classList.contains("hidden"))
-                    renderChatbotMessages();
+            const CHATHISTORY_KEY = "chatbot_conversations";
+            let currentConversationId = null;
+
+            function getConversations() {
+                try {
+                    const data = localStorage.getItem(CHATHISTORY_KEY);
+                    return data ? JSON.parse(data) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveConversations(conversations) {
+                localStorage.setItem(CHATHISTORY_KEY, JSON.stringify(conversations));
+            }
+
+            function createNewConversation() {
+                const conversations = getConversations();
+                const id = Date.now().toString();
+                const title = "New Chat";
+                conversations.unshift({ id, title, messages: [], createdAt: Date.now() });
+                saveConversations(conversations);
+                currentConversationId = id;
+                chatPageMessages = [];
+                renderChatPageMessages();
+                return id;
+            }
+
+            function loadConversation(id) {
+                const conversations = getConversations();
+                const conv = conversations.find(c => c.id === id);
+                if (conv) {
+                    currentConversationId = id;
+                    chatPageMessages = conv.messages || [];
+                    renderChatPageMessages();
+                }
+            }
+
+            function saveCurrentConversation() {
+                if (!currentConversationId) return;
+                const conversations = getConversations();
+                const idx = conversations.findIndex(c => c.id === currentConversationId);
+                if (idx !== -1) {
+                    conversations[idx].messages = [...chatPageMessages];
+                    if (chatPageMessages.length > 0) {
+                        const firstUserMsg = chatPageMessages.find(m => m.role === 'user');
+                        if (firstUserMsg) {
+                            conversations[idx].title = firstUserMsg.content.substring(0, 30) + (firstUserMsg.content.length > 30 ? '...' : '');
+                        }
+                    }
+                    saveConversations(conversations);
+                }
+            }
+
+            function deleteConversation(id) {
+                let conversations = getConversations();
+                conversations = conversations.filter(c => c.id !== id);
+                saveConversations(conversations);
+                if (currentConversationId === id) {
+                    if (conversations.length > 0) {
+                        loadConversation(conversations[0].id);
+                    } else {
+                        createNewConversation();
+                    }
+                }
+            }
+
+            function showChatHistory() {
+                const conversations = getConversations();
+                let historyHtml = `
+                    <div class="fixed inset-0 z-[70] flex items-center justify-center bg-black/50" onclick="this.remove()">
+                        <div class="bg-[var(--bg-card)] rounded-xl shadow-2xl w-80 max-h-[80%] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+                            <div class="p-3 border-b flex items-center justify-between" style="border-color:var(--border-color)">
+                                <span class="font-semibold" style="color:var(--text-main)">Chat History</span>
+                                <button onclick="this.closest('.fixed').remove()" class="p-1 hover:bg-[var(--bg-hover)] rounded">
+                                    <i class="fas fa-times" style="color:var(--text-muted)"></i>
+                                </button>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-2 space-y-2">
+                                <button onclick="createNewConversation(); document.querySelector('.fixed')?.remove();" class="w-full p-2 text-left rounded-lg flex items-center gap-2 hover:bg-[var(--bg-hover)] transition" style="color:var(--accent-color)">
+                                    <i class="fas fa-plus"></i> New Chat
+                                </button>
+                `;
+                
+                if (conversations.length === 0) {
+                    historyHtml += `<p class="text-center p-4" style="color:var(--text-muted)">No chat history</p>`;
+                } else {
+                    conversations.forEach(conv => {
+                        const date = new Date(conv.createdAt).toLocaleDateString();
+                        const isActive = conv.id === currentConversationId ? 'background:var(--bg-hover)' : '';
+                        historyHtml += `
+                            <div class="p-2 rounded-lg flex items-center justify-between cursor-pointer hover:bg-[var(--bg-hover)] ${isActive}" onclick="loadConversation('${conv.id}'); document.querySelector('.fixed')?.remove()">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium truncate" style="color:var(--text-main)">${escapeHtml(conv.title)}</p>
+                                    <p class="text-xs" style="color:var(--text-muted)">${date}</p>
+                                </div>
+                                <button onclick="event.stopPropagation(); deleteConversation('${conv.id}'); this.closest('.fixed')?.remove()" class="p-1 hover:bg-red-100 rounded text-red-500" title="Delete">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </div>
+                        `;
+                    });
+                }
+                
+                historyHtml += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', historyHtml);
             }
 
             // Chat Page Functions
             let chatPageMessages = [];
+
+            function renderChatPageMessages() {
+                const container = document.getElementById('chat-page-messages');
+                container.innerHTML = '';
+                
+                if (chatPageMessages.length === 0) {
+                    container.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background: var(--accent-color)">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div class="rounded-2xl p-4 max-w-[75%] shadow-sm" style="background: var(--bg-card); border: 1px solid var(--border-color)">
+                                <p style="color: var(--text-main); line-height: 1.6">
+                                    Hello! I'm your AI assistant. How can I help you today?
+                                </p>
+                                <div class="mt-3 pt-3 border-t" style="border-color: var(--border-color)">
+                                    <p style="color: var(--text-muted); font-size: 0.85em">
+                                        <i class="fas fa-info-circle mr-1"></i> Configure your API key in Settings to start using AI features.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                chatPageMessages.forEach(msg => {
+                    appendChatMessage(msg.role, msg.content, false);
+                });
+            }
 
             function autoResizeChatInput(textarea) {
                 textarea.style.height = 'auto';
@@ -8073,18 +8162,8 @@
 
             function clearChat() {
                 chatPageMessages = [];
-                document.getElementById('chat-page-messages').innerHTML = `
-                    <div class="flex items-start gap-3">
-                        <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background: var(--accent-color)">
-                            <i class="fas fa-robot text-white text-sm"></i>
-                        </div>
-                        <div class="rounded-2xl p-4 max-w-[80%]" style="background: var(--bg-card); border: 1px solid var(--border-color)">
-                            <p style="color: var(--text-main); line-height: 1.6">
-                                Chat cleared. How can I help you today?
-                            </p>
-                        </div>
-                    </div>
-                `;
+                saveCurrentConversation();
+                renderChatPageMessages();
             }
 
             function stripHtmlTags(text) {
@@ -8097,7 +8176,7 @@
                 return clean.trim();
             }
 
-            function appendChatMessage(role, content) {
+            function appendChatMessage(role, content, useTypewriter = true) {
                 const container = document.getElementById('chat-page-messages');
                 const align = role === 'user' ? 'justify-end' : 'justify-start';
                 
@@ -8111,11 +8190,11 @@
                     <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background: var(--accent-color)">
                         <i class="fas fa-robot text-white text-sm"></i>
                     </div>
-                    <div class="rounded-2xl p-4 max-w-[85%]" style="background: var(--bg-card); border: 1px solid var(--border-color)">
+                    <div class="rounded-2xl p-4 max-w-[75%]" style="background: var(--bg-card); border: 1px solid var(--border-color)">
                         <div class="chat-message-content" style="color: var(--text-main); line-height: 1.7; font-size: 14px; white-space: pre-wrap;"></div>
                     </div>
                 ` : `
-                    <div class="rounded-2xl p-4 max-w-[85%]" style="background: var(--accent-color); border: 1px solid transparent">
+                    <div class="rounded-2xl p-4 max-w-[75%]" style="background: var(--accent-color); border: 1px solid transparent">
                         <p style="color: white; line-height: 1.6; white-space: pre-wrap;">${cleanContent}</p>
                     </div>
                 `;
@@ -8123,9 +8202,11 @@
                 container.scrollTop = container.scrollHeight;
 
                 // Typewriter effect for assistant messages
-                if (role === 'assistant') {
+                if (role === 'assistant' && useTypewriter) {
                     const typingElement = div.querySelector('.chat-message-content');
                     typeWriter(typingElement, cleanContent, 0);
+                } else if (role === 'assistant' && !useTypewriter) {
+                    div.querySelector('.chat-message-content').textContent = cleanContent;
                 }
             }
 
@@ -8163,6 +8244,7 @@
                 autoResizeChatInput(input);
                 appendChatMessage('user', message);
                 chatPageMessages.push({ role: 'user', content: message });
+                saveCurrentConversation();
                 
                 // Show loading
                 const container = document.getElementById('chat-page-messages');
@@ -8267,12 +8349,15 @@
                     if (reply) {
                         appendChatMessage('assistant', reply);
                         chatPageMessages.push({ role: 'assistant', content: reply });
+                        saveCurrentConversation();
                     } else {
                         appendChatMessage('assistant', 'No response from API');
+                        saveCurrentConversation();
                     }
                 } catch (error) {
                     document.getElementById('chat-page-loading')?.remove();
                     appendChatMessage('assistant', 'Sorry, I encountered an error: ' + error.message);
+                    saveCurrentConversation();
                 }
             }
 
@@ -8421,6 +8506,21 @@
                     { value: "mistralai/mistral-small-3.1-24b-instruct", label: "Mistral Small 3.1" },
                     { value: "deepseek/deepseek-chat", label: "DeepSeek Chat" },
                     { value: "google/gemma-2-27b-instruct", label: "Gemma 2 27B" },
+                    { value: "openrouter/free", label: "Free (Router)" },
+                    { value: "arcee-ai/trinity-large-preview:free", label: "Trinity Large Free" },
+                    { value: "stepfun/step-3.5-flash:free", label: "Step 3.5 Flash Free" },
+                    { value: "z-ai/glm-4.5-air:free", label: "GLM 4.5 Air Free" },
+                    { value: "nvidia/nemotron-3-nano-30b-a3b:free", label: "Nemotron 3 Nano Free" },
+                    { value: "upstage/solar-pro-3:free", label: "Solar Pro 3 Free" },
+                    { value: "arcee-ai/trinity-mini:free", label: "Trinity Mini Free" },
+                    { value: "nvidia/nemotron-nano-12b-v2-vl:free", label: "Nemotron Nano 12B VL Free" },
+                    { value: "nvidia/nemotron-nano-9b-v2:free", label: "Nemotron Nano 9B Free" },
+                    { value: "meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B Free" },
+                    { value: "openai/gpt-oss-20b:free", label: "GPT OSS 20B Free" },
+                    { value: "google/gemma-3-27b:free", label: "Gemma 3 27B Free" },
+                    { value: "bytedance-seed/seedream-4.5", label: "Seedream 4.5" },
+                    { value: "liquid/lfm-2.5-1.2b-thinking:free", label: "LFM 2.5 Thinking Free" },
+                    { value: "liquid/lfm-2.5-1.2b-instruct:free", label: "LFM 2.5 Instruct Free" },
                 ],
                 custom: [],
             };
@@ -8690,9 +8790,16 @@
 
             function renderChatbotMessages() {
                 const container = document.getElementById("chatbot-messages");
+                const provider = chatbotSettings.provider || "openai";
+                const model = chatbotSettings.model || "";
+                const favicon = getChatbotProviderFavicon(provider, model);
+                
                 container.innerHTML = chatbotMessages
                     .map((m) => {
                         const cleanContent = stripMarkdown(m.content);
+                        if (m.role === "assistant") {
+                            return `<div class="chatbot-message chatbot-assistant"><div class="chatbot-assistant-wrapper"><img src="${favicon}" class="chatbot-assistant-icon" alt="AI"><span class="chatbot-assistant-content">${cleanContent}</span></div></div>`;
+                        }
                         return `<div class="chatbot-message ${m.role === "user" ? "chatbot-user" : "chatbot-assistant"}">${cleanContent}</div>`;
                     })
                     .join("");
@@ -8746,23 +8853,23 @@
 
             function addChatbotMessage(role, content, useTypewriter = false) {
                 chatbotMessages.push({ role, content });
-                localStorage.setItem(
-                    "chatbotMessages",
-                    JSON.stringify(chatbotMessages),
-                );
+                saveChatbotMessages(chatbotMessages);
+                saveCurrentConversation();
 
                 const container = document.getElementById("chatbot-messages");
                 const messageDiv = document.createElement("div");
                 messageDiv.className = `chatbot-message ${role === "user" ? "chatbot-user" : "chatbot-assistant"}`;
 
+                const provider = chatbotSettings.provider || "openai";
+                const model = chatbotSettings.model || "";
+                const favicon = getChatbotProviderFavicon(provider, model);
+
                 if (useTypewriter && role === "assistant") {
-                    messageDiv.innerHTML =
-                        '<span class="typewriter-cursor"></span>';
+                    messageDiv.innerHTML = `<div class="chatbot-assistant-wrapper"><img src="${favicon}" class="chatbot-assistant-icon" alt="AI"><span class="chatbot-assistant-content"><span class="typewriter-cursor"></span></span></div>`;
                     container.appendChild(messageDiv);
                     container.scrollTop = container.scrollHeight;
 
-                    const cursor =
-                        messageDiv.querySelector(".typewriter-cursor");
+                    const cursor = messageDiv.querySelector(".typewriter-cursor");
                     let index = 0;
                     const text = stripMarkdown(content);
 
@@ -8778,6 +8885,10 @@
                     }
 
                     typeChar();
+                } else if (role === "assistant") {
+                    messageDiv.innerHTML = `<div class="chatbot-assistant-wrapper"><img src="${favicon}" class="chatbot-assistant-icon" alt="AI"><span class="chatbot-assistant-content">${stripMarkdown(content)}</span></div>`;
+                    container.appendChild(messageDiv);
+                    container.scrollTop = container.scrollHeight;
                 } else {
                     messageDiv.innerHTML = stripMarkdown(content);
                     container.appendChild(messageDiv);
@@ -8799,12 +8910,41 @@
 
             function clearChatbotChat() {
                 chatbotMessages = [];
-                localStorage.setItem(
-                    "chatbotMessages",
-                    JSON.stringify(chatbotMessages),
-                );
+                clearChatbotMessages();
+                saveCurrentConversation();
                 renderChatbotMessages();
             }
+
+            let chatbotAbortController = null;
+
+            function cancelChatbotRequest() {
+                if (chatbotAbortController) {
+                    chatbotAbortController.abort();
+                    chatbotAbortController = null;
+                }
+            }
+
+            document.addEventListener("visibilitychange", () => {
+                if (document.visibilityState === "visible" && !document.hidden) {
+                    
+                }
+            });
+
+            window.addEventListener("beforeunload", () => {
+                cancelChatbotRequest();
+            });
+
+            function keepAlive() {
+                if (document.hidden) {
+                    requestAnimationFrame(keepAlive);
+                }
+            }
+
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    keepAlive();
+                }
+            });
 
             async function sendChatbotMessage() {
                 const input = document.getElementById("chatbot-input");
@@ -8813,9 +8953,7 @@
                 
                 const provider = chatbotSettings.provider || "openai";
                 
-                // Check based on provider
                 if (provider === "ollama") {
-                    // Ollama local - URL required
                     if (!chatbotSettings.apiUrl) {
                         addChatbotMessage(
                             "assistant",
@@ -8825,7 +8963,6 @@
                         return;
                     }
                 } else if (provider !== "ollama-cloud") {
-                    // All other providers (except ollama-cloud) need API key and URL
                     if (!chatbotSettings.apiKey || !chatbotSettings.apiUrl) {
                         addChatbotMessage(
                             "assistant",
@@ -8838,17 +8975,17 @@
                 
                 input.value = "";
                 addChatbotMessage("user", message);
-                showChatbotTyping();
 
                 const errorDiv = document.getElementById("chatbot-error");
                 errorDiv.classList.add("hidden");
 
+                const chatProvider = chatbotSettings.provider || "openai";
+                const supportsStreaming = ["openai", "openrouter", "ollama-cloud"].includes(chatProvider);
+
                 try {
-                    let response, url, body, headers;
-                    const chatProvider = chatbotSettings.provider || "openai";
+                    let url, body, headers;
 
                     if (chatProvider === "ollama") {
-                        // Ollama local API format
                         url = `${chatbotSettings.apiUrl}/api/chat`;
                         const model = chatbotSettings.model || "llama3";
                         const ollamaMessages = chatbotMessages.map((m) => ({
@@ -8859,10 +8996,9 @@
                         body = JSON.stringify({
                             model: model,
                             messages: ollamaMessages,
-                            stream: false,
+                            stream: true,
                         });
                     } else if (chatProvider === "ollama-cloud") {
-                        // Ollama Cloud API format (like OpenAI)
                         url = `${chatbotSettings.apiUrl}/chat/completions`;
                         headers = {
                             "Content-Type": "application/json",
@@ -8874,11 +9010,11 @@
                                 role: m.role === "user" ? "user" : "assistant",
                                 content: m.content,
                             })),
+                            stream: true,
                             temperature: 0.7,
                         });
                     } else if (chatProvider === "gemini") {
-                        const model =
-                            chatbotSettings.model || "gemini-1.5-flash";
+                        const model = chatbotSettings.model || "gemini-1.5-flash";
                         url = `${chatbotSettings.apiUrl}/models/${model}:generateContent?key=${chatbotSettings.apiKey}`;
                         headers = { "Content-Type": "application/json" };
                         body = JSON.stringify({
@@ -8896,75 +9032,116 @@
                                 role: m.role === "user" ? "user" : "assistant",
                                 content: m.content,
                             })),
+                            stream: true,
                             temperature: 0.7,
                         });
                     }
 
-                    response = await fetch(url, {
+                    chatbotAbortController = new AbortController();
+                    const response = await fetch(url, {
                         method: "POST",
                         headers,
                         body,
+                        signal: chatbotAbortController.signal,
                     });
 
                     if (!response.ok) {
-                        const errorData = await response
-                            .json()
-                            .catch(() => ({}));
-                        let errorMsg =
-                            errorData.error?.message ||
-                            `HTTP ${response.status}`;
+                        const errorData = await response.json().catch(() => ({}));
+                        let errorMsg = errorData.error?.message || `HTTP ${response.status}`;
 
-                        if (
-                            errorMsg.includes("not found") ||
-                            errorMsg.includes("NOT_FOUND") ||
-                            errorMsg.includes("not supported")
-                        ) {
-                            errorMsg =
-                                "Model not found. Check model name in Settings.";
+                        if (errorMsg.includes("not found") || errorMsg.includes("NOT_FOUND") || errorMsg.includes("not supported")) {
+                            errorMsg = "Model not found. Check model name in Settings.";
                             showChatbotError(errorMsg);
-                        } else if (
-                            errorMsg.includes("api_key") ||
-                            errorMsg.includes("API key") ||
-                            errorMsg.includes("authentication")
-                        ) {
-                            errorMsg =
-                                "Invalid API key. Check your API key in Settings.";
+                        } else if (errorMsg.includes("api_key") || errorMsg.includes("API key") || errorMsg.includes("authentication")) {
+                            errorMsg = "Invalid API key. Check your API key in Settings.";
                             showChatbotError(errorMsg);
-                        } else if (
-                            errorMsg.includes("quota") ||
-                            errorMsg.includes("QUOTA") ||
-                            errorMsg.includes("rate limit")
-                        ) {
+                        } else if (errorMsg.includes("quota") || errorMsg.includes("QUOTA") || errorMsg.includes("rate limit")) {
                             errorMsg = "API quota/rate limit exceeded.";
                             showChatbotError(errorMsg);
-                        } else if (
-                            errorMsg.includes("permission") ||
-                            errorMsg.includes("PERMISSION_DENIED")
-                        ) {
-                            errorMsg =
-                                "Permission denied. Check API key permissions.";
+                        } else if (errorMsg.includes("permission") || errorMsg.includes("PERMISSION_DENIED")) {
+                            errorMsg = "Permission denied. Check API key permissions.";
                             showChatbotError(errorMsg);
                         }
                         throw new Error(errorMsg);
                     }
 
-                    const data = await response.json();
+                    if (supportsStreaming && response.body) {
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let fullReply = "";
+                        let messageDiv = null;
+                        let contentSpan = null;
+                        const favicon = getChatbotProviderFavicon(chatProvider, chatbotSettings.model || "");
 
-                    let reply;
-                    if (chatProvider === "ollama") {
-                        reply = data.message?.content;
-                    } else if (chatProvider === "ollama-cloud") {
-                        reply = data.choices?.[0]?.message?.content;
-                    } else if (chatProvider === "gemini") {
-                        reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+
+                            const chunk = decoder.decode(value, { stream: true });
+                            const lines = chunk.split("\n").filter(line => line.trim() !== "");
+
+                            for (const line of lines) {
+                                if (chatProvider === "ollama") {
+                                    try {
+                                        const json = JSON.parse(line);
+                                        if (json.message?.content) {
+                                            fullReply += json.message.content;
+                                        }
+                                    } catch (e) {}
+                                } else {
+                                    if (line.startsWith("data: ")) {
+                                        const data = line.slice(6);
+                                        if (data === "[DONE]") continue;
+                                        try {
+                                            const json = JSON.parse(data);
+                                            const content = json.choices?.[0]?.delta?.content;
+                                            if (content) fullReply += content;
+                                        } catch (e) {}
+                                    }
+                                }
+                            }
+
+                            if (!messageDiv && fullReply) {
+                                hideChatbotTyping();
+                                const container = document.getElementById("chatbot-messages");
+                                messageDiv = document.createElement("div");
+                                messageDiv.className = "chatbot-message chatbot-assistant";
+                                messageDiv.innerHTML = `<div class="chatbot-assistant-wrapper"><img src="${favicon}" class="chatbot-assistant-icon" alt="AI"><span class="chatbot-assistant-content"></span></div>`;
+                                contentSpan = messageDiv.querySelector(".chatbot-assistant-content");
+                                container.appendChild(messageDiv);
+                                container.scrollTop = container.scrollHeight;
+                            }
+
+                            if (contentSpan && fullReply) {
+                                contentSpan.textContent = fullReply;
+                                const container = document.getElementById("chatbot-messages");
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        }
+
+                        if (fullReply) {
+                            chatbotMessages.push({ role: "assistant", content: fullReply });
+                            saveChatbotMessages(chatbotMessages);
+                            saveCurrentConversation();
+                        } else {
+                            throw new Error("No response from API");
+                        }
                     } else {
-                        reply = data.choices?.[0]?.message?.content;
-                    }
+                        const data = await response.json();
+                        let reply;
+                        if (chatProvider === "ollama") {
+                            reply = data.message?.content;
+                        } else if (chatProvider === "gemini") {
+                            reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        } else {
+                            reply = data.choices?.[0]?.message?.content;
+                        }
 
-                    if (reply) {
-                        hideChatbotTyping();
-                        addChatbotMessage("assistant", reply, true);
-                    } else throw new Error("No response from API");
+                        if (reply) {
+                            hideChatbotTyping();
+                            addChatbotMessage("assistant", reply, true);
+                        } else throw new Error("No response from API");
+                    }
                 } catch (error) {
                     hideChatbotTyping();
                     addChatbotMessage("assistant", "Error: " + error.message);
