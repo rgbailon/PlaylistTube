@@ -3164,12 +3164,12 @@
             class="hidden h-[calc(100vh-70px)] overflow-y-auto pb-16 md:pb-0"
             style="background: var(--bg-main)"
         >
-            <div class="max-w-4xl mx-auto p-4 md:p-8">
+            <div class="max-w-7xl mx-auto p-4 md:p-8">
                 <!-- Search Bar -->
                 <div
-                    class="glass rounded-2xl p-6 md:p-8 shadow-sm border border-custom bg-custom-card mb-8"
+                    class="glass rounded-2xl p-6 md:p-8 shadow-sm border border-custom bg-custom-card mb-8 w-full"
                 >
-                    <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-4 w-full max-w-[80%] mx-auto">
                         <div
                             class="flex flex-col md:flex-row gap-4 items-center"
                         >
@@ -4459,6 +4459,12 @@
                     liveStreamsLoaded = true;
                 }
 
+                // Load trending videos when navigating to single-videos page
+                if (page === "single-videos" && !singleVideosLoaded) {
+                    loadTrendingVideos();
+                    singleVideosLoaded = true;
+                }
+
                 closeMobilePanels();
 
                 // Ensure the playlist history collapsible functionality is maintained
@@ -4893,7 +4899,7 @@
                 }
             }
 
-            function renderSingleVideoResults(items) {
+            function renderSingleVideoResults(items, isTrending = false) {
                 const container = document.getElementById("single-video-results");
                 container.innerHTML = "";
 
@@ -4904,7 +4910,19 @@
                     const thumbnail = item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url;
                     const title = item.snippet.title;
                     const channel = item.snippet.channelTitle;
-                    const videoId = item.id.videoId;
+                    const videoId = isTrending ? item.id : item.id.videoId;
+                    
+                    // Get view count and published date
+                    let viewCount = '';
+                    let publishedDate = '';
+                    
+                    if (isTrending && item.statistics) {
+                        viewCount = parseInt(item.statistics.viewCount || 0).toLocaleString();
+                        publishedDate = formatTimeAgo(item.snippet.publishedAt);
+                    } else if (!isTrending && item.viewCount) {
+                        viewCount = parseInt(item.viewCount || 0).toLocaleString();
+                        publishedDate = formatTimeAgo(item.publishedAt);
+                    }
 
                     el.innerHTML = `
                         <div class="relative aspect-video bg-slate-200 overflow-hidden">
@@ -4918,11 +4936,17 @@
                         </div>
                         <div class="p-4 flex flex-col flex-1">
                             <h3 class="font-bold text-[var(--text-main)] line-clamp-2 mb-2 text-sm md:text-base leading-snug group-hover:text-blue-500 transition-colors">${escapeHtml(title)}</h3>
+                            <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 mb-1">
+                                <i class="fas fa-user-circle"></i>
+                                <span class="truncate">${escapeHtml(channel)}</span>
+                            </p>
+                            ${viewCount ? `
+                            <p class="text-xs text-[var(--text-muted)] flex items-center gap-2 mb-2">
+                                <span><i class="fas fa-eye mr-1"></i>${viewCount} views</span>
+                                ${publishedDate ? `<span>•</span><span>${publishedDate}</span>` : ''}
+                            </p>
+                            ` : ''}
                             <div class="mt-auto flex items-center justify-between">
-                                <p class="text-xs text-[var(--text-muted)] flex items-center gap-1 truncate flex-1">
-                                    <i class="fas fa-user-circle"></i>
-                                    <span class="truncate">${escapeHtml(channel)}</span>
-                                </p>
                                 <div class="flex gap-1 ml-2">
                                     <button onclick="event.stopPropagation(); playSingleVideoDirect('${videoId}')" class="btn-add w-7 h-7 rounded-lg transition flex items-center justify-center shadow-sm" title="Play Now">
                                         <i class="fas fa-play text-xs"></i>
@@ -4942,6 +4966,52 @@
             function escapeJs(str) {
                 if (!str) return '';
                 return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '');
+            }
+
+            async function loadTrendingVideos() {
+                const apiKey = getCurrentApiKey();
+                if (!apiKey) return;
+
+                const container = document.getElementById("single-video-results");
+                const loadMoreBtn = document.getElementById("single-video-load-more");
+                const sectionTitle = document.getElementById("single-video-section-title");
+                const videoCount = document.getElementById("single-video-count");
+
+                container.innerHTML = '<div class="col-span-full text-center py-20"><i class="fas fa-circle-notch fa-spin text-4xl text-blue-500"></i><p class="mt-4 text-custom-muted">Loading trending videos...</p></div>';
+                loadMoreBtn.classList.add("hidden");
+                sectionTitle.textContent = "Trending Videos";
+                videoCount.textContent = "";
+
+                try {
+                    const response = await fetch(
+                        `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&regionCode=US&maxResults=12&key=${apiKey}`
+                    );
+                    const data = await response.json();
+
+                    if (data.error) {
+                        throw new Error(data.error.message);
+                    }
+
+                    if (!data.items || data.items.length === 0) {
+                        container.innerHTML = '<div class="col-span-full text-center py-20 text-custom-muted"><i class="fas fa-inbox text-4xl mb-4"></i><p>No trending videos found</p></div>';
+                        return;
+                    }
+
+                    trackApiCall("videos", 1);
+
+                    sectionTitle.textContent = "Trending Videos Today";
+                    videoCount.textContent = data.pageInfo.totalResults + " videos";
+
+                    renderSingleVideoResults(data.items, true);
+
+                    if (data.nextPageToken) {
+                        singleVideoNextToken = data.nextPageToken;
+                        loadMoreBtn.classList.remove("hidden");
+                        document.getElementById("btn-single-video-load-more").textContent = "Load More Videos";
+                    }
+                } catch (error) {
+                    container.innerHTML = `<div class="col-span-full text-center py-20 text-custom-muted"><i class="fas fa-exclamation-circle text-4xl mb-4"></i><p>Error loading trending videos: ${escapeHtml(error.message)}</p></div>`;
+                }
             }
 
             async function searchSingleVideos(pageToken = "") {
@@ -6923,6 +6993,7 @@
 
             // ========== LIVE STREAMS FUNCTIONALITY ==========
             let liveStreamsLoaded = false;
+            let singleVideosLoaded = false;
             let currentLiveCategory = "all";
             let liveNextPageToken = "";
             let currentLiveQuery = "";
@@ -7120,7 +7191,7 @@
                     details.liveStreamingDetails?.concurrentViewers;
 
                 el.innerHTML = `
-                <div class="relative aspect-video bg-slate-800 overflow-hidden cursor-pointer" onclick="playLiveStream('${item.id.videoId}', '${escapeHtml(title)}', '${escapeHtml(channel)}')">
+                <div class="relative aspect-video bg-slate-800 overflow-hidden cursor-pointer" onclick="playLiveStream('${item.id.videoId}', '${escapeHtml(title)}', '${escapeHtml(channel)}', ${concurrentViewers ? concurrentViewers : 'null'})">
                     <img src="${thumbnail}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22><rect fill=%22%23334155%22 width=%22100%%22 height=%22100%%22/><text fill=%22%2394a3b8%22 x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22>Live Stream">
                     <div class="absolute inset</text></svg>'-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div class="absolute top-2 left-2 flex items-center gap-2">
@@ -7148,7 +7219,7 @@
                             <span class="truncate">${escapeHtml(channel)}</span>
                         </p>
                         <div class="relative ml-2">
-                            <button onclick="event.stopPropagation(); addToPlaylistFromLive('${item.id.videoId}', '${escapeHtml(title)}', '${escapeHtml(channel)}', this, ${concurrentViewers || 'null'})" class="btn-add w-7 h-7 rounded-full transition flex items-center justify-center shadow-sm add-to-playlist-btn" title="Add to Playlist">
+                            <button onclick="event.stopPropagation(); addToPlaylistFromLive('${item.id.videoId}', '${escapeHtml(title)}', '${escapeHtml(channel)}', this, ${concurrentViewers ? concurrentViewers : 'null'})" class="btn-add w-7 h-7 rounded-full transition flex items-center justify-center shadow-sm add-to-playlist-btn" title="Add to Playlist">
                                 <i class="fas fa-plus text-xs"></i>
                                 <span class="added-text absolute inset-0 flex items-center justify-center bg-green-600 text-white rounded-full opacity-0 scale-0 transition-all duration-300">
                                     <i class="fas fa-check text-xs"></i>
@@ -7292,8 +7363,8 @@
                 }, 1500);
             }
 
-            function playLiveStream(videoId, title, channel) {
-                console.log("Playing live stream:", videoId, title, channel);
+            function playLiveStream(videoId, title, channel, liveViewers = null) {
+                console.log("Playing live stream:", videoId, title, channel, liveViewers);
 
                 // Navigate to main page
                 showPage("main");
@@ -7313,6 +7384,7 @@
                             channel: channel || "Unknown Channel",
                             publishedAt: new Date().toISOString(),
                             isLive: true, // Mark as live stream
+                            liveViewers: liveViewers, // Store live viewers count
                         },
                     ];
 
@@ -7335,6 +7407,7 @@
                         channel: channel || "Unknown Channel",
                         publishedAt: new Date().toISOString(),
                         isLive: true, // Mark as live stream
+                        liveViewers: liveViewers, // Store live viewers count
                     };
 
                     currentPlaylist.push(newVideo);
@@ -8130,23 +8203,6 @@
                 container.innerHTML = '';
                 
                 if (chatPageMessages.length === 0) {
-                    container.innerHTML = `
-                        <div class="flex items-start gap-3">
-                            <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background: var(--accent-color)">
-                                <i class="fas fa-robot text-white text-sm"></i>
-                            </div>
-                            <div class="rounded-2xl p-4 max-w-[75%] shadow-sm" style="background: var(--bg-card); border: 1px solid var(--border-color)">
-                                <p style="color: var(--text-main); line-height: 1.6">
-                                    Hello! I'm your AI assistant. How can I help you today?
-                                </p>
-                                <div class="mt-3 pt-3 border-t" style="border-color: var(--border-color)">
-                                    <p style="color: var(--text-muted); font-size: 0.85em">
-                                        <i class="fas fa-info-circle mr-1"></i> Configure your API key in Settings to start using AI features.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
                     return;
                 }
                 
@@ -8178,35 +8234,34 @@
 
             function appendChatMessage(role, content, useTypewriter = true) {
                 const container = document.getElementById('chat-page-messages');
-                const align = role === 'user' ? 'justify-end' : 'justify-start';
-                
-                const div = document.createElement('div');
-                div.className = `flex items-start gap-3 ${align}`;
-                
-                // Strip HTML tags from content for clean display
                 const cleanContent = stripHtmlTags(content);
                 
-                div.innerHTML = role === 'assistant' ? `
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background: var(--accent-color)">
-                        <i class="fas fa-robot text-white text-sm"></i>
-                    </div>
-                    <div class="rounded-2xl p-4 max-w-[75%]" style="background: var(--bg-card); border: 1px solid var(--border-color)">
-                        <div class="chat-message-content" style="color: var(--text-main); line-height: 1.7; font-size: 14px; white-space: pre-wrap;"></div>
-                    </div>
-                ` : `
-                    <div class="rounded-2xl p-4 max-w-[75%]" style="background: var(--accent-color); border: 1px solid transparent">
-                        <p style="color: white; line-height: 1.6; white-space: pre-wrap;">${cleanContent}</p>
-                    </div>
-                `;
+                const div = document.createElement('div');
+                
+                if (role === 'assistant') {
+                    div.style.cssText = 'max-width: 100%; margin: 16px 0; padding: 20px 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; font-family: Georgia, "Times New Roman", serif; line-height: 1.8;';
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'chat-message-content';
+                    contentDiv.style.cssText = 'color: var(--text-main); font-size: 15px; white-space: pre-wrap; word-wrap: break-word;';
+                    contentDiv.textContent = cleanContent;
+                    
+                    div.appendChild(contentDiv);
+                } else {
+                    div.className = 'flex justify-end items-start gap-3';
+                    div.innerHTML = `
+                        <div class="rounded-2xl p-4 max-w-[75%]" style="background: var(--accent-color); border: 1px solid transparent">
+                            <p style="color: white; line-height: 1.6; white-space: pre-wrap;">${cleanContent}</p>
+                        </div>
+                    `;
+                }
+                
                 container.appendChild(div);
                 container.scrollTop = container.scrollHeight;
 
-                // Typewriter effect for assistant messages
                 if (role === 'assistant' && useTypewriter) {
                     const typingElement = div.querySelector('.chat-message-content');
                     typeWriter(typingElement, cleanContent, 0);
-                } else if (role === 'assistant' && !useTypewriter) {
-                    div.querySelector('.chat-message-content').textContent = cleanContent;
                 }
             }
 
@@ -8215,7 +8270,7 @@
                     element.textContent += text.charAt(index);
                     const container = document.getElementById('chat-page-messages');
                     container.scrollTop = container.scrollHeight;
-                    setTimeout(() => typeWriter(element, text, index + 1), 12);
+                    setTimeout(() => typeWriter(element, text, index + 1), 1);
                 }
             }
 
@@ -8250,15 +8305,16 @@
                 const container = document.getElementById('chat-page-messages');
                 const loadingDiv = document.createElement('div');
                 loadingDiv.className = 'flex items-start gap-3';
-                loadingDiv.id = 'chat-page-loading';
+                loadingDiv.id = 'chat-page-loading-initial';
                 loadingDiv.innerHTML = `
                     <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background: var(--accent-color)">
                         <i class="fas fa-robot text-white text-sm"></i>
                     </div>
-                    <div class="rounded-2xl p-4" style="background: var(--bg-card); border: 1px solid var(--border-color)">
-                        <div class="flex items-center gap-2" style="color: var(--text-muted)">
-                            <i class="fas fa-circle-notch fa-spin"></i>
-                            <span>Thinking...</span>
+                    <div class="rounded-2xl p-4 shadow-sm" style="background: var(--bg-card); border: 1px solid var(--border-color)">
+                        <div class="flex gap-1">
+                            <span class="w-2 h-2 rounded-full bg-[var(--text-muted)] animate-bounce" style="animation-delay: 0ms;"></span>
+                            <span class="w-2 h-2 rounded-full bg-[var(--text-muted)] animate-bounce" style="animation-delay: 150ms;"></span>
+                            <span class="w-2 h-2 rounded-full bg-[var(--text-muted)] animate-bounce" style="animation-delay: 300ms;"></span>
                         </div>
                     </div>
                 `;
@@ -8268,12 +8324,14 @@
                 try {
                     const provider = chatbotSettings.provider || "openai";
                     let response, url, body, headers;
+                    
+                    const MAX_MESSAGES = 20;
+                    const recentMessages = chatPageMessages.slice(-MAX_MESSAGES);
 
                     if (provider === "ollama") {
-                        // Ollama local API format
                         url = `${chatbotSettings.apiUrl}/api/chat`;
                         const model = chatbotSettings.model || "llama3";
-                        const ollamaMessages = chatPageMessages.map((m) => ({
+                        const ollamaMessages = recentMessages.map((m) => ({
                             role: m.role === "user" ? "user" : "assistant",
                             content: m.content,
                         }));
@@ -8281,82 +8339,312 @@
                         body = JSON.stringify({
                             model: model,
                             messages: ollamaMessages,
-                            stream: false,
+                            stream: true,
                         });
+
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 60000);
+
+                        response = await fetch(url, {
+                            method: "POST",
+                            headers,
+                            body,
+                            signal: controller.signal,
+                        });
+
+                        clearTimeout(timeout);
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            throw new Error(errorData.error || `HTTP ${response.status}`);
+                        }
+
+                        document.getElementById('chat-page-loading')?.remove();
+                        document.getElementById('chat-page-loading-initial')?.remove();
+                        
+                        const container = document.getElementById('chat-page-messages');
+                        const loadingDiv = document.createElement('div');
+                        loadingDiv.style.cssText = 'max-width: 100%; margin: 16px 0; padding: 20px 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; font-family: Georgia, "Times New Roman", serif;';
+                        loadingDiv.id = 'chat-page-loading';
+                        loadingDiv.innerHTML = `
+                            <div class="chat-message-content" style="color: var(--text-main); font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;"></div>
+                        `;
+                        container.appendChild(loadingDiv);
+                        container.scrollTop = container.scrollHeight;
+
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let reply = "";
+
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            const chunk = decoder.decode(value);
+                            const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const data = JSON.parse(line.slice(6));
+                                        if (data.message?.content) {
+                                            reply += data.message.content;
+                                            const contentEl = loadingDiv.querySelector('.chat-message-content');
+                                            contentEl.textContent = reply;
+                                            contentEl.style.cssText = 'color: var(--text-main); font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;';
+                                            const container = document.getElementById('chat-page-messages');
+                                            if (container) {
+                                                container.scrollTop = container.scrollHeight;
+                                                container.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                                            }
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                        }
+
+                        document.getElementById('chat-page-loading')?.remove();
+                        appendChatMessage('assistant', reply, false);
+                        chatPageMessages.push({ role: 'assistant', content: reply });
+                        saveCurrentConversation();
+
                     } else if (provider === "ollama-cloud") {
-                        // Ollama Cloud API format (like OpenAI)
                         url = `${chatbotSettings.apiUrl}/chat/completions`;
                         headers = {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${chatbotSettings.apiKey}`,
                         };
+                        const ollamaCloudMessages = recentMessages.map((m) => ({
+                            role: m.role === "user" ? "user" : "assistant",
+                            content: m.content,
+                        }));
                         body = JSON.stringify({
                             model: chatbotSettings.model || "llama-3.3-70b-instruct",
-                            messages: chatPageMessages.map((m) => ({
-                                role: m.role === "user" ? "user" : "assistant",
-                                content: m.content,
-                            })),
+                            messages: ollamaCloudMessages,
                             temperature: 0.7,
+                            stream: true,
                         });
+
+                        const controller2 = new AbortController();
+                        const timeout2 = setTimeout(() => controller2.abort(), 60000);
+
+                        response = await fetch(url, {
+                            method: "POST",
+                            headers,
+                            body,
+                            signal: controller2.signal,
+                        });
+
+                        clearTimeout(timeout2);
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+                        }
+
+                        document.getElementById('chat-page-loading')?.remove();
+                        document.getElementById('chat-page-loading-initial')?.remove();
+                        
+                        const container2 = document.getElementById('chat-page-messages');
+                        const loadingDiv2 = document.createElement('div');
+                        loadingDiv2.style.cssText = 'max-width: 100%; margin: 16px 0; padding: 20px 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; font-family: Georgia, "Times New Roman", serif;';
+                        loadingDiv2.id = 'chat-page-loading';
+                        loadingDiv2.innerHTML = `
+                            <div class="chat-message-content" style="color: var(--text-main); font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;"></div>
+                        `;
+                        container2.appendChild(loadingDiv2);
+                        container2.scrollTop = container2.scrollHeight;
+
+                        const reader2 = response.body.getReader();
+                        const decoder2 = new TextDecoder();
+                        let reply2 = "";
+
+                        while (true) {
+                            const { done, value } = await reader2.read();
+                            if (done) break;
+                            const chunk = decoder2.decode(value);
+                            const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const data = JSON.parse(line.slice(6));
+                                        if (data.choices?.[0]?.delta?.content) {
+                                            reply2 += data.choices[0].delta.content;
+                                            const contentEl = loadingDiv2.querySelector('.chat-message-content');
+                                            contentEl.textContent = reply2;
+                                            contentEl.style.cssText = 'color: var(--text-main); font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;';
+                                            const container2 = document.getElementById('chat-page-messages');
+                                            if (container2) {
+                                                container2.scrollTop = container2.scrollHeight;
+                                                container2.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                                            }
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                        }
+
+                        document.getElementById('chat-page-loading')?.remove();
+                        appendChatMessage('assistant', reply2, false);
+                        chatPageMessages.push({ role: 'assistant', content: reply2 });
+                        saveCurrentConversation();
+
                     } else if (provider === "gemini") {
                         const model = chatbotSettings.model || "gemini-1.5-flash";
-                        url = `${chatbotSettings.apiUrl}/models/${model}:generateContent?key=${chatbotSettings.apiKey}`;
+                        url = `${chatbotSettings.apiUrl}/models/${model}:streamGenerateContent?key=${chatbotSettings.apiKey}`;
                         headers = { "Content-Type": "application/json" };
                         body = JSON.stringify({
                             contents: [{ parts: [{ text: message }] }],
+                            generationConfig: { temperature: 0.7 },
                         });
+
+                        const controller3 = new AbortController();
+                        const timeout3 = setTimeout(() => controller3.abort(), 60000);
+
+                        response = await fetch(url, {
+                            method: "POST",
+                            headers,
+                            body,
+                            signal: controller3.signal,
+                        });
+
+                        clearTimeout(timeout3);
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+                        }
+
+                        document.getElementById('chat-page-loading')?.remove();
+                        document.getElementById('chat-page-loading-initial')?.remove();
+                        
+                        const container3 = document.getElementById('chat-page-messages');
+                        const loadingDiv3 = document.createElement('div');
+                        loadingDiv3.style.cssText = 'max-width: 100%; margin: 16px 0; padding: 20px 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; font-family: Georgia, "Times New Roman", serif;';
+                        loadingDiv3.id = 'chat-page-loading';
+                        loadingDiv3.innerHTML = `
+                            <div class="chat-message-content" style="color: var(--text-main); font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;"></div>
+                        `;
+                        container3.appendChild(loadingDiv3);
+                        container3.scrollTop = container3.scrollHeight;
+
+                        const reader3 = response.body.getReader();
+                        const decoder3 = new TextDecoder();
+                        let reply3 = "";
+
+                        while (true) {
+                            const { done, value } = await reader3.read();
+                            if (done) break;
+                            const chunk = decoder3.decode(value);
+                            const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const data = JSON.parse(line.slice(6));
+                                        if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                                            reply3 += data.candidates[0].content.parts[0].text;
+                                            const contentEl = loadingDiv3.querySelector('.chat-message-content');
+                                            contentEl.textContent = reply3;
+                                            contentEl.style.cssText = 'color: var(--text-main); font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;';
+                                            const container3 = document.getElementById('chat-page-messages');
+                                            if (container3) {
+                                                container3.scrollTop = container3.scrollHeight;
+                                                container3.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                                            }
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                        }
+
+                        document.getElementById('chat-page-loading')?.remove();
+                        appendChatMessage('assistant', reply3, false);
+                        chatPageMessages.push({ role: 'assistant', content: reply3 });
+                        saveCurrentConversation();
+
                     } else {
                         url = `${chatbotSettings.apiUrl}/chat/completions`;
                         headers = {
                             "Content-Type": "application/json",
                             Authorization: `Bearer ${chatbotSettings.apiKey}`,
                         };
+                        const openaiMessages = recentMessages.map((m) => ({
+                            role: m.role === "user" ? "user" : "assistant",
+                            content: m.content,
+                        }));
                         body = JSON.stringify({
                             model: chatbotSettings.model || "gpt-3.5-turbo",
-                            messages: chatPageMessages.map((m) => ({
-                                role: m.role === "user" ? "user" : "assistant",
-                                content: m.content,
-                            })),
+                            messages: openaiMessages,
                             temperature: 0.7,
+                            stream: true,
                         });
-                    }
 
-                    response = await fetch(url, {
-                        method: "POST",
-                        headers,
-                        body,
-                    });
+                        const controller4 = new AbortController();
+                        const timeout4 = setTimeout(() => controller4.abort(), 60000);
 
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        let errorMsg = errorData.error?.message || `HTTP ${response.status}`;
-                        throw new Error(errorMsg);
-                    }
+                        response = await fetch(url, {
+                            method: "POST",
+                            headers,
+                            body,
+                            signal: controller4.signal,
+                        });
 
-                    const data = await response.json();
-                    let reply;
-                    if (provider === "ollama") {
-                        reply = data.message?.content;
-                    } else if (provider === "ollama-cloud") {
-                        reply = data.choices?.[0]?.message?.content;
-                    } else if (provider === "gemini") {
-                        reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    } else {
-                        reply = data.choices?.[0]?.message?.content;
-                    }
+                        clearTimeout(timeout4);
 
-                    document.getElementById('chat-page-loading')?.remove();
-                    if (reply) {
-                        appendChatMessage('assistant', reply);
-                        chatPageMessages.push({ role: 'assistant', content: reply });
-                        saveCurrentConversation();
-                    } else {
-                        appendChatMessage('assistant', 'No response from API');
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+                        }
+
+                        document.getElementById('chat-page-loading')?.remove();
+                        document.getElementById('chat-page-loading-initial')?.remove();
+                        
+                        const container4 = document.getElementById('chat-page-messages');
+                        const loadingDiv4 = document.createElement('div');
+                        loadingDiv4.style.cssText = 'max-width: 100%; margin: 16px 0; padding: 20px 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; font-family: Georgia, "Times New Roman", serif;';
+                        loadingDiv4.id = 'chat-page-loading';
+                        loadingDiv4.innerHTML = `
+                            <div class="chat-message-content" style="color: var(--text-main); font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;"></div>
+                        `;
+                        container4.appendChild(loadingDiv4);
+                        container4.scrollTop = container4.scrollHeight;
+
+                        const reader4 = response.body.getReader();
+                        const decoder4 = new TextDecoder();
+                        let reply4 = "";
+
+                        while (true) {
+                            const { done, value } = await reader4.read();
+                            if (done) break;
+                            const chunk = decoder4.decode(value);
+                            const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                            for (const line of lines) {
+                                if (line.startsWith('data: ')) {
+                                    try {
+                                        const data = JSON.parse(line.slice(6));
+                                        if (data.choices?.[0]?.delta?.content) {
+                                            reply4 += data.choices[0].delta.content;
+                                            const contentEl = loadingDiv4.querySelector('.chat-message-content');
+                                            contentEl.textContent = reply4;
+                                            contentEl.style.cssText = 'color: var(--text-main); font-size: 15px; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;';
+                                            const container4 = document.getElementById('chat-page-messages');
+                                            if (container4) {
+                                                container4.scrollTop = container4.scrollHeight;
+                                                container4.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                                            }
+                                        }
+                                    } catch (e) {}
+                                }
+                            }
+                        }
+
+                        document.getElementById('chat-page-loading')?.remove();
+                        appendChatMessage('assistant', reply4, false);
+                        chatPageMessages.push({ role: 'assistant', content: reply4 });
                         saveCurrentConversation();
                     }
                 } catch (error) {
                     document.getElementById('chat-page-loading')?.remove();
-                    appendChatMessage('assistant', 'Sorry, I encountered an error: ' + error.message);
+                    const errorMsg = error.name === 'AbortError' ? 'Request timed out. Please try again.' : error.message;
+                    appendChatMessage('assistant', 'Sorry, I encountered an error: ' + errorMsg);
                     saveCurrentConversation();
                 }
             }
@@ -9192,6 +9480,112 @@
                     "text-[8px] px-1.5 py-0.5 rounded-full bg-green-100 text-green-700";
             }
             updateChatbotModels();
+        </script>
+        <!-- Floating Ask Button and Chatbox -->
+        <div id="chat-widget" class="chat-widget" data-theme="light">
+            <button id="chat-toggle" class="chat-toggle" aria-label="Ask a question or chat with support">
+                <i class="fas fa-comment-dots"></i>
+            </button>
+            <div id="chatbox" class="chatbox">
+                <div class="chat-header">
+                    <h3>Ask a Question</h3>
+                    <button id="chat-close" class="chat-close" aria-label="Close chat">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="chat-message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <p>Hello! How can I help you today?</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Type your message..." />
+                    <button id="chat-send" class="chat-send" aria-label="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Chat Widget Functionality
+            const chatWidget = document.getElementById('chat-widget');
+            const chatToggle = document.getElementById('chat-toggle');
+            const chatbox = document.getElementById('chatbox');
+            const chatClose = document.getElementById('chat-close');
+            const chatInput = document.getElementById('chat-input');
+            const chatSend = document.getElementById('chat-send');
+            const chatMessages = document.getElementById('chat-messages');
+
+            // Toggle chat visibility
+            chatToggle.addEventListener('click', () => {
+                chatbox.classList.toggle('open');
+                if (chatbox.classList.contains('open')) {
+                    chatInput.focus();
+                }
+            });
+
+            // Close chat
+            chatClose.addEventListener('click', () => {
+                chatbox.classList.remove('open');
+            });
+
+            // Send message
+            chatSend.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (message === '') return;
+
+                // Add user message
+                const userMessage = document.createElement('div');
+                userMessage.className = 'chat-message user-message';
+                userMessage.innerHTML = `
+                    <div class="message-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>${message}</p>
+                    </div>
+                `;
+                chatMessages.appendChild(userMessage);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                chatInput.value = '';
+
+                // Simulate bot response
+                setTimeout(() => {
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'chat-message bot-message';
+                    botMessage.innerHTML = `
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="message-content">
+                            <p>Thanks for your message! I'll get back to you shortly.</p>
+                        </div>
+                    `;
+                    chatMessages.appendChild(botMessage);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 1000);
+            }
+
+            // Theme synchronization
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            chatWidget.setAttribute('data-theme', currentTheme);
+            document.addEventListener('themechange', (e) => {
+                chatWidget.setAttribute('data-theme', e.detail.theme);
+            });
         </script>
     </body>
 </html>
