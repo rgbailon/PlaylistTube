@@ -340,6 +340,27 @@
             rel="stylesheet"
         />
         <style>
+            /* Whiteboard Styles */
+            .wb-tool-btn {
+                padding: 8px 12px;
+                border-radius: 8px;
+                background: var(--bg-hover);
+                color: var(--text-main);
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .wb-tool-btn:hover {
+                background: var(--bg-active);
+            }
+            .wb-bg-btn {
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .wb-tool-btn.active {
+                background: var(--accent-color);
+                color: white;
+            }
             :root {
                 /* Minimalist Theme (Default) - Clean, lots of white space */
                 --bg-main: #fafafa;
@@ -2169,6 +2190,13 @@
                     <i class="fas fa-robot text-xs"></i><span class="hidden md:inline">AI Chat</span>
                 </button>
                 <button
+                    onclick="showPage('whiteboard')"
+                    class="nav-btn px-3 py-1.5 rounded-md transition-all text-xs md:text-sm flex items-center gap-1.5"
+                    id="nav-whiteboard"
+                >
+                    <i class="fas fa-pencil-alt text-xs"></i><span class="hidden md:inline">Whiteboard</span>
+                </button>
+                <button
                     onclick="showPage('privacy')"
                     class="nav-btn px-3 py-1.5 rounded-md transition-all text-xs md:text-sm flex items-center gap-1.5"
                     id="nav-privacy"
@@ -3897,6 +3925,8 @@
             let theme = "light";
             let apiKeys = [];
             let currentKeyIndex = 0;
+            let whiteboardInitialized = false;
+            let trendingPlaylistsLoaded = false;
 
             // Initialize
             document.addEventListener("DOMContentLoaded", () => {
@@ -4434,9 +4464,34 @@
                 document
                     .getElementById("chat-page")
                     .classList.toggle("hidden", page !== "chat");
+
+                // Load trending playlists when navigating to search page
+                if (page === "search" && !trendingPlaylistsLoaded) {
+                    loadTrendingPlaylists();
+                    trendingPlaylistsLoaded = true;
+                }
+
+                document
+                    .getElementById("main-page")
+                    .classList.toggle("hidden", page !== "main");
+                document
+                    .getElementById("search-page")
+                    .classList.toggle("hidden", page !== "search");
+                document
+                    .getElementById("live-page")
+                    .classList.toggle("hidden", page !== "live");
+                document
+                    .getElementById("privacy-page")
+                    .classList.toggle("hidden", page !== "privacy");
+                document
+                    .getElementById("chat-page")
+                    .classList.toggle("hidden", page !== "chat");
                 document
                     .getElementById("single-videos-page")
                     .classList.toggle("hidden", page !== "single-videos");
+                document
+                    .getElementById("whiteboard-page")
+                    .classList.toggle("hidden", page !== "whiteboard");
 
                 // Initialize chat history when navigating to chat page
                 if (page === "chat") {
@@ -4463,6 +4518,12 @@
                 if (page === "single-videos" && !singleVideosLoaded) {
                     loadTrendingVideos();
                     singleVideosLoaded = true;
+                }
+
+                // Initialize whiteboard when navigating to whiteboard page
+                if (page === "whiteboard" && !whiteboardInitialized) {
+                    initWhiteboard();
+                    whiteboardInitialized = true;
                 }
 
                 closeMobilePanels();
@@ -4493,6 +4554,192 @@
                         toggleIcon.classList.remove("fa-chevron-right");
                         toggleIcon.classList.add("fa-chevron-left");
                     }
+                }
+            }
+
+            // Whiteboard (Custom Canvas) Functions
+            let wbCanvas, wbCtx;
+            let wbIsDrawing = false;
+            let wbCurrentTool = 'pen';
+            let wbLastX = 0;
+            let wbLastY = 0;
+            let wbInitialized = false;
+
+            function initWhiteboard() {
+                if (wbInitialized) return;
+                wbInitialized = true;
+                
+                wbCanvas = document.getElementById('whiteboard-canvas');
+                if (!wbCanvas) {
+                    // Create canvas element
+                    const container = document.getElementById('whiteboard-container');
+                    wbCanvas = document.createElement('canvas');
+                    wbCanvas.id = 'whiteboard-canvas';
+                    wbCanvas.className = 'absolute top-0 left-0 cursor-crosshair';
+                    container.appendChild(wbCanvas);
+                }
+                
+                wbCtx = wbCanvas.getContext('2d');
+                
+                // Set canvas size
+                resizeWhiteboard();
+                window.addEventListener('resize', resizeWhiteboard);
+
+                // Load saved drawing and background
+                const savedBg = localStorage.getItem('playlisttube_wb_bg') || '#ffffff';
+                document.getElementById('whiteboard-container').style.backgroundColor = savedBg;
+                
+                const savedData = localStorage.getItem('playlisttube_whiteboard');
+                if (savedData) {
+                    const img = new Image();
+                    img.onload = () => {
+                        wbCtx.fillStyle = savedBg;
+                        wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
+                        wbCtx.drawImage(img, 0, 0);
+                    };
+                    img.src = savedData;
+                } else {
+                    // Fill with background color
+                    wbCtx.fillStyle = savedBg;
+                    wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
+                }
+
+                // Drawing events
+                wbCanvas.addEventListener('mousedown', startDrawing);
+                wbCanvas.addEventListener('mousemove', draw);
+                wbCanvas.addEventListener('mouseup', stopDrawing);
+                wbCanvas.addEventListener('mouseout', stopDrawing);
+                
+                // Touch events
+                wbCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+                wbCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+                wbCanvas.addEventListener('touchend', stopDrawing);
+            }
+
+            function resizeWhiteboard() {
+                if (!wbCanvas || !wbCtx) return;
+                const container = document.getElementById('whiteboard-container');
+                if (!container) return;
+                
+                // Save current content
+                const savedBg = localStorage.getItem('playlisttube_wb_bg') || '#ffffff';
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = wbCanvas.width;
+                tempCanvas.height = wbCanvas.height;
+                tempCanvas.getContext('2d').drawImage(wbCanvas, 0, 0);
+                
+                wbCanvas.width = container.clientWidth;
+                wbCanvas.height = container.clientHeight;
+                
+                // Fill background and restore content
+                wbCtx.fillStyle = savedBg;
+                wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
+                wbCtx.drawImage(tempCanvas, 0, 0);
+            }
+
+            function startDrawing(e) {
+                wbIsDrawing = true;
+                [wbLastX, wbLastY] = getCoords(e);
+            }
+
+            function draw(e) {
+                if (!wbIsDrawing) return;
+                const [x, y] = getCoords(e);
+                
+                wbCtx.beginPath();
+                wbCtx.moveTo(wbLastX, wbLastY);
+                wbCtx.lineTo(x, y);
+                
+                const size = parseInt(document.getElementById('wb-size')?.value || 3);
+                
+                if (wbCurrentTool === 'eraser') {
+                    const savedBg = localStorage.getItem('playlisttube_wb_bg') || '#ffffff';
+                    wbCtx.strokeStyle = savedBg;
+                    wbCtx.lineWidth = size * 2;
+                } else {
+                    wbCtx.strokeStyle = document.getElementById('wb-color')?.value || '#000000';
+                    wbCtx.lineWidth = size;
+                }
+                
+                wbCtx.lineCap = 'round';
+                wbCtx.lineJoin = 'round';
+                wbCtx.stroke();
+                
+                [wbLastX, wbLastY] = [x, y];
+            }
+
+            function stopDrawing() {
+                wbIsDrawing = false;
+                if (wbCanvas) {
+                    localStorage.setItem('playlisttube_whiteboard', wbCanvas.toDataURL());
+                }
+            }
+
+            function getCoords(e) {
+                const rect = wbCanvas.getBoundingClientRect();
+                if (e.touches) {
+                    return [e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top];
+                }
+                return [e.clientX - rect.left, e.clientY - rect.top];
+            }
+
+            function handleTouchStart(e) {
+                e.preventDefault();
+                startDrawing(e);
+            }
+
+            function handleTouchMove(e) {
+                e.preventDefault();
+                draw(e);
+            }
+
+            function setWhiteboardTool(tool) {
+                wbCurrentTool = tool;
+                document.querySelectorAll('.wb-tool-btn').forEach(btn => btn.classList.remove('active'));
+                const btn = document.getElementById('wb-' + tool);
+                if (btn) btn.classList.add('active');
+            }
+
+            function setWhiteboardBg(color) {
+                const container = document.getElementById('whiteboard-container');
+                if (!container || !wbCanvas || !wbCtx) {
+                    localStorage.setItem('playlisttube_wb_bg', color);
+                    container.style.backgroundColor = color;
+                    return;
+                }
+                
+                // Save current drawing
+                const savedData = localStorage.getItem('playlisttube_whiteboard');
+                
+                // Fill with new background
+                wbCtx.fillStyle = color;
+                wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
+                
+                // Redraw saved content
+                if (savedData) {
+                    const img = new Image();
+                    img.onload = () => wbCtx.drawImage(img, 0, 0);
+                    img.src = savedData;
+                }
+                
+                localStorage.setItem('playlisttube_wb_bg', color);
+                container.style.backgroundColor = color;
+            }
+
+            function clearWhiteboard() {
+                if (!wbCanvas || !wbCtx) return;
+                const savedBg = localStorage.getItem('playlisttube_wb_bg') || '#ffffff';
+                wbCtx.fillStyle = savedBg;
+                wbCtx.fillRect(0, 0, wbCanvas.width, wbCanvas.height);
+                localStorage.removeItem('playlisttube_whiteboard');
+            }
+
+            function saveWhiteboard() {
+                if (wbCanvas) {
+                    const link = document.createElement('a');
+                    link.download = 'whiteboard-' + Date.now() + '.png';
+                    link.href = wbCanvas.toDataURL();
+                    link.click();
                 }
             }
 
@@ -5011,6 +5258,108 @@
                     }
                 } catch (error) {
                     container.innerHTML = `<div class="col-span-full text-center py-20 text-custom-muted"><i class="fas fa-exclamation-circle text-4xl mb-4"></i><p>Error loading trending videos: ${escapeHtml(error.message)}</p></div>`;
+                }
+            }
+
+            async function loadTrendingPlaylists() {
+                const apiKey = getCurrentApiKey();
+                if (!apiKey) return;
+
+                const container = document.getElementById("search-results");
+                if (!container) return;
+
+                // Show loading state
+                container.innerHTML = '<div class="col-span-full text-center py-20"><i class="fas fa-circle-notch fa-spin text-4xl text-blue-500"></i><p class="mt-4 text-custom-muted">Loading trending playlists...</p></div>';
+
+                // Use search API to find popular playlists
+                const queries = ["music", "top hits", "chill", "workout", "party", "pop", "rock", "hip hop", "lofi", "jazz"];
+                const allPlaylists = [];
+
+                try {
+                    // Search for playlists with popular queries
+                    for (const query of queries) {
+                        if (allPlaylists.length >= 12) break;
+                        
+                        const response = await fetch(
+                            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=playlist&q=${encodeURIComponent(query)}&maxResults=12&order=viewCount&key=${apiKey}`
+                        );
+                        const data = await response.json();
+                        
+                        if (data.items) {
+                            for (const item of data.items) {
+                                if (item.id.kind === "youtube#playlist" && !allPlaylists.find(p => p.id === item.id.playlistId)) {
+                                    allPlaylists.push(item);
+                                    if (allPlaylists.length >= 12) break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (allPlaylists.length === 0) {
+                        container.innerHTML = '<div class="col-span-full text-center py-20 text-custom-muted"><i class="fas fa-inbox text-4xl mb-4"></i><p>No trending playlists found</p></div>';
+                        return;
+                    }
+
+                    trackApiCall("search", 1);
+
+                    // Fetch video counts for all playlists
+                    const playlistIds = allPlaylists.map(item => item.id.playlistId).join(",");
+                    const detailsResponse = await fetch(
+                        `https://www.googleapis.com/youtube/v3/playlists?part=contentDetails&id=${playlistIds}&key=${apiKey}`
+                    );
+                    const detailsData = await detailsResponse.json();
+                    
+                    trackApiCall("playlists", 1);
+
+                    // Create video count map
+                    const videoCountMap = {};
+                    if (detailsData.items) {
+                        detailsData.items.forEach((item) => {
+                            videoCountMap[item.id] = item.contentDetails.itemCount;
+                        });
+                    }
+
+                    // Add video counts to playlists
+                    allPlaylists.forEach((item) => {
+                        item.videoCount = videoCountMap[item.id.playlistId] || 0;
+                    });
+
+                    // Render playlists
+                    container.innerHTML = "";
+                    const sectionTitle = document.getElementById("search-section-title");
+                    if (sectionTitle) sectionTitle.textContent = "Trending Playlists";
+                    
+                    allPlaylists.slice(0, 12).forEach((item) => {
+                        const el = document.createElement("div");
+                        el.className = "glass rounded-xl overflow-hidden shadow-sm border border-custom flex flex-col card-hover";
+                        el.innerHTML = `
+                        <div class="relative aspect-video bg-slate-200">
+                            <img src="${item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url}" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 320 180%22><rect fill=%22%23cbd5e1%22 width=%22100%%22 height=%22100%%22/></svg>'">
+                        </div>
+                        <div class="p-4 flex flex-col flex-1">
+                            <h3 class="font-bold text-custom-main line-clamp-2 mb-2 text-sm md:text-base leading-snug">${escapeHtml(decodeHtml(item.snippet.title))}</h3>
+                            <p class="text-xs text-custom-muted mb-4 flex items-center gap-1">
+                                <i class="fas fa-user-circle"></i> ${escapeHtml(decodeHtml(item.snippet.channelTitle))}
+                            </p>
+                            <div class="mt-auto flex items-center justify-between">
+                                <div class="flex gap-2">
+                                    <button onclick="importPlaylist('${item.id.playlistId}')" class="btn-add w-9 h-9 rounded-lg transition flex items-center justify-center shadow-sm" title="Add to History">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button onclick="playPlaylistDirect('${item.id.playlistId}')" class="btn-add w-9 h-9 rounded-lg transition flex items-center justify-center shadow-sm" title="Play Now">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                                <span class="text-xs text-custom-muted font-medium flex items-center gap-1">
+                                    <i class="fas fa-video text-[10px]"></i> ${item.videoCount || 0}
+                                </span>
+                            </div>
+                        </div>
+                        `;
+                        container.appendChild(el);
+                    });
+                } catch (error) {
+                    container.innerHTML = `<div class="col-span-full text-center py-20 text-custom-muted"><i class="fas fa-exclamation-circle text-4xl mb-4"></i><p>Error loading trending playlists: ${escapeHtml(error.message)}</p></div>`;
                 }
             }
 
@@ -6122,53 +6471,24 @@
 
             function onPlayerError(event) {
                 console.warn("Player Error:", event.data);
-                // 100: Video not found, 101/150/153: Embedding disabled, 2: Invalid video ID
-                if ([2, 100, 101, 150, 153].includes(event.data)) {
+                // 2: Invalid video ID, 100: Video not found, 101/150/153: Embedding disabled
+                // Also handle other unavailable video errors
+                if ([2, 5, 100, 101, 150, 153].includes(event.data)) {
                     const video = currentPlaylist[currentVideoIndex];
                     const videoTitle = video?.title || "Video";
                     const videoId = video?.videoId;
 
-                    // Show error with YouTube link option
-                    const el = document.getElementById("error-message");
-                    el.innerHTML = `
-                    <span>Cannot play "${escapeHtml(videoTitle.substring(0, 30))}..." - </span>
-                    <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" class="underline font-bold hover:text-blue-700">Watch on YouTube</a>
-                    <span> | Auto-skipping in 3s...</span>
-                `;
-                    el.classList.remove(
-                        "hidden",
-                        "text-green-600",
-                        "text-blue-600",
-                    );
-                    el.classList.add("text-red-600");
-                    el.style.background = "#fef2f2";
-                    el.style.border = "1px solid #fee2e2";
-
-                    // Auto skip after delay
-                    setTimeout(() => {
-                        hideMessage();
-                        if (currentVideoIndex < currentPlaylist.length - 1) {
-                            playNextVideo();
-                        }
-                    }, 3000);
-                } else if (event.data === 5) {
-                    // HTML5 player error - try to recreate player
-                    console.warn(
-                        "HTML5 player error, attempting to recreate...",
-                    );
-                    try {
-                        if (player && typeof player.destroy === "function") {
-                            player.destroy();
-                        }
-                    } catch (e) {}
-                    player = null;
-
-                    setTimeout(() => {
-                        const video = currentPlaylist[currentVideoIndex];
-                        if (video) {
-                            createPlayer(video.videoId);
-                        }
-                    }, 1000);
+                    // Skip silently without showing error for smoother playback
+                    console.log(`Skipping unavailable video: ${videoTitle}`);
+                    
+                    // Immediately skip to next video
+                    if (currentVideoIndex < currentPlaylist.length - 1) {
+                        playNextVideo();
+                    } else {
+                        // Try to replay from beginning
+                        currentVideoIndex = 0;
+                        playVideo(0);
+                    }
                 }
             }
 
@@ -6318,6 +6638,12 @@
                 const div = document.createElement("div");
                 div.textContent = text;
                 return div.innerHTML;
+            }
+
+            function decodeHtml(html) {
+                const div = document.createElement("div");
+                div.innerHTML = html;
+                return div.textContent || div.innerText || "";
             }
 
             function stripHtml(html) {
@@ -9481,111 +9807,50 @@
             }
             updateChatbotModels();
         </script>
-        <!-- Floating Ask Button and Chatbox -->
-        <div id="chat-widget" class="chat-widget" data-theme="light">
-            <button id="chat-toggle" class="chat-toggle" aria-label="Ask a question or chat with support">
-                <i class="fas fa-comment-dots"></i>
-            </button>
-            <div id="chatbox" class="chatbox">
-                <div class="chat-header">
-                    <h3>Ask a Question</h3>
-                    <button id="chat-close" class="chat-close" aria-label="Close chat">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="chat-messages" id="chat-messages">
-                    <div class="chat-message bot-message">
-                        <div class="message-avatar">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div class="message-content">
-                            <p>Hello! How can I help you today?</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="chat-input-container">
-                    <input type="text" id="chat-input" class="chat-input" placeholder="Type your message..." />
-                    <button id="chat-send" class="chat-send" aria-label="Send message">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
+
+        <!-- Whiteboard Page -->
+        <div
+            id="whiteboard-page"
+            class="hidden h-[calc(100vh-70px)] flex flex-col"
+            style="background: var(--bg-main)"
+        >
+            <!-- Whiteboard Toolbar -->
+            <div class="flex items-center gap-1 px-2 py-1" style="background: var(--bg-card); border-bottom: 1px solid var(--border-color)">
+                <!-- Background Color -->
+                <span class="text-[10px] hidden md:inline" style="color: var(--text-muted)">Bg:</span>
+                <button onclick="setWhiteboardBg('#ffffff')" class="wb-bg-btn w-6 h-6" style="background:#ffffff;border:1px solid #ccc" title="White"></button>
+                <button onclick="setWhiteboardBg('#1a1a1a')" class="wb-bg-btn w-6 h-6" style="background:#1a1a1a;border:1px solid #555" title="Black"></button>
+                <button onclick="setWhiteboardBg('#228B22')" class="wb-bg-btn w-6 h-6" style="background:#228B22;border:1px solid #228B22" title="Green"></button>
+                <div class="h-4 w-px" style="background: var(--border-color)"></div>
+                <!-- Pen Color -->
+                <input type="color" id="wb-color" value="#000000" class="w-6 h-6 cursor-pointer rounded" title="Pen Color">
+                <div class="h-4 w-px" style="background: var(--border-color)"></div>
+                <!-- Brush Size -->
+                <input type="range" id="wb-size" min="1" max="30" value="3" class="w-12" title="Brush Size">
+                <span id="wb-size-label" class="text-[10px] hidden md:inline" style="color: var(--text-muted)">3px</span>
+                <div class="h-4 w-px" style="background: var(--border-color)"></div>
+                <!-- Eraser -->
+                <button onclick="setWhiteboardTool('eraser')" id="wb-eraser" class="wb-tool-btn px-2 py-1" title="Eraser">
+                    <i class="fas fa-eraser text-xs"></i>
+                </button>
+                <!-- Pen -->
+                <button onclick="setWhiteboardTool('pen')" id="wb-pen" class="wb-tool-btn px-2 py-1 active" title="Pen">
+                    <i class="fas fa-pen text-xs"></i>
+                </button>
+                <div class="flex-1"></div>
+                <!-- Clear -->
+                <button onclick="clearWhiteboard()" class="wb-tool-btn text-red-500 px-2 py-1" title="Clear">
+                    <i class="fas fa-trash text-xs"></i>
+                </button>
+                <!-- Save -->
+                <button onclick="saveWhiteboard()" class="wb-tool-btn text-green-500 px-2 py-1" title="Save as Image">
+                    <i class="fas fa-download text-xs"></i>
+                </button>
+            </div>
+            <!-- Whiteboard Canvas Container -->
+            <div class="flex-1 relative overflow-hidden" id="whiteboard-container">
             </div>
         </div>
 
-        <script>
-            // Chat Widget Functionality
-            const chatWidget = document.getElementById('chat-widget');
-            const chatToggle = document.getElementById('chat-toggle');
-            const chatbox = document.getElementById('chatbox');
-            const chatClose = document.getElementById('chat-close');
-            const chatInput = document.getElementById('chat-input');
-            const chatSend = document.getElementById('chat-send');
-            const chatMessages = document.getElementById('chat-messages');
-
-            // Toggle chat visibility
-            chatToggle.addEventListener('click', () => {
-                chatbox.classList.toggle('open');
-                if (chatbox.classList.contains('open')) {
-                    chatInput.focus();
-                }
-            });
-
-            // Close chat
-            chatClose.addEventListener('click', () => {
-                chatbox.classList.remove('open');
-            });
-
-            // Send message
-            chatSend.addEventListener('click', sendMessage);
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-
-            function sendMessage() {
-                const message = chatInput.value.trim();
-                if (message === '') return;
-
-                // Add user message
-                const userMessage = document.createElement('div');
-                userMessage.className = 'chat-message user-message';
-                userMessage.innerHTML = `
-                    <div class="message-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="message-content">
-                        <p>${message}</p>
-                    </div>
-                `;
-                chatMessages.appendChild(userMessage);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                chatInput.value = '';
-
-                // Simulate bot response
-                setTimeout(() => {
-                    const botMessage = document.createElement('div');
-                    botMessage.className = 'chat-message bot-message';
-                    botMessage.innerHTML = `
-                        <div class="message-avatar">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div class="message-content">
-                            <p>Thanks for your message! I'll get back to you shortly.</p>
-                        </div>
-                    `;
-                    chatMessages.appendChild(botMessage);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 1000);
-            }
-
-            // Theme synchronization
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            chatWidget.setAttribute('data-theme', currentTheme);
-            document.addEventListener('themechange', (e) => {
-                chatWidget.setAttribute('data-theme', e.detail.theme);
-            });
-        </script>
     </body>
 </html>
