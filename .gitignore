@@ -3,3 +3,6 @@ backup.js
 index.html.*
 index.html.original
 test.html
+node_modules/
+dist/
+_playlist-tube/
