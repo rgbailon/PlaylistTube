@@ -13,6 +13,8 @@ function Settings() {
 
   const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(true);
   const [chatApiExpanded, setChatApiExpanded] = useState(true);
+  const [chatValidating, setChatValidating] = useState(false);
+  const [chatValidationResult, setChatValidationResult] = useState(null);
 
   const [chatApiUrl, setChatApiUrl] = useState('');
   const [chatApiKey, setChatApiKey] = useState('');
@@ -81,7 +83,91 @@ function Settings() {
     }
   };
 
-  const saveChatConfig = () => {
+  const clearChatConfig = () => {
+    setChatApiUrl('');
+    setChatApiKey('');
+    setChatModel('gpt-3.5-turbo');
+    document.cookie = 'yt_chatbot_config=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';
+  };
+
+  const getProviderFromUrl = (url) => {
+    if (!url) return null;
+    if (url.includes('openai.com')) return 'openai';
+    if (url.includes('openrouter.ai')) return 'openrouter';
+    if (url.includes('anthropic.com')) return 'anthropic';
+    if (url.includes('googleusercontent.com') || url.includes('generativelanguage')) return 'google';
+    if (url.includes('x.ai')) return 'xai';
+    if (url.includes('mistral.ai')) return 'mistral';
+    if (url.includes('localhost:11434')) return 'ollama';
+    return 'openai';
+  };
+
+  const buildChatHeaders = (provider, key) => {
+    const headers = { 'Content-Type': 'application/json' };
+    switch (provider) {
+      case 'anthropic':
+        headers['x-api-key'] = key;
+        headers['anthropic-version'] = '2023-06-01';
+        break;
+      case 'openrouter':
+        headers['Authorization'] = `Bearer ${key}`;
+        headers['HTTP-Referer'] = window.location.origin;
+        headers['X-Title'] = 'PlaylistTube';
+        break;
+      default:
+        headers['Authorization'] = `Bearer ${key}`;
+    }
+    return headers;
+  };
+
+  const buildChatBody = (provider, model) => {
+    if (provider === 'anthropic') {
+      return { model: model, max_tokens: 1024, messages: [{ role: 'user', content: 'Hello' }] };
+    }
+    return { model: model || 'gpt-3.5-turbo', messages: [{ role: 'user', content: 'Hello' }] };
+  };
+
+  const validateChatApi = async () => {
+    if (!chatApiUrl.trim() || !chatApiKey.trim()) {
+      setChatValidationResult({ success: false, message: 'Please enter API URL and Key' });
+      return false;
+    }
+
+    setChatValidating(true);
+    setChatValidationResult(null);
+
+    try {
+      const provider = getProviderFromUrl(chatApiUrl);
+      const headers = buildChatHeaders(provider, chatApiKey);
+      const body = buildChatBody(provider, chatModel);
+
+      const response = await fetch(`${chatApiUrl.trim()}/chat/completions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && !data.error) {
+        setChatValidationResult({ success: true, message: 'Connection successful!' });
+        return true;
+      } else {
+        setChatValidationResult({ success: false, message: data.error?.message || 'Validation failed' });
+        return false;
+      }
+    } catch (err) {
+      setChatValidationResult({ success: false, message: err.message });
+      return false;
+    } finally {
+      setChatValidating(false);
+    }
+  };
+
+  const saveChatConfig = async () => {
+    const valid = await validateChatApi();
+    if (!valid) return;
+
     const config = {
       url: chatApiUrl.trim(),
       key: chatApiKey.trim(),
@@ -90,13 +176,6 @@ function Settings() {
     setCookie('yt_chatbot_config', JSON.stringify(config));
     setChatSaved(true);
     setTimeout(() => setChatSaved(false), 3000);
-  };
-
-  const clearChatConfig = () => {
-    setChatApiUrl('');
-    setChatApiKey('');
-    setChatModel('gpt-3.5-turbo');
-    document.cookie = 'yt_chatbot_config=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';
   };
 
   const chatProviders = [
@@ -367,13 +446,24 @@ function Settings() {
           </div>
 
           <div className="flex gap-2 mt-2">
-            <button onClick={saveChatConfig} className="flex-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium transition">
-              <i className="fas fa-save mr-1"></i>Save
+            <button onClick={saveChatConfig} disabled={chatValidating} className="flex-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50">
+              <i className={`fas ${chatValidating ? 'fa-spinner fa-spin' : 'fa-save'} mr-1`}></i>
+              {chatValidating ? 'Validating...' : 'Save'}
+            </button>
+            <button onClick={validateChatApi} disabled={chatValidating} className="px-3 py-1.5 border border-purple-200 text-purple-500 rounded-lg text-xs hover:bg-purple-50 transition disabled:opacity-50">
+              <i className="fas fa-plug mr-1"></i>Test
             </button>
             <button onClick={clearChatConfig} className="px-3 py-1.5 border border-red-200 text-red-500 rounded-lg text-xs hover:bg-red-50 transition">
               Clear
             </button>
           </div>
+
+          {chatValidationResult && (
+            <div className={`text-xs px-3 py-1.5 mt-2 rounded-lg ${chatValidationResult.success ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <i className={`fas ${chatValidationResult.success ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-1`}></i>
+              {chatValidationResult.message}
+            </div>
+          )}
 
           {chatSaved && <div className="text-xs px-3 py-1.5 mt-2 rounded-lg bg-green-100 text-green-700"><i className="fas fa-check mr-1"></i>Saved!</div>}
 

@@ -1,6 +1,84 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../App';
-import ChatSettings from '../components/ChatSettings';
+
+const getProviderFromUrl = (url) => {
+  if (!url) return null;
+  if (url.includes('openai.com')) return 'openai';
+  if (url.includes('openrouter.ai')) return 'openrouter';
+  if (url.includes('anthropic.com')) return 'anthropic';
+  if (url.includes('googleusercontent.com') || url.includes('generativelanguage')) return 'google';
+  if (url.includes('x.ai')) return 'xai';
+  if (url.includes('mistral.ai')) return 'mistral';
+  if (url.includes('localhost:11434')) return 'ollama';
+  return 'openai';
+};
+
+const buildHeaders = (provider, url, key, model) => {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  switch (provider) {
+    case 'anthropic':
+      headers['x-api-key'] = key;
+      headers['anthropic-version'] = '2023-06-01';
+      break;
+    case 'openrouter':
+      headers['Authorization'] = `Bearer ${key}`;
+      headers['HTTP-Referer'] = window.location.origin;
+      headers['X-Title'] = 'PlaylistTube';
+      break;
+    case 'google':
+      headers['Authorization'] = `Bearer ${key}`;
+      break;
+    case 'xai':
+    case 'mistral':
+    case 'ollama':
+      headers['Authorization'] = `Bearer ${key}`;
+      break;
+    default:
+      headers['Authorization'] = `Bearer ${key}`;
+  }
+
+  return headers;
+};
+
+const buildBody = (provider, model, messages) => {
+  if (provider === 'anthropic') {
+    const lastMsg = messages[messages.length - 1];
+    return {
+      model: model,
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: lastMsg.content }]
+    };
+  }
+
+  return {
+    model: model || 'gpt-3.5-turbo',
+    messages: messages,
+  };
+};
+
+const parseResponse = (provider, data) => {
+  if (provider === 'anthropic') {
+    if (data.content && data.content[0]?.type === 'text') {
+      return data.content[0].text;
+    }
+    if (data.error) {
+      throw new Error(data.error.message || 'API Error');
+    }
+  }
+
+  if (data.choices && data.choices[0]) {
+    return data.choices[0].message.content;
+  }
+
+  if (data.error) {
+    throw new Error(data.error.message || data.error);
+  }
+
+  throw new Error('Invalid response');
+};
 
 function ChatPage() {
   const { getCookie, setCookie } = useApp();
@@ -15,7 +93,6 @@ function ChatPage() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -67,50 +144,38 @@ function ChatPage() {
         return;
       }
 
+      const provider = getProviderFromUrl(config.url);
       const allMessages = [
         { role: 'system', content: 'You are a helpful assistant.' },
         ...messages.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: userMessage.content },
+        { role: 'user', content: userMessage.content }
       ];
+
+      const headers = buildHeaders(provider, config.url, config.key, config.model);
+      const body = buildBody(provider, config.model, allMessages);
 
       const response = await fetch(`${config.url}/chat/completions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.key}`,
-        },
-        body: JSON.stringify({
-          model: config.model || 'gpt-3.5-turbo',
-          messages: allMessages,
-        }),
+        headers,
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
       
-      if (data.choices && data.choices[0]) {
-        const assistantMessage = {
-          id: Date.now() + 1,
-          role: 'assistant',
-          content: data.choices[0].message.content,
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      } else if (data.error) {
-        const errorMsg = {
-          id: Date.now() + 1,
-          role: 'assistant',
-          content: 'Error: ' + data.error.message,
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, errorMsg]);
-      } else {
-        throw new Error('Invalid response');
-      }
+      const content = parseResponse(provider, data);
+      
+      const assistantMessage = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: content,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (err) {
       const errorMsg = {
         id: Date.now() + 1,
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please check your API configuration.',
+        content: 'Error: ' + err.message,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -146,14 +211,6 @@ function ChatPage() {
         </h2>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-2 rounded-lg transition hover:bg-[var(--bg-hover)]"
-            style={{ color: showSettings ? 'var(--accent-color)' : 'var(--text-muted)' }}
-            title="Settings"
-          >
-            <i className="fas fa-cog"></i>
-          </button>
-          <button
             onClick={clearChat}
             className="p-2 rounded-lg transition hover:bg-[var(--bg-hover)]"
             style={{ color: 'var(--text-muted)' }}
@@ -163,8 +220,6 @@ function ChatPage() {
           </button>
         </div>
       </div>
-
-      {showSettings && <div className="p-4 pb-0"><ChatSettings /></div>}
 
       <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4 min-h-0 w-[60%] max-w-5xl mx-auto">
         {messages.map((msg) => (
