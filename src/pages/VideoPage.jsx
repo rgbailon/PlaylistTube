@@ -411,7 +411,7 @@ function VideoPage() {
                       {video.publishedAt && <span> • {formatTimeAgo(video.publishedAt)}</span>}
                     </p>
                   </div>
-                  <button onClick={(e) => addToPlaylist(video, e)} className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium transition" style={{ background: 'var(--accent-color)' }}>
+                  <button onClick={(e) => addToPlaylist(video, e)} className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium transition hover:scale-110 active:scale-95" style={{ background: 'var(--accent-color)' }}>
                     <i className="fas fa-plus text-xs"></i>
                   </button>
                 </div>

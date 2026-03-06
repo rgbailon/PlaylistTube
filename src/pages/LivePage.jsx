@@ -365,7 +365,7 @@ function LivePage() {
                         };
                         addVideoToPlaylist(video);
                       }}
-                      className="w-6 h-6 rounded-full flex items-center justify-center transition flex-shrink-0"
+                      className="w-6 h-6 rounded-full flex items-center justify-center transition flex-shrink-0 hover:scale-110 active:scale-95"
                       style={{ 
                         background: 'var(--accent-color)', 
                         color: 'white' 

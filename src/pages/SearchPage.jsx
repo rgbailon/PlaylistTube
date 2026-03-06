@@ -415,7 +415,7 @@ function SearchPage() {
                   <button
                     onClick={(e) => addToPlaylist(item.id.playlistId, item, e)}
                     disabled={loadingPlaylist === item.id.playlistId}
-                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium transition disabled:opacity-50"
+                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium transition disabled:opacity-50 hover:scale-110 active:scale-95"
                     style={{ background: 'var(--accent-color)' }}
                   >
                     {loadingPlaylist === item.id.playlistId ? <i className="fas fa-spinner fa-spin text-xs"></i> : <i className="fas fa-plus text-xs"></i>}
