@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
 function Sidebar() {
-  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex } = useApp();
+  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory } = useApp();
   const [historySearch, setHistorySearch] = useState('');
   const navigate = useNavigate();
 
@@ -139,6 +139,17 @@ function Sidebar() {
                           {playlist.videos?.length || 0} videos
                         </p>
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromHistory(playlist.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full hover:bg-red-100 transition self-center"
+                        style={{ color: 'var(--text-muted)' }}
+                        title="Remove"
+                      >
+                        <i className="fas fa-times text-xs"></i>
+                      </button>
                     </div>
                   </Tooltip.Trigger>
                   <Tooltip.Portal>

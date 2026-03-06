@@ -245,6 +245,13 @@ function App() {
     deleteCookie('yt_playlist_history');
   };
 
+  const removeFromHistory = (id) => {
+    const newHistory = playlistHistory.filter(p => p.id !== id);
+    setPlaylistHistory(newHistory);
+    localStorage.setItem('yt_playlist_history', JSON.stringify(newHistory));
+    setCookie('yt_playlist_history', JSON.stringify(newHistory));
+  };
+
   const deleteCookie = (name) => {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
   };
@@ -264,7 +271,7 @@ function App() {
     theme, setTheme: setNewTheme,
     apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, getCurrentApiKey, switchToNextApiKey,
     quota, updateQuota, resetQuota, checkAndSwitchApiKey,
-    addToHistory, clearHistory, addVideoToPlaylist,
+    addToHistory, clearHistory, addVideoToPlaylist, removeFromHistory,
     sidebarCollapsed, setSidebarCollapsed, toggleSidebar,
     settingsOpen, setSettingsOpen,
     mobileSidebarOpen, setMobileSidebarOpen,
