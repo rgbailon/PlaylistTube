@@ -114,6 +114,8 @@ function Settings() {
       url: 'https://openrouter.ai/api/v1',
       models: [
         { name: 'DeepSeek V3 (Free)', model: 'deepseek/deepseek-chat' },
+        { name: 'Trinity Large (Free)', model: 'arcee-ai/trinity-large-preview:free' },
+        { name: 'Step 3.5 Flash (Free)', model: 'stepfun/step-3.5-flash:free' },
         { name: 'Qwen QwQ 32B', model: 'qwen/qwen-2.5-32b-coder' },
         { name: 'Llama 3.1 70B', model: 'meta-llama/llama-3.1-70b-instruct' },
         { name: 'Llama 3.1 8B', model: 'meta-llama/llama-3.1-8b-instruct' },
@@ -133,6 +135,10 @@ function Settings() {
         { name: 'Yi 1.5 34B', model: '01-ai/yi-1.5-34b-chat' },
         { name: 'Aya Expanse 8B', model: 'cohere/aya-expanse-8b' },
         { name: 'Mistral Nemo', model: 'mistralai/mistral-nemo' },
+        { name: 'Grok 3 Mini', model: 'x-ai/grok-3-mini' },
+        { name: 'Grok 3', model: 'x-ai/grok-3' },
+        { name: 'Gemini 2.5 Flash', model: 'google/gemini-2.5-flash-preview-05-20' },
+        { name: 'DeepSeek R1', model: 'deepseek/deepseek-r1' },
       ]
     },
     {
@@ -173,19 +179,22 @@ function Settings() {
       name: 'Google',
       url: 'https://generativelanguage.googleapis.com/v1',
       models: [
-        { name: 'Gemini 2.0 Flash', model: 'gemini-2.0-flash' },
+        { name: 'Gemini 2.0 Flash (Free)', model: 'gemini-2.0-flash' },
+        { name: 'Gemini 2.5 Flash', model: 'gemini-2.5-flash' },
         { name: 'Gemini 1.5 Flash', model: 'gemini-1.5-flash' },
         { name: 'Gemini 1.5 Pro', model: 'gemini-1.5-pro' },
         { name: 'Gemini 1.5 Flash-8B', model: 'gemini-1.5-flash-8b' },
+        { name: 'Gemini 3 Flash', model: 'gemini-3-flash-preview-20251217' },
       ]
     },
     {
       name: 'xAI',
       url: 'https://api.x.ai/v1',
       models: [
+        { name: 'Grok 4.1 Fast', model: 'grok-4.1-fast' },
         { name: 'Grok 2 Vision', model: 'grok-2-vision-1212' },
         { name: 'Grok 2', model: 'grok-2-1212' },
-        { name: 'Grok Beta', model: 'grok-beta' },
+        { name: 'Grok Beta (Free)', model: 'grok-beta' },
       ]
     },
     {
