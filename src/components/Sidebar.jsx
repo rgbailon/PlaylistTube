@@ -160,14 +160,14 @@ function Sidebar() {
           </div>
 
           {playlistHistory.length > 0 && (
-            <div className="p-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="p-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
               <button
                 onClick={clearHistory}
-                className="w-full text-xs text-red-500 hover:text-red-600 transition p-2 rounded-lg hover:bg-red-50 flex items-center justify-center gap-2"
+                className="w-full text-xs text-red-500 hover:text-red-600 transition py-1.5 rounded flex items-center justify-center gap-1.5"
                 title="Clear history"
               >
-                <i className="fas fa-trash-alt"></i>
-                Clear History
+                <i className="fas fa-trash-alt text-[10px]"></i>
+                <span>Clear</span>
               </button>
             </div>
           )}
