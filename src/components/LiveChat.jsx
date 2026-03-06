@@ -16,7 +16,7 @@ function LiveChat({ videoId }) {
     setLoading(true);
     setError(null);
     
-    const embedUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}`;
+    const embedUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}&dark=1`;
     setChatUrl(embedUrl);
     setLoading(false);
   };
