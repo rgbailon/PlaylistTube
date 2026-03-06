@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../App';
 
 function Settings() {
-  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, getCookie, setCookie } = useApp();
+  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, getCookie, setCookie, clearHistory, playlistHistory } = useApp();
   
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [apiKeysExpanded, setApiKeysExpanded] = useState(false);
@@ -10,6 +10,9 @@ function Settings() {
   const [showKey, setShowKey] = useState(false);
   const [validating, setValidating] = useState(false);
   const btnRef = useRef(null);
+
+  const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(true);
+  const [chatApiExpanded, setChatApiExpanded] = useState(true);
 
   const [chatApiUrl, setChatApiUrl] = useState('');
   const [chatApiKey, setChatApiKey] = useState('');
@@ -228,76 +231,91 @@ function Settings() {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-medium mb-1 text-[var(--text-muted)]">YouTube API Key</label>
-          <div className="flex items-center gap-2">
-            <input
-              type={showKey ? 'text' : 'password'}
-              value={apiKeyInput}
-              onChange={(e) => setApiKeyInput(e.target.value)}
-              placeholder="Enter API key..."
-              className="flex-1 rounded-lg px-3 py-2 text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
-              onKeyDown={(e) => e.key === 'Enter' && handleAddKey()}
-            />
-            <button onClick={() => setShowKey(!showKey)} className="p-2 rounded hover:bg-[var(--bg-hover)] text-[var(--text-muted)]">
-              <i className={`fas fa-eye${showKey ? '-slash' : ''} text-xs`}></i>
-            </button>
-          </div>
+          <button 
+            onClick={() => setYoutubeApiExpanded(!youtubeApiExpanded)} 
+            className="flex items-center justify-between w-full text-xs font-medium mb-2 text-[var(--text-main)]"
+          >
+            <span><i className="fab fa-youtube mr-2 text-red-500"></i>YouTube API</span>
+            <i className={`fas fa-chevron-${youtubeApiExpanded ? 'up' : 'down'} text-xs`}></i>
+          </button>
           
-          <div className="flex gap-2 mt-2">
-            <button ref={btnRef} onClick={handleAddKey} disabled={validating} className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50">
-              {validating ? <span><i className="fas fa-circle-notch fa-spin mr-1"></i>Validating...</span> : <span><i className="fas fa-plus mr-1"></i>Add</span>}
-            </button>
-            {apiKeys.length > 0 && <button onClick={handleClearAll} className="px-3 py-2 border border-red-200 text-red-500 rounded-lg text-xs hover:bg-red-50 transition">Clear</button>}
-          </div>
+          {youtubeApiExpanded && (
+            <>
+              <div className="flex items-center gap-2">
+                <input
+                  type={showKey ? 'text' : 'password'}
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder="Enter API key..."
+                  className="flex-1 rounded-lg px-3 py-2 text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddKey()}
+                />
+                <button onClick={() => setShowKey(!showKey)} className="p-2 rounded hover:bg-[var(--bg-hover)] text-[var(--text-muted)]">
+                  <i className={`fas fa-eye${showKey ? '-slash' : ''} text-xs`}></i>
+                </button>
+              </div>
+              
+              <div className="flex gap-2 mt-2">
+                <button ref={btnRef} onClick={handleAddKey} disabled={validating} className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50">
+                  {validating ? <span><i className="fas fa-circle-notch fa-spin mr-1"></i>Validating...</span> : <span><i className="fas fa-plus mr-1"></i>Add</span>}
+                </button>
+                {apiKeys.length > 0 && <button onClick={handleClearAll} className="px-3 py-2 border border-red-200 text-red-500 rounded-lg text-xs hover:bg-red-50 transition">Clear</button>}
+              </div>
+            </>
+          )}
+
+          {apiKeys.length > 0 && youtubeApiExpanded && (
+            <div className="mt-3">
+              <button onClick={() => setApiKeysExpanded(!apiKeysExpanded)} className="flex items-center justify-between w-full text-xs text-[var(--text-muted)]">
+                <span><i className="fas fa-key mr-1"></i>{apiKeys.length} key(s){currentKeyIndex >= 0 && ` (Key ${currentKeyIndex + 1} active)`}</span>
+                <i className={`fas fa-chevron-${apiKeysExpanded ? 'up' : 'down'} text-xs`}></i>
+              </button>
+              
+              {apiKeysExpanded && (
+                <div className="mt-2 space-y-1">
+                  {apiKeys.map((key, index) => (
+                    <div key={index} className={`flex items-center gap-2 p-2 rounded-lg text-xs ${index === currentKeyIndex ? 'border border-green-500/50 bg-green-500/10' : 'border border-[var(--border-color)]'}`}>
+                      <button onClick={() => setActiveKey(index)} className={`w-6 h-6 rounded flex items-center justify-center ${index === currentKeyIndex ? 'bg-green-500/20 text-green-500' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}>
+                        <i className={`fas ${index === currentKeyIndex ? 'fa-check' : 'fa-circle'} text-[10px]`}></i>
+                      </button>
+                      <span className="flex-1 font-mono truncate text-[var(--text-main)]">{key.substring(0, 8)}...{key.substring(key.length - 4)}</span>
+                      <button onClick={() => removeApiKey(index)} className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:text-red-600">
+                        <i className="fas fa-trash text-[10px]"></i>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {statusMessage && <div className={`text-xs px-3 py-2 rounded-lg mt-2 ${statusMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{statusMessage.message}</div>}
+
+          {apiKeys.length > 0 && youtubeApiExpanded && (
+            <div className="pt-3 mt-3 border-t border-[var(--border-color)]">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs text-[var(--text-muted)]">Quota</span>
+                <span className="text-xs text-[var(--text-muted)]">{quota} / {maxQuota}</span>
+              </div>
+              <div className="w-full h-1.5 rounded-full overflow-hidden bg-[var(--bg-hover)]">
+                <div className="h-full transition-all duration-300" style={{ width: quotaPercent + '%', background: quotaPercent > 90 ? '#ef4444' : quotaPercent > 70 ? '#f59e0b' : '#22c55e' }}></div>
+              </div>
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-[10px] text-[var(--text-muted)]">{quotaPercent.toFixed(1)}%</span>
+                <button onClick={resetQuota} className="text-[10px] hover:text-blue-500 transition text-[var(--text-muted)]"><i className="fas fa-undo mr-0.5"></i>Reset</button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {apiKeys.length > 0 && (
-          <div>
-            <button onClick={() => setApiKeysExpanded(!apiKeysExpanded)} className="flex items-center justify-between w-full text-xs text-[var(--text-muted)]">
-              <span><i className="fas fa-key mr-1"></i>{apiKeys.length} key(s){currentKeyIndex >= 0 && ` (Key ${currentKeyIndex + 1} active)`}</span>
-              <i className={`fas fa-chevron-${apiKeysExpanded ? 'up' : 'down'} text-xs`}></i>
-            </button>
-            
-            {apiKeysExpanded && (
-              <div className="mt-2 space-y-1">
-                {apiKeys.map((key, index) => (
-                  <div key={index} className={`flex items-center gap-2 p-2 rounded-lg text-xs ${index === currentKeyIndex ? 'border border-green-500/50 bg-green-500/10' : 'border border-[var(--border-color)]'}`}>
-                    <button onClick={() => setActiveKey(index)} className={`w-6 h-6 rounded flex items-center justify-center ${index === currentKeyIndex ? 'bg-green-500/20 text-green-500' : 'bg-[var(--bg-hover)] text-[var(--text-muted)]'}`}>
-                      <i className={`fas ${index === currentKeyIndex ? 'fa-check' : 'fa-circle'} text-[10px]`}></i>
-                    </button>
-                    <span className="flex-1 font-mono truncate text-[var(--text-main)]">{key.substring(0, 8)}...{key.substring(key.length - 4)}</span>
-                    <button onClick={() => removeApiKey(index)} className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:text-red-600">
-                      <i className="fas fa-trash text-[10px]"></i>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {statusMessage && <div className={`text-xs px-3 py-2 rounded-lg ${statusMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{statusMessage.message}</div>}
-
-        {apiKeys.length > 0 && (
-          <div className="pt-2 border-t border-[var(--border-color)]">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs text-[var(--text-muted)]">Quota</span>
-              <span className="text-xs text-[var(--text-muted)]">{quota} / {maxQuota}</span>
-            </div>
-            <div className="w-full h-1.5 rounded-full overflow-hidden bg-[var(--bg-hover)]">
-              <div className="h-full transition-all duration-300" style={{ width: quotaPercent + '%', background: quotaPercent > 90 ? '#ef4444' : quotaPercent > 70 ? '#f59e0b' : '#22c55e' }}></div>
-            </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-[10px] text-[var(--text-muted)]">{quotaPercent.toFixed(1)}%</span>
-              <button onClick={resetQuota} className="text-[10px] hover:text-blue-500 transition text-[var(--text-muted)]"><i className="fas fa-undo mr-0.5"></i>Reset</button>
-            </div>
-          </div>
-        )}
-
-        <div className="pt-2 border-t border-[var(--border-color)]">
-          <label className="block text-xs font-medium mb-2 text-[var(--text-muted)]">
-            <i className="fas fa-robot mr-1"></i>AI Chat API
-          </label>
+        <div className="border-t border-[var(--border-color)] pt-3">
+          <button 
+            onClick={() => setChatApiExpanded(!chatApiExpanded)} 
+            className="flex items-center justify-between w-full text-xs font-medium mb-2 text-[var(--text-main)]"
+          >
+            <span><i className="fas fa-robot mr-2 text-purple-500"></i>AI Chat API</span>
+            <i className={`fas fa-chevron-${chatApiExpanded ? 'up' : 'down'} text-xs`}></i>
+          </button>
           
           <div className="flex flex-wrap gap-1 mb-2">
             {chatProviders.map((provider) => (

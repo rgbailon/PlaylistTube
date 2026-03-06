@@ -5,7 +5,7 @@ import { useApp } from '../App';
 const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
 function Header() {
-  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, updateQuota, quota } = useApp();
+  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
@@ -53,7 +53,6 @@ function Header() {
     setSearching(true);
     setSearchError(null);
     try {
-      const apiKey = getCurrentApiKey();
       const input = videoSearchQuery.trim();
       
       const videoId = extractVideoId(input);
@@ -97,13 +96,13 @@ function Header() {
             className="w-8 h-8 rounded-lg flex items-center justify-center"
             style={{ background: 'var(--accent-color)' }}
           >
-            <i className="fab fa-youtube text-white text-base"></i>
+            <i className="fa-solid fa-circle-play text-white text-base"></i>
           </div>
           <span 
             className="text-base font-bold hidden sm:block"
             style={{ color: 'var(--text-main)' }}
           >
-            PlaylistTube
+            PlaylistPlay
           </span>
         </Link>
         

@@ -5,7 +5,7 @@ import Settings from '../components/Settings';
 import LiveChat from '../components/LiveChat';
 
 function PlayerPage() {
-  const { currentPlaylist, setCurrentPlaylist, currentVideoIndex, setCurrentVideoIndex, player, setPlayer, getCurrentApiKey, updateQuota, settingsOpen, setSettingsOpen, sidebarCollapsed } = useApp();
+  const { currentPlaylist, setCurrentPlaylist, currentVideoIndex, setCurrentVideoIndex, setPlayer, updateQuota, settingsOpen, setSettingsOpen, sidebarCollapsed } = useApp();
   const location = useLocation();
 
   const [videoTitle, setVideoTitle] = useState('');

@@ -58,6 +58,8 @@
   --accent-hover: #67e8f9;
   --accent-bg: rgba(34, 211, 238, 0.15);
   --accent-border: #06b6d4;
+  --scrollbar-thumb: #404040;
+  --scrollbar-track: #262626;
 }
 
 [data-theme="dark"] {
@@ -74,6 +76,8 @@
   --accent-hover: #93c5fd;
   --accent-bg: rgba(96, 165, 250, 0.1);
   --accent-border: #3b82f6;
+  --scrollbar-thumb: #475569;
+  --scrollbar-track: #1e293b;
 }
 
 [data-theme="retro"] {
@@ -88,6 +92,8 @@
   --border-hover: #c4b393;
   --accent-color: #b85c38;
   --accent-hover: #a04a2a;
+  --scrollbar-thumb: #d4c4a8;
+  --scrollbar-track: #f5edd6;
 }
 
 [data-theme="cartoon"] {
@@ -102,6 +108,8 @@
   --border-hover: #1a1a1a;
   --accent-color: #ff6b6b;
   --accent-hover: #ee5a5a;
+  --scrollbar-thumb: #ffb6b6;
+  --scrollbar-track: #fff0e6;
 }
 
 [data-theme="photo"] {
@@ -116,6 +124,8 @@
   --border-hover: #404040;
   --accent-color: #ffffff;
   --accent-hover: #e5e5e5;
+  --scrollbar-thumb: #404040;
+  --scrollbar-track: #0a0a0a;
 }
 
 [data-theme="forest"] {
@@ -130,6 +140,8 @@
   --border-hover: #355e46;
   --accent-color: #4ade80;
   --accent-hover: #86efac;
+  --scrollbar-thumb: #355e46;
+  --scrollbar-track: #1e392a;
 }
 
 [data-theme="ocean"] {
@@ -144,6 +156,8 @@
   --border-hover: #0284c7;
   --accent-color: #38bdf8;
   --accent-hover: #7dd3fc;
+  --scrollbar-thumb: #0284c7;
+  --scrollbar-track: #075985;
 }
 
 [data-theme="sunset"] {
@@ -158,6 +172,8 @@
   --border-hover: #a21caf;
   --accent-color: #fca5a5;
   --accent-hover: #fcd34d;
+  --scrollbar-thumb: #a21caf;
+  --scrollbar-track: #701a75;
 }
 
 [data-theme="cyber"] {
@@ -172,6 +188,8 @@
   --border-hover: #004400;
   --accent-color: #00ff00;
   --accent-hover: #33ff33;
+  --scrollbar-thumb: #004400;
+  --scrollbar-track: #0a0a0a;
 }
 
 [data-theme="coffee"] {
@@ -186,6 +204,8 @@
   --border-hover: #5d4037;
   --accent-color: #d7ccc8;
   --accent-hover: #efebe9;
+  --scrollbar-thumb: #5d4037;
+  --scrollbar-track: #3c2a25;
 }
 
 [data-theme="netflix"] {
@@ -200,6 +220,8 @@
   --border-hover: #404040;
   --accent-color: #e50914;
   --accent-hover: #f40612;
+  --scrollbar-thumb: #404040;
+  --scrollbar-track: #1f1f1f;
 }
 
 * {
