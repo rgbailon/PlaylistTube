@@ -71,6 +71,59 @@ function LivePage() {
     }
   };
 
+  const handleSearch = async () => {
+    const query = searchQuery.trim();
+    if (!query) {
+      loadLiveCategory(category);
+      return;
+    }
+
+    const apiKey = getCurrentApiKey();
+    if (!apiKey) {
+      setResults([]);
+      setError('Please add a YouTube API key in Settings');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const resp = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&eventType=live&key=${apiKey}`
+      );
+      const data = await resp.json();
+      
+      if (data.error) {
+        setError(`API Error: ${data.error.message}`);
+        if (data.error.message?.includes('quota') || data.error.code === 403) {
+          updateQuota(10000);
+          if (switchToNextApiKey()) {
+            setError('Quota exceeded. Switched to next API key. Please try again.');
+            return;
+          }
+        }
+      } else if (data.items) {
+        setResults(data.items);
+        setNextPageToken(data.nextPageToken || '');
+        setHasMore(!!data.nextPageToken);
+        updateQuota(-1);
+      } else {
+        setResults([]);
+      }
+    } catch (err) {
+      console.error('Search failed:', err);
+      setError('Search failed. Check your internet connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCategoryClick = (cat) => {
+    setSearchQuery('');
+    loadLiveCategory(cat);
+  };
+
   const loadMore = async () => {
     if (!nextPageToken) return;
     
@@ -158,11 +211,16 @@ function LivePage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && loadLiveCategory(category)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="Search live streams..."
               className="w-full rounded-xl pl-12 pr-4 py-4 text-sm md:text-base shadow-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)]"
             />
-            <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
+            <button
+              onClick={handleSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg hover:bg-[var(--bg-hover)]"
+            >
+              <i className="fas fa-search" style={{ color: 'var(--text-muted)' }}></i>
+            </button>
           </div>
         </div>
 
@@ -171,7 +229,7 @@ function LivePage() {
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => loadLiveCategory(cat.id)}
+                onClick={() => handleCategoryClick(cat.id)}
                 className="px-4 py-2 rounded-full text-sm font-medium transition"
                 style={{ 
                   background: category === cat.id ? '#dc2626' : 'var(--bg-card)', 
