@@ -14,7 +14,7 @@ function PlayerPage() {
   const [playerReady, setPlayerReady] = useState(false);
   const [activeTab, setActiveTab] = useState('playlist');
   const [mobileTab, setMobileTab] = useState('player');
-  const playerContainerId = `youtube-player-${Math.random().toString(36).substr(2, 9)}`;
+  const playerContainerId = 'youtube-player';
   const playerRef = useRef(null);
   const isCreatingPlayer = useRef(false);
 
