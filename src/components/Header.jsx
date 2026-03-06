@@ -101,7 +101,7 @@ function Header() {
             <i className="fa-solid fa-circle-play text-white text-base"></i>
           </div>
           <span 
-            className="text-base font-bold hidden sm:block"
+            className="text-base font-bold"
             style={{ color: 'var(--text-main)' }}
           >
             PlaylistPlay
