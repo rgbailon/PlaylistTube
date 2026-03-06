@@ -188,7 +188,7 @@ function SearchPage() {
           ? `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&pageToken=${nextPageToken}&key=${apiKey}`
           : `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}`;
         
-        const resp = await fetch(url);
+const resp = await fetch(url);
         const data = await resp.json();
         
         if (data.items) {
@@ -201,6 +201,8 @@ function SearchPage() {
               thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
               channelTitle: item.snippet.channelTitle,
               publishedAt: item.snippet.publishedAt,
+              addedAt: new Date().toISOString(),
+              viewCount: 0,
             }));
           allVideos = [...allVideos, ...videos];
         }
@@ -208,7 +210,24 @@ function SearchPage() {
         nextPageToken = data.nextPageToken || '';
       } while (nextPageToken);
 
-      if (allVideos.length > 0) {
+if (allVideos.length > 0) {
+        const videoIds = allVideos.map(v => v.id).join(',');
+        try {
+          const statsResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${apiKey}`);
+          const statsData = await statsResp.json();
+          console.log('View count response:', statsData);
+          if (statsData.items) {
+            statsData.items.forEach(item => {
+              const video = allVideos.find(v => v.id === item.id);
+              if (video && item.statistics) {
+                video.viewCount = parseInt(item.statistics.viewCount) || 0;
+              }
+            });
+          }
+        } catch (e) {
+          console.error('Failed to fetch view counts:', e);
+        }
+
         const playlistData = {
           id: playlistId,
           title: playlist.snippet.title,
@@ -252,7 +271,7 @@ function SearchPage() {
         const resp = await fetch(url);
         const data = await resp.json();
         
-        if (data.items) {
+if (data.items) {
           const videos = data.items
             .filter(item => item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId)
             .map(item => ({
@@ -262,6 +281,8 @@ function SearchPage() {
               thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
               channelTitle: item.snippet.channelTitle,
               publishedAt: item.snippet.publishedAt,
+              addedAt: new Date().toISOString(),
+              viewCount: 0,
             }));
           allVideos = [...allVideos, ...videos];
         }
@@ -270,6 +291,23 @@ function SearchPage() {
       } while (nextPageToken);
 
       if (allVideos.length > 0) {
+        const videoIds = allVideos.map(v => v.id).join(',');
+        try {
+          const statsResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${apiKey}`);
+          const statsData = await statsResp.json();
+          console.log('View count response:', statsData);
+          if (statsData.items) {
+            statsData.items.forEach(item => {
+              const video = allVideos.find(v => v.id === item.id);
+              if (video && item.statistics) {
+                video.viewCount = parseInt(item.statistics.viewCount) || 0;
+              }
+            });
+          }
+        } catch (e) {
+          console.error('Failed to fetch view counts:', e);
+        }
+
         const newPlaylist = [...currentPlaylist, ...allVideos];
         setCurrentPlaylist(newPlaylist);
         

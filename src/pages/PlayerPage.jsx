@@ -70,10 +70,10 @@ function PlayerPage() {
 
   const currentVideoId = currentPlaylist[currentVideoIndex]?.id;
 
-  return (
+return (
     <div className="h-full flex flex-col md:flex-row overflow-hidden">
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden order-2 md:order-1">
-        <div className="flex-1 flex flex-col p-2 md:p-6 pt-4 pb-4 overflow-y-auto">
+        <div className="flex-1 flex flex-col p-2 md:p-6 pt-4 pb-2 overflow-y-auto">
           <div className="flex-1 flex items-center justify-center">
             <div className={`w-full ${sidebarCollapsed ? 'max-w-full' : 'max-w-5xl'}`}>
               <div className="player-container relative w-full" style={{ paddingTop: '56.25%' }}>
@@ -89,23 +89,48 @@ function PlayerPage() {
             </div>
           </div>
           {videoTitle && (
-            <div className="mt-3">
-              <h3 className="text-base md:text-lg font-bold line-clamp-2" style={{ color: 'var(--text-main)' }}>{videoTitle}</h3>
-              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{videoChannel}</p>
+            <div className="mt-2 md:mt-3">
+              <h3 className="text-sm md:text-lg font-bold line-clamp-2" style={{ color: 'var(--text-main)' }}>{videoTitle}</h3>
+              <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{videoChannel}</p>
             </div>
           )}
-          <div className="flex gap-2 mt-3">
-            <button onClick={playPrevious} disabled={currentVideoIndex === 0} className="px-4 py-2 rounded-lg text-sm disabled:opacity-50" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+          <div className="flex gap-2 mt-2 md:mt-3">
+            <button onClick={playPrevious} disabled={currentVideoIndex === 0} className="flex-1 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm disabled:opacity-50" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
               <i className="fas fa-step-backward mr-1"></i>Prev
             </button>
-            <button onClick={playNext} disabled={currentVideoIndex >= currentPlaylist.length - 1} className="px-4 py-2 rounded-lg text-sm disabled:opacity-50" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+            <button onClick={playNext} disabled={currentVideoIndex >= currentPlaylist.length - 1} className="flex-1 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm disabled:opacity-50" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
               Next<i className="fas fa-step-forward ml-1"></i>
             </button>
           </div>
         </div>
+        
+        <div className="md:hidden border-t flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
+          <div className="flex">
+            <button onClick={() => setActiveTab('chat')} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'chat' ? '#22c55e' : 'var(--text-muted)', borderBottom: activeTab === 'chat' ? '2px solid #22c55e' : '2px solid transparent' }}>
+              <i className="fas fa-comments mr-1"></i>Live Chat
+            </button>
+            <button onClick={() => setActiveTab('playlist')} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: activeTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
+              <i className="fas fa-list-ol mr-1"></i>Playlist
+            </button>
+            <button onClick={() => setSettingsOpen(!settingsOpen)} className="px-3 py-2" style={{ color: 'var(--text-muted)' }}>
+              <i className="fas fa-cog"></i>
+            </button>
+          </div>
+          {settingsOpen && <div className="flex-shrink-0"><Settings /></div>}
+        </div>
+        
+        {activeTab === 'chat' && (
+          <div className="md:hidden flex-1 overflow-hidden h-48">
+            {currentVideoId ? <LiveChat videoId={currentVideoId} /> : (
+              <div className="flex items-center justify-center h-full p-4">
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Play a video to use live chat</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      <aside className="w-full md:w-80 border-l flex flex-col overflow-hidden order-1 md:order-2 md:border-l-0" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+      <aside className="hidden md:flex w-80 border-l flex-col overflow-hidden order-1 md:order-2 md:border-l-0" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
         <div className="flex border-b flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
           <button onClick={() => { setActiveTab('playlist'); setSettingsOpen(false); }} className="flex-1 px-3 py-2 text-sm font-medium" style={{ color: activeTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: activeTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
             <i className="fas fa-list-ol mr-1"></i><span className="hidden md:inline">Playlist</span>
@@ -126,7 +151,7 @@ function PlayerPage() {
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Videos will appear here</p>
               </div>
             ) : currentPlaylist.map((video, index) => (
-              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer" style={{ background: index === currentVideoIndex ? 'rgba(59, 130, 246, 0.1)' : 'transparent' }}>
+              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1" style={{ background: index === currentVideoIndex ? 'rgba(59, 130, 246, 0.1)' : 'transparent' }}>
                 <div className="relative w-24 h-14 rounded overflow-hidden flex-shrink-0">
                   <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
                   {index === currentVideoIndex && isPlaying && (
@@ -137,7 +162,21 @@ function PlayerPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs line-clamp-2" style={{ color: index === currentVideoIndex ? '#3b82f6' : 'var(--text-main)' }}>{video.title}</h4>
-                  <p className="text-[10px] mt-1 truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
+                  <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {video.publishedAt && (
+                      <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                        <i className="fas fa-calendar-alt mr-1"></i>
+                        {new Date(video.publishedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                    {video.viewCount !== undefined && video.viewCount > 0 && (
+                      <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
+                        <i className="fas fa-eye mr-1"></i>
+                        {video.viewCount.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
