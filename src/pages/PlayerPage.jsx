@@ -73,7 +73,7 @@ function PlayerPage() {
 return (
     <div className="h-full flex flex-col md:flex-row overflow-hidden">
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden order-2 md:order-1">
-        <div className="flex-1 flex flex-col p-2 md:p-6 pt-4 pb-2 overflow-y-auto">
+        <div className="flex-1 flex flex-col p-2 md:p-6 pt-4 pb-24 md:pb-2 overflow-y-auto">
           <div className="flex-1 flex items-center justify-center">
             <div className={`w-full ${sidebarCollapsed ? 'max-w-full' : 'max-w-5xl'}`}>
               <div className="player-container relative w-full" style={{ paddingTop: '56.25%' }}>
@@ -120,12 +120,38 @@ return (
         </div>
         
         {activeTab === 'chat' && (
-          <div className="md:hidden flex-1 overflow-hidden h-48">
+          <div className="md:hidden flex-1 overflow-hidden" style={{ maxHeight: 'calc(100vh - 320px)' }}>
             {currentVideoId ? <LiveChat videoId={currentVideoId} /> : (
               <div className="flex items-center justify-center h-full p-4">
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Play a video to use live chat</p>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'playlist' && (
+          <div className="md:hidden flex-1 overflow-y-auto" style={{ background: 'var(--bg-main)', maxHeight: 'calc(100vh - 320px)' }}>
+            {currentPlaylist.length === 0 ? (
+              <div className="text-center py-8">
+                <i className="fas fa-film text-2xl mb-2" style={{ color: 'var(--text-muted)' }}></i>
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Videos will appear here</p>
+              </div>
+            ) : currentPlaylist.map((video, index) => (
+              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'rgba(59, 130, 246, 0.1)' : 'transparent' }}>
+                <div className="relative w-24 h-14 rounded overflow-hidden flex-shrink-0">
+                  <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
+                  {index === currentVideoIndex && isPlaying && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <i className="fas fa-play text-white text-xs"></i>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xs line-clamp-2" style={{ color: index === currentVideoIndex ? '#3b82f6' : 'var(--text-main)' }}>{video.title}</h4>
+                  <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

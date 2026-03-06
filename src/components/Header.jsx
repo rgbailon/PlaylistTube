@@ -83,14 +83,15 @@ function Header() {
   };
 
   return (
-    <header 
-      className="fixed top-0 left-0 right-0 h-12 z-50 flex items-center justify-between px-4 border-b"
-      style={{ 
-        background: 'var(--bg-card)', 
-        borderColor: 'var(--border-color)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-      }}
-    >
+    <>
+      <header 
+        className="fixed top-0 left-0 right-0 h-12 z-50 flex items-center justify-between px-4 border-b"
+        style={{ 
+          background: 'var(--bg-card)', 
+          borderColor: 'var(--border-color)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+        }}
+      >
       <div className="flex items-center gap-3">
         <Link to="/" className="flex items-center gap-2">
           <div 
@@ -173,7 +174,7 @@ function Header() {
           <i className="fas fa-bars text-lg"></i>
         </button>
         
-        <div className="relative">
+        <div className="relative hidden md:block">
           <button
             onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
             className="p-2 rounded-lg hover:bg-[var(--bg-hover)] transition flex items-center gap-2"
@@ -222,17 +223,58 @@ function Header() {
       {mobileMenuOpen && (
         <>
           <div 
-            className="md:hidden fixed inset-0 z-40 bg-black/50"
-            onClick={() => setMobileMenuOpen(false)}
+            className="md:hidden fixed inset-0 z-40 bg-black/50 animate-fade-in"
+            onClick={() => { setMobileMenuOpen(false); setThemeDropdownOpen(false); }}
           />
-          <div className="md:hidden fixed top-12 left-0 w-64 z-50 shadow-xl h-[calc(100vh-3rem)] overflow-y-auto"
-               style={{ background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)' }}>
+          <div className="md:hidden fixed top-12 right-0 w-64 z-50 shadow-xl h-[calc(100vh-3rem)] overflow-y-auto animate-slide-in"
+               style={{ background: 'var(--bg-card)', borderLeft: '1px solid var(--border-color)' }}>
             <nav className="py-2">
+              <div className="px-4 py-2">
+                <button 
+                  onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
+                  className="p-2 rounded-lg hover:bg-[var(--bg-hover)] transition flex items-center gap-2 w-full"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  <i className="fas fa-palette text-lg"></i>
+                  <span className="text-sm capitalize">{theme}</span>
+                  <i className="fas fa-chevron-down text-xs ml-auto"></i>
+                </button>
+              </div>
+              
+              {themeDropdownOpen && (
+                <div className="px-4 pb-2">
+                  <div 
+                    className="rounded-xl overflow-hidden"
+                    style={{ 
+                      background: 'var(--bg-main)', 
+                      border: '1px solid var(--border-color)' 
+                    }}
+                  >
+                    {themes.map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => {
+                          setTheme(t);
+                          setThemeDropdownOpen(false);
+                        }}
+                        className={`w-full px-3 py-2 text-left text-sm flex items-center justify-between hover:bg-[var(--bg-hover)] transition ${
+                          theme === t ? 'font-semibold' : ''
+                        }`}
+                        style={{ color: theme === t ? 'var(--accent-color)' : 'var(--text-main)' }}
+                      >
+                        <span className="capitalize">{t}</span>
+                        {theme === t && <i className="fas fa-check text-xs"></i>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {navItems.map((item) => (
                 <Link
                   key={item.id}
                   to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => { setMobileMenuOpen(false); setThemeDropdownOpen(false); }}
                   className={`flex items-center gap-3 px-4 py-3 text-sm transition ${
                     isActive(item.path) ? 'font-semibold' : ''
                   }`}
@@ -246,34 +288,43 @@ function Header() {
                 </Link>
               ))}
             </nav>
-            
-            <div className="border-t px-4 py-3" style={{ borderColor: 'var(--border-color)' }}>
-              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Theme:</p>
-              <div className="grid grid-cols-2 gap-2">
-                {themes.map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => {
-                      setTheme(t);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`px-2 py-1.5 rounded text-xs capitalize transition ${
-                      theme === t ? 'font-semibold' : ''
-                    }`}
-                    style={{ 
-                      background: theme === t ? 'var(--accent-color)' : 'var(--bg-hover)',
-                      color: theme === t ? 'white' : 'var(--text-main)'
-                    }}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </>
       )}
     </header>
+
+    {/* Bottom Navigation for Mobile */}
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 z-50 flex items-center justify-around border-t pb-safe"
+         style={{ 
+           background: 'var(--bg-card)', 
+           borderColor: 'var(--border-color)'
+         }}>
+      <Link
+        to="/search"
+        className="flex flex-col items-center justify-center gap-1 p-2"
+        style={{ color: isActive('/search') ? 'var(--accent-color)' : 'var(--text-muted)' }}
+      >
+        <i className="fas fa-history text-lg"></i>
+        <span className="text-xs">History</span>
+      </Link>
+      <Link
+        to="/"
+        className="flex flex-col items-center justify-center gap-1 p-2"
+        style={{ color: isActive('/') ? 'var(--accent-color)' : 'var(--text-muted)' }}
+      >
+        <i className="fas fa-play text-lg"></i>
+        <span className="text-xs">Player</span>
+      </Link>
+      <Link
+        to="/search?view=playlists"
+        className="flex flex-col items-center justify-center gap-1 p-2"
+        style={{ color: location.pathname === '/search' && location.search.includes('view=playlists') ? 'var(--accent-color)' : 'var(--text-muted)' }}
+      >
+        <i className="fas fa-list text-lg"></i>
+        <span className="text-xs">Playlists</span>
+      </Link>
+    </nav>
+    </>
   );
 }
 

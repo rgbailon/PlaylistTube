@@ -293,7 +293,7 @@ function App() {
           )}
           <div className="flex">
             <Sidebar />
-            <main className={`flex-1 mt-12 h-[calc(100vh-48px)] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-64'} md:pb-0 pb-20`}>
+            <main className={`flex-1 mt-12 h-[calc(100vh-48px)] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'md:ml-64'} md:pb-0 pb-16`}>
               <Routes>
                 <Route path="/" element={<PlayerPage />} />
                 <Route path="/search" element={<SearchPage />} />
