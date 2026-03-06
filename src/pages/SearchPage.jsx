@@ -290,17 +290,22 @@ if (data.items) {
         nextPageToken = data.nextPageToken || '';
       } while (nextPageToken);
 
-      if (allVideos.length > 0) {
+if (allVideos.length > 0) {
         const videoIds = allVideos.map(v => v.id).join(',');
         try {
-          const statsResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${apiKey}`);
+          const statsResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics,liveDetails&id=${videoIds}&key=${apiKey}`);
           const statsData = await statsResp.json();
           console.log('View count response:', statsData);
           if (statsData.items) {
             statsData.items.forEach(item => {
               const video = allVideos.find(v => v.id === item.id);
-              if (video && item.statistics) {
-                video.viewCount = parseInt(item.statistics.viewCount) || 0;
+              if (video) {
+                if (item.statistics) {
+                  video.viewCount = parseInt(item.statistics.viewCount) || 0;
+                }
+                if (item.liveDetails) {
+                  video.liveViewers = parseInt(item.liveDetails.concurrentViewers) || 0;
+                }
               }
             });
           }

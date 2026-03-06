@@ -151,7 +151,7 @@ return (
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Videos will appear here</p>
               </div>
             ) : currentPlaylist.map((video, index) => (
-              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1" style={{ background: index === currentVideoIndex ? 'rgba(59, 130, 246, 0.1)' : 'transparent' }}>
+              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'rgba(59, 130, 246, 0.1)' : 'transparent' }}>
                 <div className="relative w-24 h-14 rounded overflow-hidden flex-shrink-0">
                   <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
                   {index === currentVideoIndex && isPlaying && (
@@ -170,7 +170,13 @@ return (
                         {new Date(video.publishedAt).toLocaleDateString()}
                       </span>
                     )}
-                    {video.viewCount !== undefined && video.viewCount > 0 && (
+                    {video.liveViewers > 0 && (
+                      <span className="text-[9px]" style={{ color: '#ef4444' }}>
+                        <i className="fas fa-circle mr-1"></i>
+                        {video.liveViewers.toLocaleString()} watching
+                      </span>
+                    )}
+                    {video.viewCount !== undefined && video.viewCount > 0 && !video.liveViewers && (
                       <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
                         <i className="fas fa-eye mr-1"></i>
                         {video.viewCount.toLocaleString()}
