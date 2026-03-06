@@ -349,8 +349,8 @@ function LivePage() {
                       {item.snippet.title}
                     </h3>
                   </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+                  <div className="flex items-center justify-between mt-1 gap-2">
+                    <p className="text-xs truncate flex-1" style={{ color: 'var(--text-muted)' }}>
                       {item.snippet.channelTitle}
                     </p>
                     <button
@@ -365,7 +365,7 @@ function LivePage() {
                         };
                         addVideoToPlaylist(video);
                       }}
-                      className="p-1.5 rounded-lg transition"
+                      className="w-6 h-6 rounded-full flex items-center justify-center transition flex-shrink-0"
                       style={{ 
                         background: 'var(--accent-color)', 
                         color: 'white' 
