@@ -1,12 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
 function Sidebar() {
-  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory } = useApp();
+  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen } = useApp();
   const [historySearch, setHistorySearch] = useState('');
+  const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const navigate = useNavigate();
+
+  // Handle closing animation
+  useEffect(() => {
+    if (isAnimatingOut) {
+      const timer = setTimeout(() => {
+        setMobileSidebarOpen(false);
+        setIsAnimatingOut(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isAnimatingOut, setMobileSidebarOpen]);
+
+  // Listen for close event from Header
+  useEffect(() => {
+    const handleCloseEvent = () => {
+      if (mobileSidebarOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('closeMobileSidebar', handleCloseEvent);
+    return () => window.removeEventListener('closeMobileSidebar', handleCloseEvent);
+  }, [mobileSidebarOpen]);
+
+  const handleClose = () => {
+    setIsAnimatingOut(true);
+  };
 
   const filteredHistory = playlistHistory.filter(item =>
     item.title.toLowerCase().includes(historySearch.toLowerCase())
@@ -28,23 +55,50 @@ function Sidebar() {
     return 'https://via.placeholder.com/120x68?text=Playlist';
   };
 
-  if (sidebarCollapsed) {
+  // Show sidebar when: not collapsed on desktop OR open on mobile
+  const shouldShowSidebar = !sidebarCollapsed || mobileSidebarOpen;
+  
+  if (!shouldShowSidebar) {
     return (
-      <button
-        onClick={() => setSidebarCollapsed(false)}
-        className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 rounded-r-lg shadow-lg hidden md:block"
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderLeft: 'none', color: 'var(--text-muted)' }}
-        title="Show history"
-      >
-        <i className="fas fa-chevron-right text-xs"></i>
-      </button>
+      <>
+        <button
+          onClick={() => {
+            if (window.innerWidth < 768) {
+              setMobileSidebarOpen(true);
+            } else {
+              setSidebarCollapsed(false);
+            }
+          }}
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 rounded-r-lg shadow-lg hidden md:block"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderLeft: 'none', color: 'var(--text-muted)' }}
+          title="Show history"
+        >
+          <i className="fas fa-chevron-right text-xs"></i>
+        </button>
+        {mobileSidebarOpen && (
+          <div 
+            className="md:hidden fixed inset-0 z-20 bg-black/50 animate-fade-in"
+            onClick={handleClose}
+          />
+        )}
+      </>
     );
   }
 
   return (
     <Tooltip.Provider delayDuration={300}>
+      {mobileSidebarOpen && !isAnimatingOut && (
+        <div 
+          className="md:hidden fixed inset-0 z-20 bg-black/50"
+          onClick={handleClose}
+        />
+      )}
       <aside
-        className="fixed left-0 top-12 bottom-0 w-64 border-r overflow-hidden transition-all duration-300 z-30 hidden md:block"
+        className={`fixed left-0 top-12 bottom-0 w-64 border-r overflow-hidden z-30 
+          ${isAnimatingOut ? 'animate-slide-out-left' : 'transition-all duration-300'}
+          ${mobileSidebarOpen && !isAnimatingOut ? 'animate-slide-in-left' : ''}
+          ${!mobileSidebarOpen && !isAnimatingOut ? '-translate-x-full md:translate-x-0' : ''}
+          ${sidebarCollapsed && !mobileSidebarOpen ? 'md:hidden' : ''}`}
         style={{ 
           background: 'var(--bg-card)', 
           borderColor: 'var(--border-color)' 
@@ -61,7 +115,13 @@ function Sidebar() {
                 History
               </h2>
               <button
-                onClick={() => setSidebarCollapsed(true)}
+                onClick={() => {
+                  if (window.innerWidth < 768) {
+                    handleClose();
+                  } else {
+                    setSidebarCollapsed(true);
+                  }
+                }}
                 className="p-1 rounded hover:bg-[var(--bg-hover)]"
                 style={{ color: 'var(--text-muted)' }}
                 title="Collapse"

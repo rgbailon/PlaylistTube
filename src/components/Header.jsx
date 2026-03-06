@@ -5,7 +5,7 @@ import { useApp } from '../App';
 const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
 function Header() {
-  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota } = useApp();
+  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
@@ -298,19 +298,26 @@ function Header() {
          style={{ 
            background: 'var(--bg-card)', 
            borderColor: 'var(--border-color)'
-         }}>
-      <Link
-        to="/search"
+          }}>
+      <button
+        onClick={() => {
+          if (mobileSidebarOpen) {
+            // Trigger close animation in Sidebar via custom event
+            window.dispatchEvent(new CustomEvent('closeMobileSidebar'));
+          } else {
+            setMobileSidebarOpen(true);
+          }
+        }}
         className="flex flex-col items-center justify-center gap-1 p-2"
-        style={{ color: isActive('/search') ? 'var(--accent-color)' : 'var(--text-muted)' }}
+        style={{ color: mobileSidebarOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
         <i className="fas fa-history text-lg"></i>
         <span className="text-xs">History</span>
-      </Link>
+      </button>
       <Link
         to="/"
         className="flex flex-col items-center justify-center gap-1 p-2"
-        style={{ color: isActive('/') ? 'var(--accent-color)' : 'var(--text-muted)' }}
+        style={{ color: isActive('/') && !mobileSidebarOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
         <i className="fas fa-play text-lg"></i>
         <span className="text-xs">Player</span>
