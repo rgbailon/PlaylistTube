@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 
 function LivePage() {
-  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, switchToNextApiKey } = useApp();
+  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, switchToNextApiKey, addVideoToPlaylist } = useApp();
   const navigate = useNavigate();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,6 +13,7 @@ function LivePage() {
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState(null);
+  const [viewerCounts, setViewerCounts] = useState({});
 
   useEffect(() => {
     loadLiveCategory('all');
@@ -186,6 +187,51 @@ function LivePage() {
     navigate('/?chat=true');
   };
 
+  const addToPlaylist = (item, e) => {
+    e.stopPropagation();
+    const video = {
+      id: item.id.videoId,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+      addedAt: new Date().toISOString(),
+    };
+    addVideoToPlaylist(video);
+  };
+
+  const fetchViewerCounts = async (videoIds) => {
+    const apiKey = getCurrentApiKey();
+    if (!apiKey || !videoIds.length) return;
+
+    try {
+      const resp = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet,liveStreamingDetails&id=${videoIds.join(',')}&key=${apiKey}`
+      );
+      const data = await resp.json();
+      
+      if (data.items) {
+        const counts = {};
+        data.items.forEach(item => {
+          if (item.liveStreamingDetails?.concurrentViewers) {
+            counts[item.id] = parseInt(item.liveStreamingDetails.concurrentViewers).toLocaleString();
+          }
+        });
+        setViewerCounts(prev => ({ ...prev, ...counts }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch viewer counts:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (results.length > 0) {
+      const videoIds = results.map(item => item.id.videoId).filter(id => !viewerCounts[id]);
+      if (videoIds.length > 0) {
+        fetchViewerCounts(videoIds);
+      }
+    }
+  }, [results]);
+
   const categories = [
     { id: 'all', label: 'Trending', icon: 'fa-fire' },
     { id: 'gaming', label: 'Gaming', icon: 'fa-gamepad' },
@@ -272,32 +318,63 @@ function LivePage() {
               </div>
             ) : (
               results.map((item) => (
-                <div key={item.id.videoId} onClick={() => playVideo(item)} className="group cursor-pointer">
-                  <div className="relative aspect-video rounded-xl overflow-hidden mb-3">
-                    <img
-                      src={item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url}
-                      alt={item.snippet.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/320x180?text=Live';
-                      }}
-                    />
-                    <div className="absolute top-2 left-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
-                      <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                      LIVE
-                    </div>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <i className="fas fa-play text-white text-lg ml-1"></i>
+                <div key={item.id.videoId} className="group">
+                  <div onClick={() => playVideo(item)} className="cursor-pointer">
+                    <div className="relative aspect-video rounded-xl overflow-hidden mb-3">
+                      <img
+                        src={item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url}
+                        alt={item.snippet.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/320x180?text=Live';
+                        }}
+                      />
+                      <div className="absolute top-2 left-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                        LIVE
+                      </div>
+                      {viewerCounts[item.id.videoId] && (
+                        <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/70 text-white text-xs flex items-center gap-1">
+                          <i className="fas fa-eye"></i>
+                          {viewerCounts[item.id.videoId]}
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <i className="fas fa-play text-white text-lg ml-1"></i>
+                        </div>
                       </div>
                     </div>
+                    <h3 className="text-sm font-medium line-clamp-2 group-hover:text-blue-500 transition-colors" style={{ color: 'var(--text-main)' }}>
+                      {item.snippet.title}
+                    </h3>
                   </div>
-                  <h3 className="text-sm font-medium line-clamp-2 group-hover:text-blue-500 transition-colors" style={{ color: 'var(--text-main)' }}>
-                    {item.snippet.title}
-                  </h3>
-                  <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
-                    {item.snippet.channelTitle}
-                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+                      {item.snippet.channelTitle}
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const video = {
+                          id: item.id.videoId,
+                          title: item.snippet.title,
+                          channelTitle: item.snippet.channelTitle,
+                          thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                          addedAt: new Date().toISOString(),
+                        };
+                        addVideoToPlaylist(video);
+                      }}
+                      className="p-1.5 rounded-lg transition"
+                      style={{ 
+                        background: 'var(--accent-color)', 
+                        color: 'white' 
+                      }}
+                      title="Add to playlist"
+                    >
+                      <i className="fas fa-plus text-xs"></i>
+                    </button>
+                  </div>
                 </div>
               ))
             )}

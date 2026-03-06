@@ -221,6 +221,17 @@ function App() {
     setCookie('yt_playlist_history', JSON.stringify(newHistory));
   };
 
+  const addVideoToPlaylist = (video) => {
+    const playlist = {
+      id: `video_${video.id}_${Date.now()}`,
+      title: video.title,
+      videos: [video],
+      thumbnail: video.thumbnail,
+      addedAt: new Date().toISOString(),
+    };
+    addToHistory(playlist);
+  };
+
   const clearHistory = () => {
     setPlaylistHistory([]);
     localStorage.removeItem('yt_playlist_history');
@@ -246,7 +257,7 @@ function App() {
     theme, setTheme: setNewTheme,
     apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, getCurrentApiKey, switchToNextApiKey,
     quota, updateQuota, resetQuota, checkAndSwitchApiKey,
-    addToHistory, clearHistory,
+    addToHistory, clearHistory, addVideoToPlaylist,
     sidebarCollapsed, setSidebarCollapsed, toggleSidebar,
     settingsOpen, setSettingsOpen,
     mobileSidebarOpen, setMobileSidebarOpen,
