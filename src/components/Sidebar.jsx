@@ -60,25 +60,14 @@ function Sidebar() {
                 <i className="fas fa-history text-blue-500"></i>
                 History
               </h2>
-              <div className="flex items-center gap-1">
-                {playlistHistory.length > 0 && (
-                  <button
-                    onClick={clearHistory}
-                    className="text-xs text-red-500 hover:text-red-600 transition p-1"
-                    title="Clear history"
-                  >
-                    <i className="fas fa-trash-alt"></i>
-                  </button>
-                )}
-                <button
-                  onClick={() => setSidebarCollapsed(true)}
-                  className="p-1 rounded hover:bg-[var(--bg-hover)]"
-                  style={{ color: 'var(--text-muted)' }}
-                  title="Collapse"
-                >
-                  <i className="fas fa-chevron-left text-xs"></i>
-                </button>
-              </div>
+              <button
+                onClick={() => setSidebarCollapsed(true)}
+                className="p-1 rounded hover:bg-[var(--bg-hover)]"
+                style={{ color: 'var(--text-muted)' }}
+                title="Collapse"
+              >
+                <i className="fas fa-chevron-left text-xs"></i>
+              </button>
             </div>
             <input
               type="text"
@@ -169,6 +158,19 @@ function Sidebar() {
               ))
             )}
           </div>
+
+          {playlistHistory.length > 0 && (
+            <div className="p-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+              <button
+                onClick={clearHistory}
+                className="w-full text-xs text-red-500 hover:text-red-600 transition p-2 rounded-lg hover:bg-red-50 flex items-center justify-center gap-2"
+                title="Clear history"
+              >
+                <i className="fas fa-trash-alt"></i>
+                Clear History
+              </button>
+            </div>
+          )}
         </div>
       </aside>
     </Tooltip.Provider>
