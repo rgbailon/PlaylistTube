@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../App';
 
 function VideoPage() {
-  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, currentIndex, currentPlaylist, switchToNextApiKey, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType } = useApp();
+  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, currentPlaylist, switchToNextApiKey, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -13,6 +13,67 @@ function VideoPage() {
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState(null);
+  const [region, setRegion] = useState('US');
+  const [timeFilter, setTimeFilter] = useState('all');
+
+  const regions = [
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'PH', name: 'Philippines' },
+    { code: 'IN', name: 'India' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'KR', name: 'South Korea' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'MX', name: 'Mexico' },
+  ];
+
+  const getPublishedAfter = () => {
+    const now = new Date();
+    switch (timeFilter) {
+      case 'today':
+        return new Date(now.setDate(now.getDate() - 1)).toISOString();
+      case 'week':
+        return new Date(now.setDate(now.getDate() - 7)).toISOString();
+      case 'month':
+        return new Date(now.setMonth(now.getMonth() - 1)).toISOString();
+      default:
+        return null;
+    }
+  };
+
+  const formatViews = (count) => {
+    if (!count) return '';
+    const num = parseInt(count);
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+  };
+
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'today';
+    if (diffDays === 1) return 'yesterday';
+    if (diffDays < 7) return diffDays + ' days ago';
+    if (diffDays < 30) return Math.floor(diffDays / 7) + ' weeks ago';
+    if (diffDays < 365) return Math.floor(diffDays / 30) + ' months ago';
+    return Math.floor(diffDays / 365) + ' years ago';
+  };
+
+  const timeFilters = [
+    { value: 'all', label: 'All' },
+    { value: 'today', label: 'Today' },
+    { value: 'week', label: 'This Week' },
+    { value: 'month', label: 'This Month' },
+  ];
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -35,6 +96,12 @@ function VideoPage() {
       setSearchQuery(lastSearchQuery);
     }
   }, [location.search]);
+
+  useEffect(() => {
+    if (searchQuery && results.length > 0) {
+      handleSearch();
+    }
+  }, [region, timeFilter]);
 
   const extractVideoId = (input) => {
     const patterns = [
@@ -76,9 +143,14 @@ function VideoPage() {
     setLoading(true);
     setError(null);
     try {
-      const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`
-      );
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&regionCode=${region}&key=${apiKey}`;
+      
+      const publishedAfter = getPublishedAfter();
+      if (publishedAfter) {
+        url += `&publishedAfter=${publishedAfter}`;
+      }
+      
+      const resp = await fetch(url);
       const data = await resp.json();
       
       if (data.error) {
@@ -90,18 +162,47 @@ function VideoPage() {
             return;
           }
         }
-      } else if (data.items) {
-        const videos = data.items.map(item => ({
+      } else if (data.items && data.items.length > 0) {
+        const videoIds = data.items.map(item => item.id.videoId).join(',');
+        
+        let videos = data.items.map(item => ({
           id: item.id.videoId,
           title: item.snippet.title,
           channelTitle: item.snippet.channelTitle,
           thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
           description: item.snippet.description,
+          publishedAt: item.snippet.publishedAt,
         }));
+
+        try {
+          const statsResp = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}&key=${apiKey}`
+          );
+          const statsData = await statsResp.json();
+          
+          if (statsData.items) {
+            const statsMap = {};
+            statsData.items.forEach(item => {
+              statsMap[item.id] = {
+                viewCount: item.statistics?.viewCount,
+                publishedAt: item.snippet?.publishedAt,
+              };
+            });
+            
+            videos = videos.map(video => ({
+              ...video,
+              viewCount: statsMap[video.id]?.viewCount,
+              publishedAt: statsMap[video.id]?.publishedAt || video.publishedAt,
+            }));
+            updateQuota(-1);
+          }
+        } catch (statsErr) {
+          console.error('Failed to fetch stats:', statsErr);
+        }
+        
         setResults(videos);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
         saveSearchResults(query, 'video', videos);
       } else {
         setResults([]);
@@ -122,23 +223,57 @@ function VideoPage() {
 
     setLoading(true);
     try {
-      const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=video&pageToken=${nextPageToken}&key=${apiKey}`
-      );
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=video&regionCode=${region}&pageToken=${nextPageToken}&key=${apiKey}`;
+      
+      const publishedAfter = getPublishedAfter();
+      if (publishedAfter) {
+        url += `&publishedAfter=${publishedAfter}`;
+      }
+      
+      const resp = await fetch(url);
       const data = await resp.json();
       
       if (data.items) {
-        const videos = data.items.map(item => ({
+        const videoIds = data.items.map(item => item.id.videoId).join(',');
+        
+        let videos = data.items.map(item => ({
           id: item.id.videoId,
           title: item.snippet.title,
           channelTitle: item.snippet.channelTitle,
           thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
           description: item.snippet.description,
+          publishedAt: item.snippet.publishedAt,
         }));
+
+        try {
+          const statsResp = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}&key=${apiKey}`
+          );
+          const statsData = await statsResp.json();
+          
+          if (statsData.items) {
+            const statsMap = {};
+            statsData.items.forEach(item => {
+              statsMap[item.id] = {
+                viewCount: item.statistics?.viewCount,
+                publishedAt: item.snippet?.publishedAt,
+              };
+            });
+            
+            videos = videos.map(video => ({
+              ...video,
+              viewCount: statsMap[video.id]?.viewCount,
+              publishedAt: statsMap[video.id]?.publishedAt || video.publishedAt,
+            }));
+            updateQuota(-1);
+          }
+        } catch (statsErr) {
+          console.error('Failed to fetch stats:', statsErr);
+        }
+        
         setResults([...results, ...videos]);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
       }
     } catch (err) {
       console.error('Load more failed:', err);
@@ -191,6 +326,43 @@ function VideoPage() {
                 <i className="fas fa-search"></i> Search
               </button>
             </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
+              <div className="flex items-center gap-2">
+                <i className="fas fa-globe text-xs" style={{ color: 'var(--text-muted)' }}></i>
+                <select
+                  value={region}
+                  onChange={(e) => setRegion(e.target.value)}
+                  className="text-xs rounded-lg px-2 py-1.5"
+                  style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+                >
+                  {regions.map(r => (
+                    <option key={r.code} value={r.code}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Time:</span>
+                {[
+                  { value: 'all', label: 'All' },
+                  { value: 'today', label: 'Today' },
+                  { value: 'week', label: 'This Week' },
+                  { value: 'month', label: 'This Month' },
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setTimeFilter(option.value)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition"
+                    style={{ 
+                      background: timeFilter === option.value ? 'var(--accent-color)' : 'var(--bg-hover)',
+                      color: timeFilter === option.value ? 'white' : 'var(--text-main)'
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -235,6 +407,8 @@ function VideoPage() {
                     </h3>
                     <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
                       {video.channelTitle}
+                      {video.viewCount && <span> • {formatViews(video.viewCount)} views</span>}
+                      {video.publishedAt && <span> • {formatTimeAgo(video.publishedAt)}</span>}
                     </p>
                   </div>
                   <button onClick={(e) => addToPlaylist(video, e)} className="flex-shrink-0 px-3 py-1.5 rounded-full bg-green-500 hover:bg-green-600 text-white text-xs font-medium flex items-center gap-1 transition">
