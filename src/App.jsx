@@ -33,6 +33,7 @@ function App() {
   const [lastSearchResults, setLastSearchResults] = useState([]);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [lastSearchType, setLastSearchType] = useState('');
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     loadSavedData();
@@ -230,6 +231,12 @@ function App() {
       addedAt: new Date().toISOString(),
     };
     addToHistory(playlist);
+    showNotification(`Added: ${video.title.substring(0, 30)}${video.title.length > 30 ? '...' : ''}`);
+  };
+
+  const showNotification = (message) => {
+    setNotification(message);
+    setTimeout(() => setNotification(null), 3000);
   };
 
   const clearHistory = () => {
@@ -262,7 +269,8 @@ function App() {
     settingsOpen, setSettingsOpen,
     mobileSidebarOpen, setMobileSidebarOpen,
     getCookie, setCookie,
-    saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType
+    saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType,
+    notification, showNotification
   };
 
   return (
@@ -270,6 +278,12 @@ function App() {
       <BrowserRouter>
         <div className="min-h-screen" style={{ background: 'var(--bg-main)' }}>
           <Header />
+          {notification && (
+            <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-medium animate-fade-in" style={{ background: 'var(--accent-color)', color: 'white' }}>
+              <i className="fas fa-check-circle mr-2"></i>
+              {notification}
+            </div>
+          )}
           <div className="flex">
             <Sidebar />
             <main className={`flex-1 mt-12 h-[calc(100vh-48px)] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-64'} md:pb-0 pb-20`}>
