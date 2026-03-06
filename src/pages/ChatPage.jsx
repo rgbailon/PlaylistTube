@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../App';
+import ChatSettings from '../components/ChatSettings';
 
 const getProviderFromUrl = (url) => {
   if (!url) return null;
@@ -10,13 +11,15 @@ const getProviderFromUrl = (url) => {
   if (url.includes('x.ai')) return 'xai';
   if (url.includes('mistral.ai')) return 'mistral';
   if (url.includes('localhost:11434')) return 'ollama';
-  return 'openai';
+  return 'default';
 };
 
-const buildHeaders = (provider, url, key, model) => {
+const buildHeaders = (provider, key) => {
   const headers = {
     'Content-Type': 'application/json',
   };
+
+  if (!key) return headers;
 
   switch (provider) {
     case 'anthropic':
@@ -29,15 +32,13 @@ const buildHeaders = (provider, url, key, model) => {
       headers['X-Title'] = 'PlaylistTube';
       break;
     case 'google':
-      headers['Authorization'] = `Bearer ${key}`;
-      break;
     case 'xai':
     case 'mistral':
     case 'ollama':
-      headers['Authorization'] = `Bearer ${key}`;
-      break;
+    case 'default':
     default:
       headers['Authorization'] = `Bearer ${key}`;
+      break;
   }
 
   return headers;
@@ -83,7 +84,7 @@ const parseResponse = (provider, data) => {
 function ChatPage() {
   const { getCookie, setCookie } = useApp();
   
-  const [messages, setMessages] = useState([
+const [messages, setMessages] = useState([
     {
       id: 1,
       role: 'assistant',
@@ -93,6 +94,7 @@ function ChatPage() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -118,12 +120,12 @@ function ChatPage() {
     setLoading(true);
 
     try {
-      const chatbotConfig = getCookie('yt_chatbot_config');
+const chatbotConfig = getCookie('yt_chatbot_config');
       if (!chatbotConfig) {
         const errorMsg = {
           id: Date.now() + 1,
           role: 'assistant',
-          content: 'Please configure your AI API key in Settings to use the chat feature.',
+          content: 'Please configure your AI API key by clicking the gear icon above.',
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, errorMsg]);
@@ -136,7 +138,7 @@ function ChatPage() {
         const errorMsg = {
           id: Date.now() + 1,
           role: 'assistant',
-          content: 'Please configure your AI API key in Settings.',
+          content: 'Please configure your AI API key by clicking the gear icon above.',
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, errorMsg]);
@@ -151,7 +153,7 @@ function ChatPage() {
         { role: 'user', content: userMessage.content }
       ];
 
-      const headers = buildHeaders(provider, config.url, config.key, config.model);
+      const headers = buildHeaders(provider, config.key);
       const body = buildBody(provider, config.model, allMessages);
 
       const response = await fetch(`${config.url}/chat/completions`, {
@@ -200,49 +202,61 @@ function ChatPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-48px)] flex flex-col" style={{ background: 'var(--bg-main)' }}>
+<div className="h-[calc(100vh-48px)] flex flex-col" style={{ background: 'var(--bg-main)' }}>
       <div 
-        className="flex items-center justify-between px-4 py-2"
+        className="flex items-center justify-between px-2 py-1"
         style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}
       >
-        <h2 className="text-lg font-semibold" style={{ color: 'var(--text-main)' }}>
-          <i className="fas fa-robot mr-2" style={{ color: 'var(--accent-color)' }}></i>
-          AI Chat
+        <h2 className="text-xs sm:text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
+          <i className="fas fa-robot mr-1" style={{ color: 'var(--accent-color)' }}></i>
+          <span className="hidden sm:inline">AI Chat</span>
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-1.5 sm:p-1 rounded-lg transition hover:bg-[var(--bg-hover)]"
+            style={{ color: 'var(--text-muted)' }}
+            title="Settings"
+          >
+            <i className="fas fa-cog text-sm"></i>
+          </button>
           <button
             onClick={clearChat}
-            className="p-2 rounded-lg transition hover:bg-[var(--bg-hover)]"
+            className="p-1.5 sm:p-1 rounded-lg transition hover:bg-[var(--bg-hover)]"
             style={{ color: 'var(--text-muted)' }}
             title="Clear chat"
           >
-            <i className="fas fa-redo"></i>
+            <i className="fas fa-redo text-sm"></i>
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4 min-h-0 w-[60%] max-w-5xl mx-auto">
+<div className="flex-1 overflow-y-auto scrollbar-thin p-2 sm:p-4 space-y-4 min-h-0 w-full sm:w-[85%] md:w-[70%] lg:w-[60%] max-w-5xl mx-auto">
         {messages.map((msg) => (
-          <div key={msg.id} className="flex items-start gap-3">
+          <div key={msg.id} className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0"
               style={{ 
                 background: msg.role === 'assistant' ? 'var(--accent-color)' : 'var(--bg-hover)',
                 color: msg.role === 'assistant' ? 'white' : 'var(--text-muted)'
               }}
             >
-              <i className={`fas ${msg.role === 'assistant' ? 'fa-robot' : 'fa-user'} text-sm`}></i>
+              <i className={`fas ${msg.role === 'assistant' ? 'fa-robot' : 'fa-user'} text-xs sm:text-sm`}></i>
             </div>
             <div
-              className="rounded-2xl p-4 max-w-[75%] shadow-sm"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+              className="rounded-2xl p-3 sm:p-4 max-w-[75%] shadow-sm"
+              style={{ 
+                background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
+                color: msg.role === 'user' ? 'white' : 'var(--text-main)'
+              }}
             >
-              <p style={{ color: 'var(--text-main)', lineHeight: 1.6 }}>
+              <p style={{ color: msg.role === 'user' ? 'white' : 'var(--text-main)', lineHeight: 1.6 }}>
                 {msg.content}
               </p>
               <p 
                 className="text-[10px] mt-2" 
-                style={{ color: 'var(--text-muted)' }}
+                style={{ color: msg.role === 'user' ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}
               >
                 {formatTime(msg.timestamp)}
               </p>
@@ -253,13 +267,13 @@ function ChatPage() {
         {loading && (
           <div className="flex items-start gap-3">
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0"
               style={{ background: 'var(--accent-color)', color: 'white' }}
             >
-              <i className="fas fa-robot text-sm"></i>
+              <i className="fas fa-robot text-xs sm:text-sm"></i>
             </div>
             <div
-              className="rounded-2xl p-4 shadow-sm"
+              className="rounded-2xl p-3 sm:p-4 shadow-sm"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
             >
               <div className="flex gap-1">
@@ -274,11 +288,41 @@ function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div
-        className="flex-shrink-0 px-4 py-3 w-[60%] max-w-5xl mx-auto"
+      {showSettings && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50 p-2"
+          style={{ background: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setShowSettings(false)}
+        >
+          <div 
+            className="rounded-xl p-3 sm:p-4 w-full max-w-md max-h-[85vh] overflow-y-auto"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
+                <i className="fas fa-cog mr-1 sm:mr-2" style={{ color: 'var(--accent-color)' }}></i>
+                <span className="hidden sm:inline">AI Chat Settings</span>
+                <span className="sm:hidden">Settings</span>
+              </h3>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="p-1.5 sm:p-1 rounded-lg transition hover:bg-[var(--bg-hover)]"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <ChatSettings />
+          </div>
+        </div>
+      )}
+
+<div
+        className="flex-shrink-0 px-2 sm:px-4 py-3 w-full sm:w-[85%] md:w-[70%] lg:w-[60%] max-w-5xl mx-auto"
         style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}
       >
-        <div className="relative max-w-full mx-auto flex items-center gap-3">
+        <div className="relative max-w-full mx-auto flex items-center gap-2 sm:gap-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -288,11 +332,11 @@ function ChatPage() {
                 sendMessage();
               }
             }}
-            placeholder="Message AI Assistant..."
+            placeholder="Message AI..."
             rows="1"
-            className="flex-1 rounded-2xl pl-4 pr-12 py-2.5 text-sm resize-none shadow-inner"
+            className="flex-1 rounded-2xl pl-3 sm:pl-4 pr-10 sm:pr-12 py-2 sm:py-2.5 text-sm resize-none shadow-inner"
             style={{ 
-              minHeight: '44px', 
+              minHeight: '40px sm:44px', 
               maxHeight: '120px', 
               background: 'var(--bg-main)', 
               border: '1px solid var(--border-color)', 

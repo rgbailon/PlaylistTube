@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useApp } from '../App';
 import Settings from '../components/Settings';
 import LiveChat from '../components/LiveChat';
@@ -69,14 +69,6 @@ function PlayerPage() {
   const playVideo = (index) => { setCurrentVideoIndex(index); };
 
   const currentVideoId = currentPlaylist[currentVideoIndex]?.id;
-
-  const navItems = [
-    { id: 'player', path: '/', icon: 'fa-play', label: 'Player' },
-    { id: 'playlists', path: '/search', icon: 'fa-list', label: 'Playlists' },
-    { id: 'videos', path: '/video', icon: 'fa-play-circle', label: 'Videos' },
-    { id: 'live', path: '/live', icon: 'fa-broadcast-tower', label: 'Live' },
-    { id: 'more', path: '/chat', icon: 'fa-ellipsis-h', label: 'More' },
-  ];
 
   return (
     <div className="h-full flex flex-col md:flex-row overflow-hidden">
@@ -160,20 +152,6 @@ function PlayerPage() {
           </div>
         )}
       </aside>
-
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 flex border-t z-40" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
-        {navItems.map((item) => (
-          <Link
-            key={item.id}
-            to={item.path}
-            className="flex-1 py-3 flex flex-col items-center gap-1 text-[10px]"
-            style={{ color: location.pathname === item.path ? 'var(--accent-color)' : 'var(--text-muted)' }}
-          >
-            <i className={`fas ${item.icon} text-lg`}></i>
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </nav>
     </div>
   );
 }

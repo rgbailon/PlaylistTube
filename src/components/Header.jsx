@@ -9,6 +9,7 @@ function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
@@ -148,7 +149,7 @@ function Header() {
         </button>
       </form>
 
-      <nav className="flex items-center gap-1">
+      <nav className="hidden md:flex items-center gap-1">
         {navItems.map((item) => (
           <Link
             key={item.id}
@@ -164,6 +165,14 @@ function Header() {
       </nav>
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden p-2 rounded-lg hover:bg-[var(--bg-hover)] transition"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <i className="fas fa-bars text-lg"></i>
+        </button>
+        
         <div className="relative">
           <button
             onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
@@ -209,6 +218,61 @@ function Header() {
           )}
         </div>
       </div>
+
+      {mobileMenuOpen && (
+        <>
+          <div 
+            className="md:hidden fixed inset-0 z-40 bg-black/50"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="md:hidden fixed top-12 left-0 w-64 z-50 shadow-xl h-[calc(100vh-3rem)] overflow-y-auto"
+               style={{ background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)' }}>
+            <nav className="py-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 text-sm transition ${
+                    isActive(item.path) ? 'font-semibold' : ''
+                  }`}
+                  style={{ 
+                    color: isActive(item.path) ? 'var(--accent-color)' : 'var(--text-main)',
+                    background: isActive(item.path) ? 'var(--accent-bg)' : 'transparent'
+                  }}
+                >
+                  <i className={`fas ${item.icon} w-5 text-center`}></i>
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            
+            <div className="border-t px-4 py-3" style={{ borderColor: 'var(--border-color)' }}>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>Theme:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {themes.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      setTheme(t);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`px-2 py-1.5 rounded text-xs capitalize transition ${
+                      theme === t ? 'font-semibold' : ''
+                    }`}
+                    style={{ 
+                      background: theme === t ? 'var(--accent-color)' : 'var(--bg-hover)',
+                      color: theme === t ? 'white' : 'var(--text-main)'
+                    }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </header>
   );
 }

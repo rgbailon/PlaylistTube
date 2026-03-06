@@ -102,7 +102,7 @@ function Sidebar() {
                       onClick={() => handlePlaylistClick(playlist)}
                       className="flex gap-3 p-2 rounded-lg cursor-pointer hover:bg-[var(--bg-hover)] transition group"
                     >
-                      <div className="relative w-24 h-14 flex-shrink-0 rounded-lg overflow-hidden">
+                      <div className="relative w-20 h-12 flex-shrink-0 rounded-lg overflow-hidden">
                         <img
                           src={getThumbnail(playlist)}
                           alt={playlist.title}
