@@ -213,11 +213,11 @@ function Sidebar() {
                             e.stopPropagation();
                             removeFromHistory(playlist.id);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 transition-all duration-200 self-start"
+                          className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-full flex items-center justify-center hover:bg-red-50 transition-all duration-200 self-start"
                           style={{ color: 'var(--text-muted)' }}
                           title="Remove"
                         >
-                          <i className="fas fa-times text-[10px]"></i>
+                          <i className="fas fa-times text-[8px]"></i>
                         </button>
                       </div>
                     </Tooltip.Trigger>
