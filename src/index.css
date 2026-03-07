@@ -145,11 +145,15 @@
   border: 1px solid #ffffff;
 }
 
-[data-theme="photo"] .btn-add i,
+[data-theme="photo"] .nav-btn.active {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
 [data-theme="photo"] .nav-btn.active i,
 [data-theme="photo"] .mobile-tab.active i,
 [data-theme="photo"] .active i {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 [data-theme="forest"] {
