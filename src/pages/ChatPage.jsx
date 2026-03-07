@@ -290,17 +290,17 @@ const chatbotConfig = getCookie('yt_chatbot_config');
 
       {showSettings && (
         <div 
-          className="fixed inset-0 flex items-center justify-center z-50 p-2"
+          className="fixed inset-0 flex items-end sm:items-center justify-center z-50 p-0 sm:p-2"
           style={{ background: 'rgba(0,0,0,0.5)' }}
           onClick={() => setShowSettings(false)}
         >
           <div 
-            className="rounded-xl p-3 sm:p-4 w-full max-w-md max-h-[85vh] overflow-y-auto"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            className="rounded-t-2xl sm:rounded-xl p-2 sm:p-4 w-full sm:max-w-md max-h-[85vh] overflow-y-auto"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderBottomLeftRadius: '0', borderBottomRightRadius: '0' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
+              <h3 className="text-xs sm:text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
                 <i className="fas fa-cog mr-1 sm:mr-2" style={{ color: 'var(--accent-color)' }}></i>
                 <span className="hidden sm:inline">AI Chat Settings</span>
                 <span className="sm:hidden">Settings</span>
