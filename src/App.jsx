@@ -30,6 +30,7 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [playlistPanelOpen, setPlaylistPanelOpen] = useState(false);
   const [playerPanelOpen, setPlayerPanelOpen] = useState(true);
   const [lastSearchResults, setLastSearchResults] = useState([]);
   const [lastSearchQuery, setLastSearchQuery] = useState('');
@@ -276,6 +277,7 @@ function App() {
     sidebarCollapsed, setSidebarCollapsed, toggleSidebar,
     settingsOpen, setSettingsOpen,
     mobileSidebarOpen, setMobileSidebarOpen,
+    playlistPanelOpen, setPlaylistPanelOpen,
     playerPanelOpen, setPlayerPanelOpen,
     getCookie, setCookie,
     saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType,

@@ -5,7 +5,7 @@ import { useApp } from '../App';
 const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
 function Header() {
-  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen } = useApp();
+  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen, playlistPanelOpen, setPlaylistPanelOpen } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
@@ -321,15 +321,39 @@ function Header() {
         <i className="fas fa-play text-base"></i>
         <span className="text-[10px]">Player</span>
       </Link>
-      <Link
-        to="/search?view=playlists"
+      <button
+        onClick={() => setPlaylistPanelOpen(!playlistPanelOpen)}
         className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 flex-1"
-        style={{ color: location.pathname === '/search' && location.search.includes('view=playlists') ? 'var(--accent-color)' : 'var(--text-muted)' }}
+        style={{ color: playlistPanelOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
         <i className="fas fa-list text-base"></i>
         <span className="text-[10px]">Playlists</span>
-      </Link>
+      </button>
     </nav>
+
+    {/* Mobile Playlist Panel Slide-in */}
+    {playlistPanelOpen && (
+      <>
+        <div 
+          className="md:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setPlaylistPanelOpen(false)}
+        />
+        <div className="md:hidden fixed inset-x-0 bottom-14 top-12 z-50 flex flex-col transition-transform duration-300 overflow-hidden"
+          style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}>
+          <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
+            <span className="text-sm font-medium" style={{ color: 'var(--text-main)' }}>Playlist</span>
+            <button onClick={() => setPlaylistPanelOpen(false)} className="p-1" style={{ color: 'var(--text-muted)' }}>
+              <i className="fas fa-times"></i>
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2" style={{ background: 'var(--bg-main)' }}>
+            <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+              Playlist from Player page
+            </p>
+          </div>
+        </div>
+      </>
+    )}
     </>
   );
 }
