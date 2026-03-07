@@ -5,7 +5,7 @@ import Settings from '../components/Settings';
 import LiveChat from '../components/LiveChat';
 
 function PlayerPage() {
-  const { currentPlaylist, setCurrentPlaylist, currentVideoIndex, setCurrentVideoIndex, setPlayer, updateQuota, settingsOpen, setSettingsOpen, sidebarCollapsed } = useApp();
+  const { currentPlaylist, setCurrentPlaylist, currentVideoIndex, setCurrentVideoIndex, setPlayer, updateQuota, settingsOpen, setSettingsOpen, sidebarCollapsed, playerPanelOpen, setPlayerPanelOpen } = useApp();
   const location = useLocation();
 
   const [videoTitle, setVideoTitle] = useState('');
@@ -13,6 +13,7 @@ function PlayerPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
   const [activeTab, setActiveTab] = useState('playlist');
+  const [tabAnimating, setTabAnimating] = useState(false);
   const [mobileTab, setMobileTab] = useState('player');
   const playerContainerId = 'youtube-player';
   const playerRef = useRef(null);
@@ -70,10 +71,20 @@ function PlayerPage() {
 
   const currentVideoId = currentPlaylist[currentVideoIndex]?.id;
 
-return (
+  return (
     <div className="h-full flex flex-col md:flex-row overflow-hidden">
+      {!playerPanelOpen && (
+        <button 
+          onClick={() => setPlayerPanelOpen(true)}
+          className="md:flex hidden absolute right-2 top-20 z-10 p-2 rounded-lg shadow-lg"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-muted)' }}
+          title="Show playlist"
+        >
+          <i className="fas fa-chevron-left text-xs"></i>
+        </button>
+      )}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden order-2 md:order-1">
-        <div className="flex-1 flex flex-col p-2 md:p-6 pt-4 pb-24 md:pb-2 overflow-y-auto">
+        <div className="flex-1 flex flex-col p-2 md:p-6 pt-4 pb-24 md:pb-2 overflow-y-auto relative">
           <div className="flex-1 flex items-center justify-center">
             <div className={`w-full ${sidebarCollapsed ? 'max-w-full' : 'max-w-5xl'}`}>
               <div className="player-container relative w-full" style={{ paddingTop: '56.25%' }}>
@@ -106,10 +117,10 @@ return (
         
         <div className="md:hidden border-t flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
           <div className="flex">
-            <button onClick={() => setActiveTab('chat')} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'chat' ? '#22c55e' : 'var(--text-muted)', borderBottom: activeTab === 'chat' ? '2px solid #22c55e' : '2px solid transparent' }}>
+            <button onClick={() => { if (activeTab !== 'chat') { setTabAnimating(true); setTimeout(() => { setActiveTab('chat'); setTabAnimating(false); }, 150); } }} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'chat' ? '#22c55e' : 'var(--text-muted)', borderBottom: activeTab === 'chat' ? '2px solid #22c55e' : '2px solid transparent' }}>
               <i className="fas fa-comments mr-1"></i>Live Chat
             </button>
-            <button onClick={() => setActiveTab('playlist')} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: activeTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
+            <button onClick={() => { if (activeTab !== 'playlist') { setTabAnimating(true); setTimeout(() => { setActiveTab('playlist'); setTabAnimating(false); }, 150); } }} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: activeTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
               <i className="fas fa-list-ol mr-1"></i>Playlist
             </button>
             <button onClick={() => setSettingsOpen(!settingsOpen)} className="px-3 py-2" style={{ color: 'var(--text-muted)' }}>
@@ -120,7 +131,7 @@ return (
         </div>
         
         {activeTab === 'chat' && (
-          <div className="md:hidden flex-1 overflow-hidden" style={{ maxHeight: 'calc(100vh - 320px)' }}>
+          <div className="md:hidden flex-1 overflow-hidden">
             {currentVideoId ? <LiveChat videoId={currentVideoId} /> : (
               <div className="flex items-center justify-center h-full p-4">
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Play a video to use live chat</p>
@@ -130,7 +141,7 @@ return (
         )}
 
         {activeTab === 'playlist' && (
-          <div className="md:hidden flex-1 overflow-y-auto" style={{ background: 'var(--bg-main)', maxHeight: 'calc(100vh - 320px)' }}>
+          <div className="md:hidden flex-1 overflow-y-auto" style={{ background: 'var(--bg-main)' }}>
             {currentPlaylist.length === 0 ? (
               <div className="text-center py-8">
                 <i className="fas fa-film text-2xl mb-2" style={{ color: 'var(--text-muted)' }}></i>
@@ -161,7 +172,7 @@ return (
         )}
       </div>
 
-      <aside className="hidden md:flex w-80 border-l flex-col overflow-hidden order-1 md:order-2 md:border-l-0" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+      <aside className={`md:flex w-80 border-l flex-col overflow-hidden order-1 md:order-2 md:border-l-0 transition-transform duration-300 ${playerPanelOpen ? 'translate-x-0' : 'translate-x-full'} hidden`} style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
         <div className="flex border-b flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
           <button onClick={() => { setActiveTab('playlist'); setSettingsOpen(false); }} className="flex-1 px-3 py-2 text-sm font-medium" style={{ color: activeTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: activeTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
             <i className="fas fa-list-ol mr-1"></i><span className="hidden md:inline">Playlist</span>
@@ -171,6 +182,9 @@ return (
           </button>
           <button onClick={() => setSettingsOpen(!settingsOpen)} className="px-3 py-2" style={{ color: 'var(--text-muted)' }}>
             <i className="fas fa-cog"></i>
+          </button>
+          <button onClick={() => setPlayerPanelOpen(false)} className="px-2 py-2" style={{ color: 'var(--text-muted)' }} title="Close panel">
+            <i className="fas fa-chevron-right text-xs"></i>
           </button>
         </div>
         {settingsOpen && <div className="flex-shrink-0"><Settings /></div>}
