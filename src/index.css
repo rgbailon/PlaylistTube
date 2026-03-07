@@ -127,12 +127,14 @@
   --bg-glass: rgba(10, 10, 10, 0.9);
   --bg-hover: #1a1a1a;
   --bg-active: #262626;
-  --text-main: #e5e5e5;
-  --text-muted: #737373;
-  --border-color: #262626;
-  --border-hover: #404040;
-  --accent-color: #ffffff;
-  --accent-hover: #e5e5e5;
+  --text-main: #ffffff;
+  --text-muted: #b3b3b3;
+  --border-color: #ffffff;
+  --border-hover: #e0e0e0;
+  --accent-color: #000000;
+  --accent-hover: #1a1a1a;
+  --accent-bg: #ffffff;
+  --accent-border: #ffffff;
   --scrollbar-thumb: #404040;
   --scrollbar-track: #0a0a0a;
 }
@@ -249,6 +251,22 @@
   --scrollbar-track: #1f1f1f;
 }
 
+[data-theme="aero"] {
+  --bg-main: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  --bg-card: rgba(255, 255, 255, 0.1);
+  --bg-glass: rgba(255, 255, 255, 0.15);
+  --bg-hover: rgba(255, 255, 255, 0.15);
+  --bg-active: rgba(255, 255, 255, 0.2);
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.7);
+  --border-color: rgba(255, 255, 255, 0.2);
+  --border-hover: rgba(255, 255, 255, 0.3);
+  --accent-color: #00d9ff;
+  --accent-hover: #00a8cc;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.3);
+  --scrollbar-track: rgba(255, 255, 255, 0.1);
+}
+
 * {
   font-family: "Helvetica Neue", "Inter", sans-serif;
 }
@@ -258,7 +276,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 body {
-  background-color: var(--bg-main);
+  background: var(--bg-main);
   color: var(--text-main);
   margin: 0;
   min-height: 100vh;
@@ -267,11 +285,14 @@ body {
 .glass {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .glass-darker {
   background: var(--bg-glass);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .input-styled {
