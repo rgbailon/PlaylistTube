@@ -149,6 +149,11 @@ return (
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs line-clamp-2" style={{ color: index === currentVideoIndex ? '#3b82f6' : 'var(--text-main)' }}>{video.title}</h4>
                   <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
+                  {video.viewCount !== undefined && video.viewCount > 0 && (
+                    <p className="text-[9px] truncate" style={{ color: 'var(--text-muted)' }}>
+                      <i className="fas fa-eye mr-1"></i>{video.viewCount.toLocaleString()} views
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
