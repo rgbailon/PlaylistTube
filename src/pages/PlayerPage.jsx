@@ -94,7 +94,7 @@ return (
               <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{videoChannel}</p>
             </div>
           )}
-          <div className="flex gap-2 mt-2 md:mt-3">
+          <div className="hidden md:hidden gap-2 mt-2 md:mt-3">
             <button onClick={playPrevious} disabled={currentVideoIndex === 0} className="flex-1 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm disabled:opacity-50" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
               <i className="fas fa-step-backward mr-1"></i>Prev
             </button>
