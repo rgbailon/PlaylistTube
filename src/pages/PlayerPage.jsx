@@ -137,7 +137,7 @@ return (
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Videos will appear here</p>
               </div>
             ) : currentPlaylist.map((video, index) => (
-              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'rgba(59, 130, 246, 0.1)' : 'transparent' }}>
+              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'var(--bg-hover)' : 'transparent' }}>
                 <div className="relative w-24 h-14 rounded overflow-hidden flex-shrink-0">
                   <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
                   {index === currentVideoIndex && isPlaying && (
@@ -147,7 +147,7 @@ return (
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-xs line-clamp-2" style={{ color: index === currentVideoIndex ? '#3b82f6' : 'var(--text-main)' }}>{video.title}</h4>
+                  <h4 className="text-xs line-clamp-2" style={{ color: index === currentVideoIndex ? 'var(--accent-color)' : 'var(--text-main)' }}>{video.title}</h4>
                   <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
                   {video.viewCount !== undefined && video.viewCount > 0 && (
                     <p className="text-[9px] truncate" style={{ color: 'var(--text-muted)' }}>
@@ -182,7 +182,7 @@ return (
                 <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Videos will appear here</p>
               </div>
             ) : currentPlaylist.map((video, index) => (
-              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'rgba(59, 130, 246, 0.1)' : 'transparent' }}>
+              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'var(--bg-hover)' : 'transparent' }}>
                 <div className="relative w-24 h-14 rounded overflow-hidden flex-shrink-0">
                   <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
                   {index === currentVideoIndex && isPlaying && (
@@ -192,7 +192,7 @@ return (
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-xs line-clamp-2" style={{ color: index === currentVideoIndex ? '#3b82f6' : 'var(--text-main)' }}>{video.title}</h4>
+                  <h4 className="text-xs line-clamp-2" style={{ color: index === currentVideoIndex ? 'var(--accent-color)' : 'var(--text-main)' }}>{video.title}</h4>
                   <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {video.publishedAt && (
