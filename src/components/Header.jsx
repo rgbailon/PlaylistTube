@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
+import LiveChat from './LiveChat';
  
 const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
@@ -11,6 +12,8 @@ function Header() {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
+  const [playlistPanelOpen, setPlaylistPanelOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState('playlist');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
@@ -330,7 +333,71 @@ function Header() {
         <i className="fas fa-play text-lg"></i>
         <span className="text-[10px] mt-0.5">Player</span>
       </Link>
+      <button
+        onClick={() => setPlaylistPanelOpen(!playlistPanelOpen)}
+        className="flex flex-col items-center justify-center flex-1 h-full"
+        style={{ color: playlistPanelOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
+      >
+        <i className="fas fa-list text-lg"></i>
+        <span className="text-[10px] mt-0.5">Playlists</span>
+      </button>
     </nav>
+
+    {/* Mobile Playlist Panel Slide-in */}
+    <div className={`md:hidden fixed inset-y-0 right-0 w-[85%] z-40 flex flex-col transition-transform duration-300 overflow-hidden ${playlistPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      style={{ background: 'var(--bg-card)', borderLeft: '1px solid var(--border-color)', bottom: '56px', top: '48px' }}>
+      <div className="flex border-b" style={{ borderColor: 'var(--border-color)' }}>
+        <button onClick={() => setMobileTab('playlist')} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: mobileTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: mobileTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
+          <i className="fas fa-list-ol mr-1"></i>Playlist
+        </button>
+        <button onClick={() => setMobileTab('chat')} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: mobileTab === 'chat' ? '#22c55e' : 'var(--text-muted)', borderBottom: mobileTab === 'chat' ? '2px solid #22c55e' : '2px solid transparent' }}>
+          <i className="fas fa-comments mr-1"></i>Live Chat
+        </button>
+        <button onClick={() => setPlaylistPanelOpen(false)} className="px-3 py-2" style={{ color: 'var(--text-muted)' }}>
+          <i className="fas fa-times"></i>
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-2" style={{ background: 'var(--bg-main)' }}>
+        {mobileTab === 'playlist' ? (
+          currentPlaylist.length === 0 ? (
+            <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+              No videos in playlist
+            </p>
+          ) : (
+            currentPlaylist.map((video, index) => (
+              <div key={video.id || index} onClick={() => { setCurrentVideoIndex(index); setPlaylistPanelOpen(false); }} className="flex gap-2 p-2 cursor-pointer mb-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'var(--bg-hover)' : 'transparent' }}>
+                <div className="relative w-20 h-12 rounded overflow-hidden flex-shrink-0">
+                  <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
+                  {index === currentVideoIndex && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <i className="fas fa-play text-white text-xs"></i>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xs line-clamp-2" style={{ color: 'var(--text-main)' }}>{video.title}</h4>
+                  <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
+                </div>
+              </div>
+            ))
+          )
+        ) : (
+          currentPlaylist[currentVideoIndex]?.id ? (
+            <LiveChat videoId={currentPlaylist[currentVideoIndex].id} />
+          ) : (
+            <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+              Play a video first to use live chat
+            </p>
+          )
+        )}
+      </div>
+    </div>
+    {playlistPanelOpen && (
+      <div 
+        className="md:hidden fixed inset-0 z-30 bg-black/50"
+        onClick={() => setPlaylistPanelOpen(false)}
+      />
+    )}
 
     {/* Search Modal */}
     {searchModalOpen && (

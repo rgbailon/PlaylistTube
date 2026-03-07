@@ -241,23 +241,6 @@ function PlayerPage() {
           </div>
         </div>
         
-        {!isFullscreen && !immersiveMode && (
-        <div className="md:hidden border-t flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
-          <div className="flex">
-            <button onClick={() => { if (activeTab !== 'chat') { setTabAnimating(true); setTimeout(() => { setActiveTab('chat'); setTabAnimating(false); }, 150); } }} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'chat' ? '#22c55e' : 'var(--text-muted)', borderBottom: activeTab === 'chat' ? '2px solid #22c55e' : '2px solid transparent' }}>
-              <i className="fas fa-comments mr-1"></i>Live Chat
-            </button>
-            <button onClick={() => { if (activeTab !== 'playlist') { setTabAnimating(true); setTimeout(() => { setActiveTab('playlist'); setTabAnimating(false); }, 150); } }} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: activeTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
-              <i className="fas fa-list-ol mr-1"></i>Playlist
-            </button>
-            <button onClick={() => setSettingsOpen(!settingsOpen)} className="px-3 py-2" style={{ color: 'var(--text-muted)' }}>
-              <i className="fas fa-cog"></i>
-            </button>
-          </div>
-          {settingsOpen && <div className="flex-shrink-0"><Settings /></div>}
-        </div>
-        )}
-        
         {activeTab === 'chat' && !isFullscreen && !immersiveMode && (
           <div className="md:hidden flex-1 overflow-hidden">
             {currentVideoId ? <LiveChat videoId={currentVideoId} /> : (
@@ -265,37 +248,6 @@ function PlayerPage() {
                 <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Play a video to use live chat</p>
               </div>
             )}
-          </div>
-        )}
-
-        {activeTab === 'playlist' && !isFullscreen && !immersiveMode && (
-          <div className="md:hidden flex-1 overflow-y-auto" style={{ background: 'var(--bg-main)' }}>
-            {currentPlaylist.length === 0 ? (
-              <div className="text-center py-8">
-                <i className="fas fa-film text-2xl mb-2" style={{ color: 'var(--text-muted)' }}></i>
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Videos will appear here</p>
-              </div>
-            ) : currentPlaylist.map((video, index) => (
-              <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'var(--bg-hover)' : 'transparent' }}>
-                <div className="relative w-24 h-14 rounded overflow-hidden flex-shrink-0">
-                  <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
-                  {index === currentVideoIndex && isPlaying && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <i className="fas fa-play text-white text-xs"></i>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 mt-1">
-                  <h4 className="text-xs line-clamp-2" style={{ color: 'var(--text-main)' }}>{video.title}</h4>
-                  <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
-                  {video.viewCount !== undefined && video.viewCount > 0 && (
-                    <p className="text-[9px] truncate" style={{ color: 'var(--text-muted)' }}>
-                      <i className="fas fa-eye mr-1"></i>{video.viewCount.toLocaleString()} views
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
           </div>
         )}
       </div>
@@ -361,7 +313,7 @@ function PlayerPage() {
       )}
 
       {!isFullscreen && !immersiveMode && (
-      <aside className={`md:flex w-80 border-l flex-col overflow-hidden order-1 md:order-2 md:border-l-0 transition-transform duration-300 ${playerPanelOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
+      <aside className={`hidden md:flex w-80 border-l flex-col overflow-hidden order-2 md:order-2 transition-transform duration-300 ${playerPanelOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
         <div className="flex border-b flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
           <button onClick={() => { setActiveTab('playlist'); setSettingsOpen(false); }} className="flex-1 px-3 py-2 text-sm font-medium" style={{ color: activeTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: activeTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
             <i className="fas fa-list-ol mr-1"></i><span className="hidden md:inline">Playlist</span>
