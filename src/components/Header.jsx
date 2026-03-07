@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 
-const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix', 'aero'];
+const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
 function Header() {
   const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen } = useApp();
