@@ -168,7 +168,7 @@ function PlayerPage() {
                     </button>
                     <button
                       onClick={toggleFullscreen}
-                      className="absolute bottom-2 right-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity hidden md:block"
+                      className="absolute top-2 right-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity hidden md:block"
                       style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
                       title="Fullscreen"
                     >
@@ -225,8 +225,43 @@ function PlayerPage() {
               </div>
             </div>
           </div>
+
+          {!isFullscreen && !immersiveMode && (
+            <div className="md:hidden px-2 pb-2">
+              {videoTitle && (
+                <div className="mb-2">
+                  <h3 className="text-sm font-bold line-clamp-2" style={{ color: 'var(--text-main)' }}>{videoTitle}</h3>
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{videoChannel}</p>
+                </div>
+              )}
+              {currentPlaylist[currentVideoIndex]?.description && (
+                <div className="mb-2 p-2 rounded-lg" style={{ background: 'var(--bg-card)' }}>
+                  <p className="text-xs line-clamp-3" style={{ color: 'var(--text-muted)' }}>
+                    {currentPlaylist[currentVideoIndex].description}
+                  </p>
+                </div>
+              )}
+              {currentVideoId && (
+                <div className="mb-2 rounded-lg overflow-hidden" style={{ background: 'var(--bg-card)' }}>
+                  <div className="p-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
+                    <h4 className="text-xs font-semibold" style={{ color: 'var(--text-main)' }}>Comments</h4>
+                  </div>
+                  <div className="h-48 overflow-y-auto">
+                    <iframe
+                      src={`https://www.youtube.com/comment_thread?video_id=${currentVideoId}&theme=dark`}
+                      className="w-full h-full border-0"
+                      title="YouTube Comments"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {!isFullscreen && !immersiveMode && videoTitle && (
-            <div className="mt-2 md:mt-3">
+            <div className="hidden md:block mt-2 md:mt-3">
               <h3 className="text-sm md:text-lg font-bold line-clamp-2" style={{ color: 'var(--text-main)' }}>{videoTitle}</h3>
               <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{videoChannel}</p>
             </div>

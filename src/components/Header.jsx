@@ -232,13 +232,19 @@ function Header() {
       </div>
 
       {mobileMenuOpen && (
-        <>
-          <div 
-            className="md:hidden fixed inset-0 z-40 bg-black/50 animate-fade-in"
-            onClick={() => { setMobileMenuOpen(false); setThemeDropdownOpen(false); }}
-          />
-          <div className="md:hidden fixed top-12 right-0 w-64 z-50 shadow-xl h-[calc(100vh-3rem)] overflow-y-auto animate-slide-in"
-               style={{ background: 'var(--bg-card)', borderLeft: '1px solid var(--border-color)' }}>
+        <div 
+          className="md:hidden fixed inset-0 z-40 bg-black/50 animate-fade-in"
+          onClick={() => { setMobileMenuOpen(false); setThemeDropdownOpen(false); }}
+        />
+      )}
+
+      <div 
+        className={`md:hidden fixed top-12 right-0 w-64 z-50 shadow-xl h-[calc(100vh-3rem)] overflow-y-auto transition-transform duration-300 ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ 
+          background: 'var(--bg-card)', 
+          borderLeft: '1px solid var(--border-color)' 
+        }}
+      >
             <nav className="py-2">
               <div className="px-4 py-2">
                 <button 
@@ -300,8 +306,6 @@ function Header() {
               ))}
             </nav>
           </div>
-        </>
-      )}
     </header>
 
     {/* Bottom Navigation for Mobile */}
