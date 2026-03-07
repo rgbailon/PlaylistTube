@@ -153,6 +153,22 @@
   --scrollbar-track: #1e392a;
 }
 
+[data-theme="forest2"] {
+  --bg-main: #19270d;
+  --bg-card: #25591f;
+  --bg-glass: rgba(37, 89, 31, 0.95);
+  --bg-hover: #3a6b2a;
+  --bg-active: #4a7d35;
+  --text-main: #e8f0dc;
+  --text-muted: #b8c99e;
+  --border-color: #3a6b2a;
+  --border-hover: #4a7d35;
+  --accent-color: #818c3c;
+  --accent-hover: #72601b;
+  --scrollbar-thumb: #4a7d35;
+  --scrollbar-track: #25591f;
+}
+
 [data-theme="ocean"] {
   --bg-main: #0c4a6e;
   --bg-card: #075985;
