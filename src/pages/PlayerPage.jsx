@@ -18,6 +18,7 @@ function PlayerPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [immersiveMode, setImmersiveMode] = useState(false);
   const [showFullscreenPlaylist, setShowFullscreenPlaylist] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const playerContainerId = 'youtube-player';
   const playerRef = useRef(null);
   const isCreatingPlayer = useRef(false);
@@ -168,7 +169,7 @@ function PlayerPage() {
                     </button>
                     <button
                       onClick={toggleFullscreen}
-                      className="absolute top-2 right-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity hidden md:block"
+                      className="absolute top-2 left-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity hidden md:block"
                       style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
                       title="Fullscreen"
                     >
@@ -243,18 +244,25 @@ function PlayerPage() {
               )}
               {currentVideoId && (
                 <div className="mb-2 rounded-lg overflow-hidden" style={{ background: 'var(--bg-card)' }}>
-                  <div className="p-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
+                  <button 
+                    onClick={() => setShowComments(!showComments)}
+                    className="w-full p-2 flex items-center justify-between border-b"
+                    style={{ borderColor: 'var(--border-color)' }}
+                  >
                     <h4 className="text-xs font-semibold" style={{ color: 'var(--text-main)' }}>Comments</h4>
-                  </div>
-                  <div className="h-48 overflow-y-auto">
-                    <iframe
-                      src={`https://www.youtube.com/comment_thread?video_id=${currentVideoId}&theme=dark`}
-                      className="w-full h-full border-0"
-                      title="YouTube Comments"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
+                    <i className={`fas ${showComments ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs`} style={{ color: 'var(--text-muted)' }}></i>
+                  </button>
+                  {showComments && (
+                    <div className="h-48 overflow-y-auto">
+                      <iframe
+                        src={`https://www.youtube.com/comment_thread?video_id=${currentVideoId}&theme=dark`}
+                        className="w-full h-full border-0"
+                        title="YouTube Comments"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
                 </div>
               )}
             </div>
