@@ -304,10 +304,11 @@ function Header() {
     </header>
 
     {/* Bottom Navigation for Mobile */}
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 z-50 flex items-center justify-around border-t pb-safe overflow-hidden"
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 z-50 flex items-center justify-around border-t"
          style={{ 
-           background: 'var(--bg-card)', 
-           borderColor: 'var(--border-color)'
+            background: 'var(--bg-card)', 
+            borderColor: 'var(--border-color)',
+            paddingBottom: 'env(safe-area-inset-bottom)'
           }}>
       <button
         onClick={() => {
@@ -317,27 +318,27 @@ function Header() {
             setMobileSidebarOpen(true);
           }
         }}
-        className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 flex-1"
+        className="flex flex-col items-center justify-center flex-1 h-full"
         style={{ color: mobileSidebarOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
-        <i className="fas fa-history text-base"></i>
-        <span className="text-[10px]">History</span>
+        <i className="fas fa-history text-lg"></i>
+        <span className="text-[10px] mt-0.5">History</span>
       </button>
       <Link
         to="/"
-        className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 flex-1"
+        className="flex flex-col items-center justify-center flex-1 h-full"
         style={{ color: isActive('/') && !mobileSidebarOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
-        <i className="fas fa-play text-base"></i>
-        <span className="text-[10px]">Player</span>
+        <i className="fas fa-play text-lg"></i>
+        <span className="text-[10px] mt-0.5">Player</span>
       </Link>
       <button
         onClick={() => setPlaylistPanelOpen(!playlistPanelOpen)}
-        className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 flex-1"
+        className="flex flex-col items-center justify-center flex-1 h-full"
         style={{ color: playlistPanelOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
-        <i className="fas fa-list text-base"></i>
-        <span className="text-[10px]">Playlists</span>
+        <i className="fas fa-list text-lg"></i>
+        <span className="text-[10px] mt-0.5">Playlists</span>
       </button>
     </nav>
 
