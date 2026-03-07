@@ -105,16 +105,6 @@ function PlayerPage() {
 
   return (
     <div ref={containerRef} className={`h-full flex flex-col md:flex-row overflow-hidden ${isFullscreen ? 'fixed inset-0 z-[9999] bg-black' : ''}`}>
-      {!playerPanelOpen && !isFullscreen && (
-        <button 
-          onClick={() => setPlayerPanelOpen(true)}
-          className="md:flex hidden absolute right-2 top-20 z-10 p-2 rounded-lg shadow-lg"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-muted)' }}
-          title="Show playlist"
-        >
-          <i className="fas fa-chevron-left text-xs"></i>
-        </button>
-      )}
       <div className={`flex-1 flex flex-col min-w-0 overflow-hidden order-2 md:order-1 ${isFullscreen ? 'p-0' : ''}`}>
         <div className={`flex-1 flex flex-col ${isFullscreen ? 'p-0' : 'p-2 md:p-6 pt-4 pb-24 md:pb-2'} overflow-y-auto relative`}>
           <div className={`flex-1 flex items-center justify-center ${isFullscreen ? 'h-screen' : ''}`}>
@@ -229,9 +219,6 @@ function PlayerPage() {
           </button>
           <button onClick={() => setSettingsOpen(!settingsOpen)} className="px-3 py-2" style={{ color: 'var(--text-muted)' }}>
             <i className="fas fa-cog"></i>
-          </button>
-          <button onClick={() => setPlayerPanelOpen(false)} className="px-2 py-2" style={{ color: 'var(--text-muted)' }} title="Close panel">
-            <i className="fas fa-chevron-right text-xs"></i>
           </button>
         </div>
         {settingsOpen && <div className="flex-shrink-0"><Settings /></div>}
