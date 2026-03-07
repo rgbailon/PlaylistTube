@@ -294,7 +294,7 @@ function Header() {
     </header>
 
     {/* Bottom Navigation for Mobile */}
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 z-50 flex items-center justify-around border-t pb-safe"
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 z-50 flex items-center justify-around border-t pb-safe overflow-hidden"
          style={{ 
            background: 'var(--bg-card)', 
            borderColor: 'var(--border-color)'
@@ -302,33 +302,32 @@ function Header() {
       <button
         onClick={() => {
           if (mobileSidebarOpen) {
-            // Trigger close animation in Sidebar via custom event
             window.dispatchEvent(new CustomEvent('closeMobileSidebar'));
           } else {
             setMobileSidebarOpen(true);
           }
         }}
-        className="flex flex-col items-center justify-center gap-1 p-2"
+        className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 flex-1"
         style={{ color: mobileSidebarOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
-        <i className="fas fa-history text-lg"></i>
-        <span className="text-xs">History</span>
+        <i className="fas fa-history text-base"></i>
+        <span className="text-[10px]">History</span>
       </button>
       <Link
         to="/"
-        className="flex flex-col items-center justify-center gap-1 p-2"
+        className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 flex-1"
         style={{ color: isActive('/') && !mobileSidebarOpen ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
-        <i className="fas fa-play text-lg"></i>
-        <span className="text-xs">Player</span>
+        <i className="fas fa-play text-base"></i>
+        <span className="text-[10px]">Player</span>
       </Link>
       <Link
         to="/search?view=playlists"
-        className="flex flex-col items-center justify-center gap-1 p-2"
+        className="flex flex-col items-center justify-center gap-0.5 px-2 py-1 flex-1"
         style={{ color: location.pathname === '/search' && location.search.includes('view=playlists') ? 'var(--accent-color)' : 'var(--text-muted)' }}
       >
-        <i className="fas fa-list text-lg"></i>
-        <span className="text-xs">Playlists</span>
+        <i className="fas fa-list text-base"></i>
+        <span className="text-[10px]">Playlists</span>
       </Link>
     </nav>
     </>
