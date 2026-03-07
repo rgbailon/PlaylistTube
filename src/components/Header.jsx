@@ -168,6 +168,13 @@ function Header() {
       </nav>
 
       <div className="flex items-center gap-2">
+        <Link
+          to="/search"
+          className="md:hidden p-2 rounded-lg hover:bg-[var(--bg-hover)] transition"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <i className="fas fa-search text-lg"></i>
+        </Link>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="md:hidden p-2 rounded-lg hover:bg-[var(--bg-hover)] transition"
