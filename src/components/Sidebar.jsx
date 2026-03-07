@@ -141,15 +141,106 @@ function Sidebar() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto scrollbar-thin p-3">
+          <div className="flex-1 overflow-y-auto scrollbar-thin p-2">
             {filteredHistory.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full py-12 px-4">
+              <div className="flex flex-col items-center justify-center h-full py-8 px-4">
                 <div 
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                   style={{ background: 'var(--bg-hover)' }}
                 >
-                  <i className="fas fa-list-ul text-2xl" style={{ color: 'var(--text-muted)' }}></i>
+                  <i className="fas fa-list-ul text-lg" style={{ color: 'var(--text-muted)' }}></i>
                 </div>
+                <p style={{ color: 'var(--text-main)' }} className="text-xs font-medium">
+                  No playlists yet
+                </p>
+                <p style={{ color: 'var(--text-muted)' }} className="text-[10px] mt-1 text-center">
+                  Search and load playlists here
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {filteredHistory.map((playlist, index) => (
+                  <Tooltip.Root key={playlist.id || index}>
+                    <Tooltip.Trigger asChild>
+                      <div
+                        onClick={() => handlePlaylistClick(playlist)}
+                        className="flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition-all duration-200 group"
+                        style={{ 
+                          background: 'var(--bg-main)',
+                          border: '1px solid var(--border-color)'
+                        }}
+                      >
+                        <div className="relative w-12 h-9 flex-shrink-0 rounded overflow-hidden shadow-sm">
+                          <img
+                            src={getThumbnail(playlist)}
+                            alt={playlist.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/120x68?text=Playlist';
+                            }}
+                          />
+                          <div 
+                            className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"
+                          >
+                            <div className="w-6 h-6 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <i className="fas fa-play text-[8px] text-gray-800 ml-px"></i>
+                            </div>
+                          </div>
+                          {playlist.videoCount && (
+                            <span 
+                              className="absolute bottom-0.5 right-0.5 text-[8px] px-1 rounded bg-black/80 text-white font-medium"
+                            >
+                              {playlist.videoCount}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 
+                            className="text-xs font-medium truncate"
+                            style={{ color: 'var(--text-main)' }}
+                          >
+                            {playlist.title}
+                          </h3>
+                          <p 
+                            className="text-[10px] truncate"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
+                            {playlist.channelTitle || 'YouTube'} · {playlist.videos?.length || 0} videos
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFromHistory(playlist.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-50 transition-all duration-200 self-start"
+                          style={{ color: 'var(--text-muted)' }}
+                          title="Remove"
+                        >
+                          <i className="fas fa-times text-[10px]"></i>
+                        </button>
+                      </div>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content 
+                        className="max-w-xs px-3 py-2 rounded-lg shadow-lg z-50"
+                        sideOffset={5}
+                        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+                      >
+                        <div className="text-xs font-medium">{playlist.title}</div>
+                        <div className="text-[10px] mt-1 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+                          <span>{playlist.channelTitle || 'YouTube'}</span>
+                          <span>·</span>
+                          <span>{playlist.videos?.length || 0} videos</span>
+                        </div>
+                        <Tooltip.Arrow style={{ fill: 'var(--bg-card)' }} />
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                ))}
+              </div>
+            )}
+          </div>
                 <p style={{ color: 'var(--text-main)' }} className="text-sm font-medium">
                   No playlists yet
                 </p>
