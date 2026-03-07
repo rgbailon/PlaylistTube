@@ -269,8 +269,6 @@ function App() {
     player, setPlayer,
     currentPlaylist, setCurrentPlaylist,
     currentVideoIndex, setCurrentVideoIndex,
-    currentPlaylist, setCurrentPlaylist,
-    currentVideoIndex, setCurrentVideoIndex,
     playlistHistory,
     theme, setTheme: setNewTheme,
     apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, getCurrentApiKey, switchToNextApiKey,

@@ -2,20 +2,20 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import LiveChat from './LiveChat';
-
+ 
 const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
 function Header() {
-  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen, playlistPanelOpen, setPlaylistPanelOpen, currentPlaylist, currentVideoIndex, saveSearchResults } = useApp();
+  const { theme, setTheme, apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, playlistPanelOpen, setPlaylistPanelOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState(null);
   const [mobileTab, setMobileTab] = useState('playlist');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
   const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
@@ -408,37 +408,11 @@ function Header() {
               type="text"
               value={videoSearchQuery}
               onChange={(e) => setVideoSearchQuery(e.target.value)}
-              onKeyDown={async (e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && videoSearchQuery.trim()) {
-                  setSearching(true);
-                  setSearchError(null);
-                  try {
-                    const apiKey = getCurrentApiKey();
-                    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(videoSearchQuery)}&type=video&key=${apiKey}`);
-                    const data = await response.json();
-                    if (data.error) { throw new Error(data.error.message); }
-                    const videos = data.items?.map(item => ({
-                      id: item.id.videoId,
-                      title: item.snippet.title,
-                      thumbnail: item.snippet.thumbnails?.medium?.url,
-                      channelTitle: item.snippet.channelTitle,
-                      publishedAt: item.snippet.publishedAt
-                    })) || [];
-                    if (videos.length === 1) {
-                      setCurrentPlaylist(videos);
-                      setCurrentVideoIndex(0);
-                      navigate('/');
-                    } else {
-                      saveSearchResults(videos, videoSearchQuery, 'video');
-                      navigate(`/search?view=videos&q=${encodeURIComponent(videoSearchQuery)}`);
-                    }
-                    setSearchModalOpen(false);
-                    setVideoSearchQuery('');
-                  } catch (err) {
-                    setSearchError(err.message);
-                  } finally {
-                    setSearching(false);
-                  }
+                  setSearchModalOpen(false);
+                  navigate(`/video?q=${encodeURIComponent(videoSearchQuery)}`);
+                  setVideoSearchQuery('');
                 }
               }}
               placeholder="Search videos..."
@@ -446,15 +420,10 @@ function Header() {
               style={{ color: 'var(--text-main)' }}
               autoFocus
             />
-            {searching ? (
-              <i className="fas fa-spinner fa-spin" style={{ color: 'var(--text-muted)' }}></i>
-            ) : (
-              <button onClick={() => setSearchModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
-                <i className="fas fa-times"></i>
-              </button>
-            )}
+            <button onClick={() => setSearchModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
+              <i className="fas fa-times"></i>
+            </button>
           </div>
-          {searchError && <p className="text-xs mt-2" style={{ color: '#ef4444' }}>{searchError}</p>}
         </div>
       </div>
     )}
