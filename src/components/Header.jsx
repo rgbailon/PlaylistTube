@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
+import LiveChat from './LiveChat';
 
 const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
 function Header() {
-  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen, playlistPanelOpen, setPlaylistPanelOpen } = useApp();
+  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen, playlistPanelOpen, setPlaylistPanelOpen, currentPlaylist, currentVideoIndex } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
@@ -348,13 +349,36 @@ function Header() {
       </div>
       <div className="flex-1 overflow-y-auto p-2" style={{ background: 'var(--bg-main)' }}>
         {mobileTab === 'playlist' ? (
-          <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
-            Playlist from Player page
-          </p>
+          currentPlaylist.length === 0 ? (
+            <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+              No videos in playlist
+            </p>
+          ) : (
+            currentPlaylist.map((video, index) => (
+              <div key={video.id || index} onClick={() => { setCurrentVideoIndex(index); setPlaylistPanelOpen(false); }} className="flex gap-2 p-2 cursor-pointer mb-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'var(--bg-hover)' : 'transparent' }}>
+                <div className="relative w-20 h-12 rounded overflow-hidden flex-shrink-0">
+                  <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
+                  {index === currentVideoIndex && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <i className="fas fa-play text-white text-xs"></i>
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xs line-clamp-2" style={{ color: 'var(--text-main)' }}>{video.title}</h4>
+                  <p className="text-[10px] truncate" style={{ color: 'var(--text-muted)' }}>{video.channelTitle || 'Unknown'}</p>
+                </div>
+              </div>
+            ))
+          )
         ) : (
-          <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
-            Live chat - play a video first
-          </p>
+          currentPlaylist[currentVideoIndex]?.id ? (
+            <LiveChat videoId={currentPlaylist[currentVideoIndex].id} />
+          ) : (
+            <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+              Play a video first to use live chat
+            </p>
+          )
         )}
       </div>
     </div>
