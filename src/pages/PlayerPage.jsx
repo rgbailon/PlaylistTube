@@ -16,6 +16,7 @@ function PlayerPage() {
   const [tabAnimating, setTabAnimating] = useState(false);
   const [mobileTab, setMobileTab] = useState('player');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [immersiveMode, setImmersiveMode] = useState(false);
   const [showFullscreenPlaylist, setShowFullscreenPlaylist] = useState(false);
   const playerContainerId = 'youtube-player';
   const playerRef = useRef(null);
@@ -107,7 +108,7 @@ function PlayerPage() {
   }, []);
 
   useEffect(() => {
-    if (!isFullscreen) return;
+    if (!isFullscreen && !immersiveMode) return;
 
     const handleMouseMove = (e) => {
       const screenWidth = window.innerWidth;
@@ -136,18 +137,18 @@ function PlayerPage() {
   return (
     <div 
       ref={containerRef} 
-      className={`h-full flex flex-col md:flex-row overflow-hidden ${isFullscreen ? 'fixed inset-0 z-[9999] bg-black' : ''}`}
+      className={`h-full flex flex-col md:flex-row overflow-hidden ${isFullscreen ? 'fixed inset-0 z-[9999] bg-black' : ''} ${immersiveMode ? 'fixed inset-0 z-[9999] bg-black' : ''}`}
       onDoubleClick={isFullscreen ? toggleFullscreen : undefined}
     >
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden order-2 md:order-1 ${isFullscreen ? 'p-0' : ''}`}>
-        <div className={`flex-1 flex flex-col ${isFullscreen ? 'p-0' : 'p-2 md:p-6 pt-4 pb-24 md:pb-2'} overflow-y-auto relative`}>
-          <div className={`flex-1 flex items-center justify-center ${isFullscreen ? 'h-screen' : ''}`}>
-            <div className={`w-full ${isFullscreen ? 'max-w-none h-full' : (sidebarCollapsed ? 'max-w-full' : 'max-w-5xl')}`}>
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden order-2 md:order-1 ${isFullscreen ? 'p-0' : ''} ${immersiveMode ? 'p-0' : ''}`}>
+        <div className={`flex-1 flex flex-col ${isFullscreen ? 'p-0' : 'p-2 md:p-6 pt-4 pb-24 md:pb-2'} ${immersiveMode ? 'p-0' : ''} overflow-y-auto relative`}>
+          <div className={`flex-1 flex items-center justify-center ${isFullscreen ? 'h-screen' : ''} ${immersiveMode ? 'h-screen' : ''}`}>
+            <div className={`w-full ${isFullscreen ? 'max-w-none h-full' : (sidebarCollapsed ? 'max-w-full' : 'max-w-5xl')} ${immersiveMode ? 'max-w-none h-full' : ''}`}>
               <div 
                 className="player-container relative w-full h-full"
-                style={isFullscreen ? {} : { paddingTop: '56.25%' }}
+                style={isFullscreen || immersiveMode ? {} : { paddingTop: '56.25%' }}
               >
-                {currentPlaylist.length === 0 && !isFullscreen && (
+                {currentPlaylist.length === 0 && !isFullscreen && !immersiveMode && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: '#0f0f0f' }}>
                     <i className="fab fa-youtube text-5xl mb-3" style={{ color: '#6b7280' }}></i>
                     <p style={{ color: '#9ca3af' }}>Ready to play</p>
@@ -155,17 +156,27 @@ function PlayerPage() {
                   </div>
                 )}
                 <div id={playerContainerId} className="absolute inset-0"></div>
-                {currentPlaylist.length > 0 && !isFullscreen && (
-                  <button
-                    onClick={toggleFullscreen}
-                    className="absolute bottom-2 right-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity"
-                    style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
-                    title="Fullscreen"
-                  >
-                    <i className="fas fa-expand text-sm"></i>
-                  </button>
+                {currentPlaylist.length > 0 && !isFullscreen && !immersiveMode && (
+                  <>
+                    <button
+                      onClick={() => setImmersiveMode(true)}
+                      className="absolute bottom-2 right-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity md:hidden"
+                      style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
+                      title="Expand"
+                    >
+                      <i className="fas fa-expand text-sm"></i>
+                    </button>
+                    <button
+                      onClick={toggleFullscreen}
+                      className="absolute bottom-2 right-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity hidden md:block"
+                      style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
+                      title="Fullscreen"
+                    >
+                      <i className="fas fa-expand text-sm"></i>
+                    </button>
+                  </>
                 )}
-                {isFullscreen && (
+      {(isFullscreen || immersiveMode) && (
                   <>
                     <button
                       onClick={toggleFullscreen}
@@ -188,10 +199,33 @@ function PlayerPage() {
                     />
                   </>
                 )}
+                {immersiveMode && (
+                  <>
+                    <button
+                      onClick={() => setImmersiveMode(false)}
+                      className="absolute top-4 left-4 z-20 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity"
+                      style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
+                      title="Exit"
+                    >
+                      <i className="fas fa-times text-sm"></i>
+                    </button>
+                    <div 
+                      className="absolute right-0 top-0 bottom-0 w-16 z-10 cursor-pointer"
+                      style={{ background: 'transparent' }}
+                      onMouseEnter={() => {
+                        if (hidePlaylistTimeout.current) {
+                          clearTimeout(hidePlaylistTimeout.current);
+                          hidePlaylistTimeout.current = null;
+                        }
+                        setShowFullscreenPlaylist(true);
+                      }}
+                    />
+                  </>
+                )}
               </div>
             </div>
           </div>
-          {!isFullscreen && videoTitle && (
+          {!isFullscreen && !immersiveMode && videoTitle && (
             <div className="mt-2 md:mt-3">
               <h3 className="text-sm md:text-lg font-bold line-clamp-2" style={{ color: 'var(--text-main)' }}>{videoTitle}</h3>
               <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{videoChannel}</p>
@@ -207,7 +241,7 @@ function PlayerPage() {
           </div>
         </div>
         
-        {!isFullscreen && (
+        {!isFullscreen && !immersiveMode && (
         <div className="md:hidden border-t flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
           <div className="flex">
             <button onClick={() => { if (activeTab !== 'chat') { setTabAnimating(true); setTimeout(() => { setActiveTab('chat'); setTabAnimating(false); }, 150); } }} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: activeTab === 'chat' ? '#22c55e' : 'var(--text-muted)', borderBottom: activeTab === 'chat' ? '2px solid #22c55e' : '2px solid transparent' }}>
@@ -224,7 +258,7 @@ function PlayerPage() {
         </div>
         )}
         
-        {activeTab === 'chat' && !isFullscreen && (
+        {activeTab === 'chat' && !isFullscreen && !immersiveMode && (
           <div className="md:hidden flex-1 overflow-hidden">
             {currentVideoId ? <LiveChat videoId={currentVideoId} /> : (
               <div className="flex items-center justify-center h-full p-4">
@@ -234,7 +268,7 @@ function PlayerPage() {
           </div>
         )}
 
-        {activeTab === 'playlist' && !isFullscreen && (
+        {activeTab === 'playlist' && !isFullscreen && !immersiveMode && (
           <div className="md:hidden flex-1 overflow-y-auto" style={{ background: 'var(--bg-main)' }}>
             {currentPlaylist.length === 0 ? (
               <div className="text-center py-8">
@@ -326,7 +360,7 @@ function PlayerPage() {
         </aside>
       )}
 
-      {!isFullscreen && (
+      {!isFullscreen && !immersiveMode && (
       <aside className={`md:flex w-80 border-l flex-col overflow-hidden order-1 md:order-2 md:border-l-0 transition-transform duration-300 ${playerPanelOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
         <div className="flex border-b flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
           <button onClick={() => { setActiveTab('playlist'); setSettingsOpen(false); }} className="flex-1 px-3 py-2 text-sm font-medium" style={{ color: activeTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: activeTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
