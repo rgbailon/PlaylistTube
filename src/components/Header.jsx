@@ -332,27 +332,25 @@ function Header() {
     </nav>
 
     {/* Mobile Playlist Panel Slide-in */}
+    <div className={`md:hidden fixed inset-y-0 right-0 w-[85%] z-50 flex flex-col transition-transform duration-300 overflow-hidden ${playlistPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      style={{ background: 'var(--bg-card)', borderLeft: '1px solid var(--border-color)' }}>
+      <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
+        <span className="text-sm font-medium" style={{ color: 'var(--text-main)' }}>Playlist</span>
+        <button onClick={() => setPlaylistPanelOpen(false)} className="p-1" style={{ color: 'var(--text-muted)' }}>
+          <i className="fas fa-times"></i>
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-2" style={{ background: 'var(--bg-main)' }}>
+        <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+          Playlist from Player page
+        </p>
+      </div>
+    </div>
     {playlistPanelOpen && (
-      <>
-        <div 
-          className="md:hidden fixed inset-0 z-40 bg-black/50"
-          onClick={() => setPlaylistPanelOpen(false)}
-        />
-        <div className="md:hidden fixed inset-x-0 bottom-14 top-12 z-50 flex flex-col transition-transform duration-300 overflow-hidden"
-          style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}>
-          <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
-            <span className="text-sm font-medium" style={{ color: 'var(--text-main)' }}>Playlist</span>
-            <button onClick={() => setPlaylistPanelOpen(false)} className="p-1" style={{ color: 'var(--text-muted)' }}>
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2" style={{ background: 'var(--bg-main)' }}>
-            <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
-              Playlist from Player page
-            </p>
-          </div>
-        </div>
-      </>
+      <div 
+        className="md:hidden fixed inset-0 z-40 bg-black/50"
+        onClick={() => setPlaylistPanelOpen(false)}
+      />
     )}
     </>
   );
