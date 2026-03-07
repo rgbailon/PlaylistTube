@@ -13,6 +13,7 @@ function Header() {
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
+  const [mobileTab, setMobileTab] = useState('playlist');
 
   const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
@@ -332,23 +333,34 @@ function Header() {
     </nav>
 
     {/* Mobile Playlist Panel Slide-in */}
-    <div className={`md:hidden fixed inset-y-0 right-0 w-[85%] z-50 flex flex-col transition-transform duration-300 overflow-hidden ${playlistPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
-      style={{ background: 'var(--bg-card)', borderLeft: '1px solid var(--border-color)' }}>
-      <div className="flex items-center justify-between px-3 py-2 border-b" style={{ borderColor: 'var(--border-color)' }}>
-        <span className="text-sm font-medium" style={{ color: 'var(--text-main)' }}>Playlist</span>
-        <button onClick={() => setPlaylistPanelOpen(false)} className="p-1" style={{ color: 'var(--text-muted)' }}>
+    <div className={`md:hidden fixed inset-y-0 right-0 w-[85%] z-40 flex flex-col transition-transform duration-300 overflow-hidden ${playlistPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      style={{ background: 'var(--bg-card)', borderLeft: '1px solid var(--border-color)', bottom: '56px' }}>
+      <div className="flex border-b" style={{ borderColor: 'var(--border-color)' }}>
+        <button onClick={() => setMobileTab('playlist')} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: mobileTab === 'playlist' ? 'var(--accent-color)' : 'var(--text-muted)', borderBottom: mobileTab === 'playlist' ? '2px solid var(--accent-color)' : '2px solid transparent' }}>
+          <i className="fas fa-list-ol mr-1"></i>Playlist
+        </button>
+        <button onClick={() => setMobileTab('chat')} className="flex-1 px-3 py-2 text-xs font-medium" style={{ color: mobileTab === 'chat' ? '#22c55e' : 'var(--text-muted)', borderBottom: mobileTab === 'chat' ? '2px solid #22c55e' : '2px solid transparent' }}>
+          <i className="fas fa-comments mr-1"></i>Live Chat
+        </button>
+        <button onClick={() => setPlaylistPanelOpen(false)} className="px-3 py-2" style={{ color: 'var(--text-muted)' }}>
           <i className="fas fa-times"></i>
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-2" style={{ background: 'var(--bg-main)' }}>
-        <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
-          Playlist from Player page
-        </p>
+        {mobileTab === 'playlist' ? (
+          <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+            Playlist from Player page
+          </p>
+        ) : (
+          <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>
+            Live chat - play a video first
+          </p>
+        )}
       </div>
     </div>
     {playlistPanelOpen && (
       <div 
-        className="md:hidden fixed inset-0 z-40 bg-black/50"
+        className="md:hidden fixed inset-0 z-30 bg-black/50"
         onClick={() => setPlaylistPanelOpen(false)}
       />
     )}
