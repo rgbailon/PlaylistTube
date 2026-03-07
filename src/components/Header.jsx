@@ -6,7 +6,7 @@ import LiveChat from './LiveChat';
 const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
 function Header() {
-  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen, playlistPanelOpen, setPlaylistPanelOpen, currentPlaylist, currentVideoIndex } = useApp();
+  const { theme, setTheme, apiKeys, getCurrentApiKey, setCurrentPlaylist, setCurrentVideoIndex, quota, mobileSidebarOpen, setMobileSidebarOpen, playlistPanelOpen, setPlaylistPanelOpen, currentPlaylist, currentVideoIndex, saveSearchResults } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
@@ -15,6 +15,7 @@ function Header() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [mobileTab, setMobileTab] = useState('playlist');
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
@@ -168,13 +169,13 @@ function Header() {
       </nav>
 
       <div className="flex items-center gap-2">
-        <Link
-          to="/search"
+        <button
+          onClick={() => setSearchModalOpen(true)}
           className="md:hidden p-2 rounded-lg hover:bg-[var(--bg-hover)] transition"
           style={{ color: 'var(--text-muted)' }}
         >
           <i className="fas fa-search text-lg"></i>
-        </Link>
+        </button>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="md:hidden p-2 rounded-lg hover:bg-[var(--bg-hover)] transition"
@@ -394,6 +395,68 @@ function Header() {
         className="md:hidden fixed inset-0 z-30 bg-black/50"
         onClick={() => setPlaylistPanelOpen(false)}
       />
+    )}
+
+    {/* Search Modal */}
+    {searchModalOpen && (
+      <div className="md:hidden fixed inset-0 z-50 flex items-start justify-center pt-20">
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSearchModalOpen(false)} />
+        <div className="relative w-[90%] max-w-md rounded-2xl p-4 shadow-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
+          <div className="flex items-center gap-2">
+            <i className="fas fa-search" style={{ color: 'var(--text-muted)' }}></i>
+            <input
+              type="text"
+              value={videoSearchQuery}
+              onChange={(e) => setVideoSearchQuery(e.target.value)}
+              onKeyDown={async (e) => {
+                if (e.key === 'Enter' && videoSearchQuery.trim()) {
+                  setSearching(true);
+                  setSearchError(null);
+                  try {
+                    const apiKey = getCurrentApiKey();
+                    const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(videoSearchQuery)}&type=video&key=${apiKey}`);
+                    const data = await response.json();
+                    if (data.error) { throw new Error(data.error.message); }
+                    const videos = data.items?.map(item => ({
+                      id: item.id.videoId,
+                      title: item.snippet.title,
+                      thumbnail: item.snippet.thumbnails?.medium?.url,
+                      channelTitle: item.snippet.channelTitle,
+                      publishedAt: item.snippet.publishedAt
+                    })) || [];
+                    if (videos.length === 1) {
+                      setCurrentPlaylist(videos);
+                      setCurrentVideoIndex(0);
+                      navigate('/');
+                    } else {
+                      saveSearchResults(videos, videoSearchQuery, 'video');
+                      navigate(`/search?view=videos&q=${encodeURIComponent(videoSearchQuery)}`);
+                    }
+                    setSearchModalOpen(false);
+                    setVideoSearchQuery('');
+                  } catch (err) {
+                    setSearchError(err.message);
+                  } finally {
+                    setSearching(false);
+                  }
+                }
+              }}
+              placeholder="Search videos..."
+              className="flex-1 bg-transparent border-none outline-none text-sm"
+              style={{ color: 'var(--text-main)' }}
+              autoFocus
+            />
+            {searching ? (
+              <i className="fas fa-spinner fa-spin" style={{ color: 'var(--text-muted)' }}></i>
+            ) : (
+              <button onClick={() => setSearchModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
+                <i className="fas fa-times"></i>
+              </button>
+            )}
+          </div>
+          {searchError && <p className="text-xs mt-2" style={{ color: '#ef4444' }}>{searchError}</p>}
+        </div>
+      </div>
     )}
     </>
   );
