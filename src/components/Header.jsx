@@ -45,7 +45,7 @@ const navItems = [
     return match ? match[1] : null;
   };
 
-  const handleVideoSearch = async (e) => {
+  const handleVideoSearch = (e) => {
     e.preventDefault();
     if (!videoSearchQuery.trim()) return;
     
@@ -133,8 +133,9 @@ const navItems = [
           />
         </div>
         <button
-          type="submit"
-          disabled={searching || !getCurrentApiKey()}
+          type="button"
+          onClick={handleVideoSearch}
+          disabled={!getCurrentApiKey()}
           className="p-2 rounded-full hover:bg-[var(--bg-hover)] disabled:opacity-50"
           style={{ color: 'var(--text-muted)' }}
         >
