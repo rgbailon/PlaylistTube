@@ -253,9 +253,15 @@ return (
                 )}
                 <div id={playerContainerId} className="absolute inset-0"></div>
                 <div 
-                  className="absolute inset-0 z-10"
+                  className="absolute z-10"
                   onClick={togglePlay}
                   onDoubleClick={toggleFullscreen}
+                  style={{ 
+                    width: '85%',
+                    height: '85%',
+                    top: '7.5%',
+                    left: '7.5%'
+                  }}
                 ></div>
                 {(isFullscreen || immersiveMode) && (
                   <>
@@ -422,14 +428,14 @@ return (
             </button>
           </div>
           {activeTab === 'playlist' ? (
-            <div className="flex-1 overflow-y-auto h-full" style={{ background: '#0f0f0f' }}>
+            <div className="flex-1 h-full" style={{ background: '#0f0f0f' }}>
               {currentPlaylist.length === 0 ? (
                 <div className="text-center py-8">
                   <i className="fas fa-film text-2xl mb-2" style={{ color: '#6b7280' }}></i>
                   <p className="text-sm" style={{ color: '#6b7280' }}>Videos will appear here</p>
                 </div>
-              ) : currentPlaylist.map((video, index) => (
-                <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg" style={{ background: index === currentVideoIndex ? 'rgba(255,255,255,0.1)' : 'transparent' }}>
+) : currentPlaylist.map((video, index) => (
+                <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg transition-transform duration-200 hover:scale-110 hover:shadow-lg" style={{ background: index === currentVideoIndex ? 'rgba(255,255,255,0.1)' : 'transparent' }}>
                   <div className="relative w-24 h-14 rounded overflow-hidden flex-shrink-0">
                     <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
                     {index === currentVideoIndex && isPlaying && (
