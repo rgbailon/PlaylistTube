@@ -43,9 +43,77 @@ const containerRef = useRef(null);
     if (playerReady && currentPlaylist.length > 0) loadVideo(currentVideoIndex);
   }, [playerReady]);
 
-  useEffect(() => {
+useEffect(() => {
     if (playerReady && playerRef.current && currentPlaylist.length > 0) loadVideo(currentVideoIndex);
   }, [currentVideoIndex, currentPlaylist, playerReady]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!playerRef.current) return;
+      
+      switch(e.key.toLowerCase()) {
+        case ' ':
+        case 'k':
+          e.preventDefault();
+          togglePlay();
+          break;
+        case 'j':
+          e.preventDefault();
+          playerRef.current.seekTo(Math.max(0, playerRef.current.getCurrentTime() - 10), true);
+          break;
+        case 'l':
+          e.preventDefault();
+          playerRef.current.seekTo(playerRef.current.getCurrentTime() + 10, true);
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          playerRef.current.seekTo(Math.max(0, playerRef.current.getCurrentTime() - 5), true);
+          break;
+        case 'arrowright':
+          e.preventDefault();
+          playerRef.current.seekTo(playerRef.current.getCurrentTime() + 5, true);
+          break;
+        case 'arrowup':
+          e.preventDefault();
+          playerRef.current.setVolume(Math.min(100, playerRef.current.getVolume() + 10));
+          break;
+        case 'arrowdown':
+          e.preventDefault();
+          playerRef.current.setVolume(Math.max(0, playerRef.current.getVolume() - 10));
+          break;
+        case 'f':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+        case 'm':
+          e.preventDefault();
+          if (playerRef.current.isMuted()) {
+            playerRef.current.unMute();
+          } else {
+            playerRef.current.mute();
+          }
+          break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          e.preventDefault();
+          playerRef.current.seekTo(playerRef.current.getDuration() * (parseInt(e.key) / 10), true);
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
 
   const createPlayer = () => {
     if (!playerRef.current) {
@@ -78,7 +146,8 @@ const playNext = () => { if (currentVideoIndex < currentPlaylist.length - 1) set
 
   const togglePlay = () => {
     if (playerRef.current) {
-      if (isPlaying) {
+      const state = playerRef.current.getPlayerState();
+      if (state === window.YT.PlayerState.PLAYING) {
         playerRef.current.pauseVideo();
       } else {
         playerRef.current.playVideo();
