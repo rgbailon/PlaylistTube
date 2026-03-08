@@ -435,7 +435,7 @@ return (
                   <p className="text-sm" style={{ color: '#6b7280' }}>Videos will appear here</p>
                 </div>
 ) : currentPlaylist.map((video, index) => (
-                <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg transition-transform duration-200 hover:scale-110 hover:shadow-lg" style={{ background: index === currentVideoIndex ? 'rgba(255,255,255,0.1)' : 'transparent' }}>
+                <div key={video.id || index} onClick={() => playVideo(index)} className="flex gap-2 p-2 cursor-pointer mb-1 mx-1 rounded-lg transition-transform duration-200 hover:scale-105 hover:shadow-lg" style={{ background: index === currentVideoIndex ? 'rgba(255,255,255,0.1)' : 'transparent' }}>
                   <div className="relative w-24 h-14 rounded overflow-hidden flex-shrink-0">
                     <img src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`} alt={video.title} className="w-full h-full object-cover" />
                     {index === currentVideoIndex && isPlaying && (
