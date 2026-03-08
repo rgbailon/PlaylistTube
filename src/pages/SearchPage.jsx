@@ -18,6 +18,7 @@ function SearchPage() {
   const [addedMessage, setAddedMessage] = useState(null);
   const [error, setError] = useState(null);
   const [playlistDetails, setPlaylistDetails] = useState({});
+  const [liveDetails, setLiveDetails] = useState({});
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -32,6 +33,21 @@ function SearchPage() {
     if (diffDays < 30) return Math.floor(diffDays / 7) + ' weeks ago';
     if (diffDays < 365) return Math.floor(diffDays / 30) + ' months ago';
     return Math.floor(diffDays / 365) + ' years ago';
+  };
+
+  const decodeHtml = (html) => {
+    if (!html) return '';
+    const txt = document.createElement('textarea');
+    txt.innerHTML = html;
+    return txt.value;
+  };
+
+  const formatViewers = (count) => {
+    if (!count) return '';
+    const num = parseInt(count);
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
   };
 
   useEffect(() => {
@@ -199,12 +215,39 @@ function SearchPage() {
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         updateQuota(-1);
+        fetchLiveDetails(data.items.map(item => item.id.videoId));
       }
     } catch (err) {
       console.error('Failed to load live streams:', err);
       setError('Failed to load live streams. Check your internet connection.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLiveDetails = async (videoIds) => {
+    if (!videoIds.length) return;
+    const apiKey = getCurrentApiKey();
+    if (!apiKey) return;
+    
+    try {
+      const resp = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoIds.join(',')}&key=${apiKey}`
+      );
+      const data = await resp.json();
+      if (data.items) {
+        const details = {};
+        data.items.forEach(item => {
+          if (item.liveStreamingDetails?.concurrentViewers) {
+            details[item.id] = {
+              concurrentViewers: item.liveStreamingDetails.concurrentViewers,
+            };
+          }
+        });
+        setLiveDetails(prev => ({ ...prev, ...details }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch live details:', err);
     }
   };
 
@@ -497,7 +540,7 @@ if (allVideos.length > 0) {
     };
     addVideoToPlaylist(video);
     
-    setAddedMessage(item.snippet.title);
+    setAddedMessage(decodeHtml(item.snippet.title));
     setTimeout(() => setAddedMessage(null), 3000);
   };
 
@@ -579,7 +622,7 @@ if (allVideos.length > 0) {
         };
         addToHistory(playlistData);
         
-        setAddedMessage(playlist.snippet.title);
+        setAddedMessage(decodeHtml(playlist.snippet.title));
         setTimeout(() => setAddedMessage(null), 3000);
       }
     } catch (err) {
@@ -724,6 +767,12 @@ if (allVideos.length > 0) {
                       Playlist
                     </div>
                   )}
+                  {searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                      <i className="fas fa-eye"></i>
+                      {formatViewers(liveDetails[item.id.videoId].concurrentViewers)}
+                    </div>
+                  )}
                   {searchType === 'live' && (
                     <div className="absolute top-2 right-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
                       <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
@@ -739,10 +788,10 @@ if (allVideos.length > 0) {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium line-clamp-2 group-hover:text-blue-500 transition-colors cursor-pointer" style={{ color: 'var(--text-main)' }}>
-                      {item.snippet.title}
+                      {decodeHtml(item.snippet.title)}
                     </h3>
                     <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
-                      {item.snippet.channelTitle}
+                      {decodeHtml(item.snippet.channelTitle)}
                       {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.publishedAt && (
                         <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
                       )}
