@@ -40,6 +40,9 @@ const [apiUrl, setApiUrl] = useState('');
     if (url.includes('openrouter.ai')) return 'openrouter';
     if (url.includes('anthropic.com')) return 'anthropic';
     if (url.includes('generativelanguage') || url.includes('google')) return 'google';
+    if (url.includes('x.ai')) return 'xai';
+    if (url.includes('mistral.ai')) return 'mistral';
+    if (url.includes('perplexity.ai')) return 'perplexity';
     if (url.includes('localhost:11434')) return 'ollama';
     return 'default';
   };
@@ -56,6 +59,15 @@ const [apiUrl, setApiUrl] = useState('');
         headers['Authorization'] = `Bearer ${key}`;
         headers['HTTP-Referer'] = window.location.origin;
         headers['X-Title'] = 'PlaylistTube';
+        break;
+      case 'google':
+        headers['Authorization'] = `Bearer ${key}`;
+        break;
+case 'xai':
+        headers['Authorization'] = `Bearer ${key}`;
+        break;
+      case 'perplexity':
+        headers['Authorization'] = `Bearer ${key}`;
         break;
       default:
         headers['Authorization'] = `Bearer ${key}`;
@@ -123,9 +135,14 @@ const [apiUrl, setApiUrl] = useState('');
   };
 
 const presets = [
-    { name: 'OpenAI', url: 'https://api.openai.com/v1', model: 'gpt-3.5-turbo' },
-    { name: 'OpenRouter', url: 'https://openrouter.ai/api/v1', model: 'anthropic/claude-3-haiku' },
-    { name: 'Ollama', url: 'http://localhost:11434/v1', model: 'llama3' },
+    { name: 'OpenAI', url: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+    { name: 'Anthropic', url: 'https://api.anthropic.com/v1', model: 'claude-3-haiku-20240307' },
+    { name: 'Google', url: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-1.5-flash-8b-exp-0827' },
+    { name: 'xAI', url: 'https://api.x.ai/v1', model: 'grok-2-1212' },
+    { name: 'Mistral', url: 'https://api.mistral.ai/v1', model: 'mistral-small-latest' },
+    { name: 'Perplexity', url: 'https://api.perplexity.ai', model: 'llama-3.1-sonar-small-128k-online' },
+    { name: 'OpenRouter', url: 'https://openrouter.ai/api/v1', model: 'anthropic/claude-3.5-sonnet' },
+    { name: 'Ollama', url: 'http://localhost:11434/v1', model: 'llama3.2' },
   ];
 
   const modelsByProvider = {
@@ -175,9 +192,30 @@ const presets = [
       { name: 'Claude 3 Haiku', value: 'claude-3-haiku-20240307', type: 'free', icon: 'fa-brain' },
     ],
     google: [
+      { name: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash-exp', type: 'pro', icon: 'fa-gem' },
       { name: 'Gemini 1.5 Pro', value: 'gemini-1.5-pro', type: 'pro', icon: 'fa-gem' },
+      { name: 'Gemini 1.5 Flash', value: 'gemini-1.5-flash-8b-exp-0827', type: 'free', icon: 'fa-gem' },
       { name: 'Gemini 1.5 Flash', value: 'gemini-1.5-flash', type: 'free', icon: 'fa-gem' },
       { name: 'Gemini 1.5 Flash-8B', value: 'gemini-1.5-flash-8b', type: 'free', icon: 'fa-gem' },
+    ],
+    xai: [
+      { name: 'Grok 2 Vision', value: 'grok-2-vision-1212', type: 'pro', icon: 'fa-bolt' },
+      { name: 'Grok 2', value: 'grok-2-1212', type: 'pro', icon: 'fa-bolt' },
+      { name: 'Grok 2 Flash', value: 'grok-2-flash-1212', type: 'free', icon: 'fa-bolt' },
+      { name: 'Grok Beta', value: 'grok-beta', type: 'free', icon: 'fa-bolt' },
+      { name: 'Grok Vision Beta', value: 'grok-vision-beta', type: 'free', icon: 'fa-eye' },
+    ],
+    mistral: [
+      { name: 'Mistral Large', value: 'mistral-large-latest', type: 'pro', icon: 'fa-wind' },
+      { name: 'Mistral Small', value: 'mistral-small-latest', type: 'free', icon: 'fa-wind' },
+      { name: 'Mistral Nemo', value: 'mistral-nemo', type: 'free', icon: 'fa-wind' },
+      { name: 'Mistral Codestral', value: 'codestral-latest', type: 'free', icon: 'fa-code' },
+    ],
+    perplexity: [
+      { name: 'Sonar Large Online', value: 'llama-3.1-sonar-large-128k-online', type: 'pro', icon: 'fa-search' },
+      { name: 'Sonar Small Online', value: 'llama-3.1-sonar-small-128k-online', type: 'free', icon: 'fa-search' },
+      { name: 'Sonar Large', value: 'llama-3.1-sonar-large-128k', type: 'pro', icon: 'fa-search' },
+      { name: 'Sonar Small', value: 'llama-3.1-sonar-small-128k', type: 'free', icon: 'fa-search' },
     ],
     ollama: [
       { name: 'Llama 3.2', value: 'llama3.2', type: 'free', icon: 'fa-paw' },

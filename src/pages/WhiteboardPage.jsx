@@ -140,7 +140,7 @@ function WhiteboardPage() {
   ];
 
   return (
-    <div className="h-[calc(100vh-48px)] md:h-[calc(100vh-48px)] flex flex-col" style={{ background: 'var(--bg-main)' }}>
+    <div className="h-screen md:h-[calc(100vh-48px)] flex flex-col" style={{ background: 'var(--bg-main)' }}>
       <div 
         className="flex flex-col sm:flex-row sm:items-center justify-between px-2 sm:px-4 py-2 gap-2 overflow-x-auto"
         style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}

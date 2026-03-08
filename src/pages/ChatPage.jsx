@@ -10,6 +10,7 @@ const getProviderFromUrl = (url) => {
   if (url.includes('googleusercontent.com') || url.includes('generativelanguage')) return 'google';
   if (url.includes('x.ai')) return 'xai';
   if (url.includes('mistral.ai')) return 'mistral';
+  if (url.includes('perplexity.ai')) return 'perplexity';
   if (url.includes('localhost:11434')) return 'ollama';
   return 'default';
 };
@@ -34,6 +35,7 @@ const buildHeaders = (provider, key) => {
     case 'google':
     case 'xai':
     case 'mistral':
+    case 'perplexity':
     case 'ollama':
     case 'default':
     default:
