@@ -443,7 +443,7 @@ function SearchPage() {
       else if (type === 'live') loadTrendingLive();
       else if (type === 'shorts') loadTrendingShorts();
     } else {
-      searchPlaylists();
+      searchPlaylists(type);
     }
   };
 
