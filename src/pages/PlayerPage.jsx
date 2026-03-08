@@ -22,8 +22,9 @@ function PlayerPage() {
   const playerContainerId = 'youtube-player';
   const playerRef = useRef(null);
   const isCreatingPlayer = useRef(false);
-  const containerRef = useRef(null);
+const containerRef = useRef(null);
   const hidePlaylistTimeout = useRef(null);
+  const clickTimeout = useRef(null);
 
   useEffect(() => {
     const initPlayer = () => {
@@ -71,11 +72,34 @@ function PlayerPage() {
     updateQuota(-1);
   };
 
-  const playNext = () => { if (currentVideoIndex < currentPlaylist.length - 1) setCurrentVideoIndex(currentVideoIndex + 1); };
+const playNext = () => { if (currentVideoIndex < currentPlaylist.length - 1) setCurrentVideoIndex(currentVideoIndex + 1); };
   const playPrevious = () => { if (currentVideoIndex > 0) setCurrentVideoIndex(currentVideoIndex - 1); };
   const playVideo = (index) => { setCurrentVideoIndex(index); };
 
-  const toggleFullscreen = () => {
+  const togglePlay = () => {
+    if (playerRef.current) {
+      if (isPlaying) {
+        playerRef.current.pauseVideo();
+      } else {
+        playerRef.current.playVideo();
+      }
+    }
+  };
+
+  const handlePlayerClick = (e) => {
+    if (clickTimeout.current) {
+      clearTimeout(clickTimeout.current);
+      clickTimeout.current = null;
+      toggleFullscreen();
+    } else {
+      clickTimeout.current = setTimeout(() => {
+        clickTimeout.current = null;
+        togglePlay();
+      }, 250);
+    }
+  };
+
+const toggleFullscreen = () => {
     if (!isFullscreen) {
       if (containerRef.current) {
         if (containerRef.current.requestFullscreen) {
@@ -90,6 +114,7 @@ function PlayerPage() {
       } else if (document.webkitExitFullscreen) {
         document.webkitExitFullscreen();
       }
+      setShowFullscreenPlaylist(false);
     }
   };
 
@@ -135,19 +160,20 @@ function PlayerPage() {
 
   const currentVideoId = currentPlaylist[currentVideoIndex]?.id;
 
-  return (
+return (
     <div 
       ref={containerRef} 
       className={`h-full flex flex-col md:flex-row overflow-hidden ${isFullscreen ? 'fixed inset-0 z-[9999] bg-black' : ''} ${immersiveMode ? 'fixed inset-0 z-[9999] bg-black' : ''}`}
-      onDoubleClick={isFullscreen ? toggleFullscreen : undefined}
     >
       <div className={`flex-1 flex flex-col min-w-0 overflow-hidden order-2 md:order-1 ${isFullscreen ? 'p-0' : ''} ${immersiveMode ? 'p-0' : ''}`}>
-        <div className={`flex-1 flex flex-col ${isFullscreen ? 'p-0' : 'p-2 md:p-6 pt-4 pb-24 md:pb-2'} ${immersiveMode ? 'p-0' : ''} overflow-y-auto relative`}>
+        <div className={`flex-1 flex flex-col ${isFullscreen ? 'p-0' : 'p-1 md:p-2 pt-1 pb-24 md:pb-2'} ${immersiveMode ? 'p-0' : ''} overflow-y-auto relative`}>
           <div className={`flex-1 flex items-center justify-center ${isFullscreen ? 'h-screen' : ''} ${immersiveMode ? 'h-screen' : ''}`}>
             <div className={`w-full ${isFullscreen ? 'max-w-none h-full' : (sidebarCollapsed ? 'max-w-full' : 'max-w-5xl')} ${immersiveMode ? 'max-w-none h-full' : ''}`}>
               <div 
                 className="player-container relative w-full h-full"
                 style={isFullscreen || immersiveMode ? {} : { paddingTop: '56.25%' }}
+                onClick={togglePlay}
+                onDoubleClick={toggleFullscreen}
               >
                 {currentPlaylist.length === 0 && !isFullscreen && !immersiveMode && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: '#0f0f0f' }}>
@@ -157,36 +183,13 @@ function PlayerPage() {
                   </div>
                 )}
                 <div id={playerContainerId} className="absolute inset-0"></div>
-                {currentPlaylist.length > 0 && !isFullscreen && !immersiveMode && (
+                <div 
+                  className="absolute inset-0 z-10"
+                  onClick={togglePlay}
+                  onDoubleClick={toggleFullscreen}
+                ></div>
+                {(isFullscreen || immersiveMode) && (
                   <>
-                    <button
-                      onClick={() => setImmersiveMode(true)}
-                      className="absolute bottom-2 right-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity md:hidden"
-                      style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
-                      title="Expand"
-                    >
-                      <i className="fas fa-expand text-sm"></i>
-                    </button>
-                    <button
-                      onClick={toggleFullscreen}
-                      className="absolute top-2 left-2 z-10 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity hidden md:block"
-                      style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
-                      title="Fullscreen"
-                    >
-                      <i className="fas fa-expand text-sm"></i>
-                    </button>
-                  </>
-                )}
-      {(isFullscreen || immersiveMode) && (
-                  <>
-                    <button
-                      onClick={toggleFullscreen}
-                      className="absolute top-4 left-4 z-20 p-2 rounded-lg opacity-70 hover:opacity-100 transition-opacity"
-                      style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
-                      title="Exit fullscreen"
-                    >
-                      <i className="fas fa-compress text-sm"></i>
-                    </button>
                     <div 
                       className="absolute right-0 top-0 bottom-0 w-16 z-10 cursor-pointer"
                       style={{ background: 'transparent' }}
@@ -295,7 +298,7 @@ function PlayerPage() {
         )}
       </div>
 
-      {isFullscreen && (
+{isFullscreen && (
         <aside 
           className={`fixed right-0 top-0 h-full w-80 flex-col overflow-hidden transition-transform duration-300 z-[9998] ${showFullscreenPlaylist ? 'translate-x-0' : 'translate-x-full'}`}
           style={{ background: 'rgba(30,30,30,0.95)', backdropFilter: 'blur(10px)' }}

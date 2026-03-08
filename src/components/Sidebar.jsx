@@ -7,6 +7,7 @@ function Sidebar() {
   const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen } = useApp();
   const [historySearch, setHistorySearch] = useState('');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [showClearBtn, setShowClearBtn] = useState(false);
   const navigate = useNavigate();
 
   // Handle closing animation
@@ -30,6 +31,15 @@ function Sidebar() {
     window.addEventListener('closeMobileSidebar', handleCloseEvent);
     return () => window.removeEventListener('closeMobileSidebar', handleCloseEvent);
   }, [mobileSidebarOpen]);
+
+  // Listen for clear library event from Header
+  useEffect(() => {
+    const handleClearLibrary = () => {
+      clearHistory();
+    };
+    window.addEventListener('clearLibrary', handleClearLibrary);
+    return () => window.removeEventListener('clearLibrary', handleClearLibrary);
+  }, [clearHistory]);
 
   const handleClose = () => {
     setIsAnimatingOut(true);
@@ -104,8 +114,8 @@ function Sidebar() {
           borderColor: 'var(--border-color)' 
         }}
       >
-        <div className="h-full flex flex-col">
-          <div className="p-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+        <div className="h-full flex flex-col overflow-y-auto">
+          <div className="p-4 border-b flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
             <div className="flex items-center justify-between mb-3">
               <h2 
                 className="font-semibold text-sm uppercase tracking-wide flex items-center gap-2"
@@ -243,16 +253,29 @@ function Sidebar() {
           </div>
 
           {playlistHistory.length > 0 && (
-            <div className="p-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="p-2 border-t flex-shrink-0 md:hidden" style={{ borderColor: 'var(--border-color)' }}>
               <button
-                onClick={clearHistory}
-                className="w-full text-xs font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition hover:bg-red-50"
-                style={{ color: 'var(--text-muted)' }}
-                title="Clear history"
+                onClick={() => setShowClearBtn(!showClearBtn)}
+                className="w-full text-xs font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition"
+                style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)' }}
               >
                 <i className="fas fa-trash-alt text-[10px]"></i>
                 <span>Clear Library</span>
+                <i className={`fas ${showClearBtn ? 'fa-chevron-up' : 'fa-chevron-down'} text-[10px] ml-1`}></i>
               </button>
+              {showClearBtn && (
+                <button
+                  onClick={() => {
+                    if (confirm('Clear all library history?')) {
+                      clearHistory();
+                    }
+                  }}
+                  className="w-full text-xs font-medium py-2 mt-1 rounded-lg flex items-center justify-center gap-2 transition bg-red-500 hover:bg-red-600 text-white"
+                >
+                  <i className="fas fa-check text-[10px]"></i>
+                  <span>Confirm Clear</span>
+                </button>
+              )}
             </div>
           )}
         </div>
