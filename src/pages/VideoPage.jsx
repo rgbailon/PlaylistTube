@@ -194,7 +194,7 @@ function VideoPage() {
               viewCount: statsMap[video.id]?.viewCount,
               publishedAt: statsMap[video.id]?.publishedAt || video.publishedAt,
             }));
-            updateQuota(-1);
+            updateQuota(-1, 'videos');
           }
         } catch (statsErr) {
           console.error('Failed to fetch stats:', statsErr);
@@ -265,7 +265,7 @@ function VideoPage() {
               viewCount: statsMap[video.id]?.viewCount,
               publishedAt: statsMap[video.id]?.publishedAt || video.publishedAt,
             }));
-            updateQuota(-1);
+            updateQuota(-1, 'videos');
           }
         } catch (statsErr) {
           console.error('Failed to fetch stats:', statsErr);

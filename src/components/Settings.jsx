@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useApp } from '../App';
 
 function Settings() {
-  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory } = useApp();
+  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory, apiUsage, apiCalls } = useApp();
   
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [apiKeysExpanded, setApiKeysExpanded] = useState(false);
@@ -137,15 +137,41 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(true);
           {apiKeys.length > 0 && youtubeApiExpanded && (
             <div className="pt-3 mt-3 border-t border-[var(--border-color)]">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-xs text-[var(--text-muted)]">Quota</span>
+                <span className="text-xs text-[var(--text-muted)]">Total Quota</span>
                 <span className="text-xs text-[var(--text-muted)]">{quota} / {maxQuota}</span>
               </div>
               <div className="w-full h-1.5 rounded-full overflow-hidden bg-[var(--bg-hover)]">
                 <div className="h-full transition-all duration-300" style={{ width: quotaPercent + '%', background: quotaPercent > 90 ? '#ef4444' : quotaPercent > 70 ? '#f59e0b' : '#22c55e' }}></div>
               </div>
               <div className="flex justify-between items-center mt-1">
-                <span className="text-[10px] text-[var(--text-muted)]">{quotaPercent.toFixed(1)}%</span>
+                <span className="text-[10px] text-[var(--text-muted)]">{quotaPercent.toFixed(1)}% used</span>
                 <button onClick={resetQuota} className="text-[10px] hover:text-blue-500 transition text-[var(--text-muted)]"><i className="fas fa-undo mr-0.5"></i>Reset</button>
+              </div>
+              
+              <div className="mt-3 pt-3 border-t border-[var(--border-color)]">
+                <span className="text-xs font-medium text-[var(--text-muted)]">API Usage Breakdown</span>
+                <div className="mt-2 space-y-1.5">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-[var(--text-muted)]"><i className="fas fa-search mr-1"></i>Search</span>
+                    <span className="text-[var(--text-main)]">{apiUsage.search} units ({apiCalls.search} calls × 100)</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-[var(--text-muted)]"><i className="fas fa-list mr-1"></i>Playlists</span>
+                    <span className="text-[var(--text-main)]">{apiUsage.playlists} units ({apiCalls.playlists} calls)</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-[var(--text-muted)]"><i className="fas fa-video mr-1"></i>Playlist Items</span>
+                    <span className="text-[var(--text-main)]">{apiUsage.playlistItems} units ({apiCalls.playlistItems} calls)</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-[var(--text-muted)]"><i className="fas fa-eye mr-1"></i>Video Details</span>
+                    <span className="text-[var(--text-main)]">{apiUsage.videos} units ({apiCalls.videos} calls)</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs pt-1 border-t border-[var(--border-color)]">
+                    <span className="text-[var(--text-muted)] font-medium">Total Used</span>
+                    <span className="text-[var(--text-main)] font-medium">{quota} units</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}

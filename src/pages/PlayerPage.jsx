@@ -138,7 +138,7 @@ useEffect(() => {
     playerRef.current.loadVideoById(video.id);
     setVideoTitle(video.title);
     setVideoChannel(video.channelTitle || 'Unknown');
-    updateQuota(-1);
+    updateQuota(-1, 'playlistItems');
   };
 
 const playNext = () => { if (currentVideoIndex < currentPlaylist.length - 1) setCurrentVideoIndex(currentVideoIndex + 1); };

@@ -12,7 +12,10 @@ function WhiteboardPage() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 600 });
   const [showGrid, setShowGrid] = useState(false);
-  const [shapeStart, setShapeStart] = useState(null);
+  const [shapeStart, setShapeStart] = useState({ x: 0, y: 0 });
+  const [wireframeType, setWireframeType] = useState(null);
+  const [showShapesDropdown, setShowShapesDropdown] = useState(false);
+  const savedCanvasRef = useRef(null);
 
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -44,6 +47,7 @@ function WhiteboardPage() {
     const ctx = canvas.getContext('2d');
     
     if (showGrid) {
+      savedCanvasRef.current = canvas.toDataURL();
       ctx.strokeStyle = '#e0e0e0';
       ctx.lineWidth = 1;
       const gridSize = 40;
@@ -61,9 +65,13 @@ function WhiteboardPage() {
         ctx.lineTo(canvas.width, y);
         ctx.stroke();
       }
-      saveState();
-    } else {
-      initCanvas();
+    } else if (savedCanvasRef.current) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = savedCanvasRef.current;
     }
   }, [showGrid]);
 
@@ -133,7 +141,7 @@ function WhiteboardPage() {
     setShapeStart(coords);
     setIsDrawing(true);
     
-    if (['rectangle', 'circle', 'line'].includes(tool)) {
+    if (['rectangle', 'circle', 'line', 'arrow', 'text'].includes(tool) || wireframeType) {
       tempImage.current = canvasRef.current.getContext('2d').getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
     }
   };
@@ -155,10 +163,11 @@ function WhiteboardPage() {
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.stroke();
-    } else if (['rectangle', 'circle', 'line'].includes(tool)) {
+    } else if (['rectangle', 'circle', 'line', 'arrow', 'text'].includes(tool)) {
       ctx.putImageData(tempImage.current, 0, 0);
       ctx.beginPath();
       ctx.strokeStyle = color;
+      ctx.fillStyle = color;
       ctx.lineWidth = brushSize;
       
       if (tool === 'rectangle') {
@@ -174,6 +183,89 @@ function WhiteboardPage() {
         ctx.moveTo(shapeStart.x, shapeStart.y);
         ctx.lineTo(coords.x, coords.y);
         ctx.stroke();
+      } else if (tool === 'arrow') {
+        const headlen = 15;
+        const dx = coords.x - shapeStart.x;
+        const dy = coords.y - shapeStart.y;
+        const angle = Math.atan2(dy, dx);
+        ctx.moveTo(shapeStart.x, shapeStart.y);
+        ctx.lineTo(coords.x, coords.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(coords.x, coords.y);
+        ctx.lineTo(coords.x - headlen * Math.cos(angle - Math.PI / 6), coords.y - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(coords.x, coords.y);
+        ctx.lineTo(coords.x - headlen * Math.cos(angle + Math.PI / 6), coords.y - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
+      } else if (tool === 'text') {
+        const text = prompt('Enter text:', '');
+        if (text) {
+          ctx.font = `${brushSize * 4}px Arial`;
+          ctx.fillText(text, shapeStart.x, shapeStart.y);
+        }
+      }
+    } else if (wireframeType) {
+      ctx.putImageData(tempImage.current, 0, 0);
+      const wf = wireframes.find(w => w.id === wireframeType);
+      if (wf) {
+        const width = coords.x - shapeStart.x || wf.width;
+        const height = coords.y - shapeStart.y || wf.height;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(shapeStart.x, shapeStart.y, width, height);
+        
+        ctx.fillStyle = '#f3f4f6';
+        ctx.fillRect(shapeStart.x + 2, shapeStart.y + 2, width - 4, height - 4);
+        
+        if (wf.id === 'button') {
+          ctx.fillStyle = '#3b82f6';
+          ctx.fillRect(shapeStart.x, shapeStart.y + height/2 - 8, width, 16);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Button', shapeStart.x + width/2, shapeStart.y + height/2 + 4);
+        } else if (wf.id === 'input') {
+          ctx.strokeStyle = '#d1d5db';
+          ctx.strokeRect(shapeStart.x, shapeStart.y, width, height);
+          ctx.fillStyle = '#9ca3af';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'left';
+          ctx.fillText('Input field...', shapeStart.x + 8, shapeStart.y + height/2 + 4);
+        } else if (wf.id === 'header') {
+          ctx.fillStyle = '#3b82f6';
+          ctx.fillRect(shapeStart.x, shapeStart.y, width, 15);
+          ctx.fillStyle = '#1f2937';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'left';
+          ctx.fillText('Header', shapeStart.x + 10, shapeStart.y + 35);
+        } else if (wf.id === 'navbar') {
+          ctx.fillStyle = '#f3f4f6';
+          ctx.fillRect(shapeStart.x, shapeStart.y, width, height);
+          ctx.strokeRect(shapeStart.x, shapeStart.y, width, height);
+          for (let i = 0; i < 3; i++) {
+            ctx.fillStyle = '#6b7280';
+            ctx.fillRect(shapeStart.x + 20 + i * 80, shapeStart.y + 18, 40, 4);
+          }
+        } else if (wf.id === 'card') {
+          ctx.strokeRect(shapeStart.x, shapeStart.y, width, height);
+          ctx.fillStyle = '#e5e7eb';
+          ctx.fillRect(shapeStart.x + 10, shapeStart.y + 10, width - 20, height * 0.5);
+          ctx.fillStyle = '#1f2937';
+          ctx.font = 'bold 12px Arial';
+          ctx.textAlign = 'left';
+          ctx.fillText('Title', shapeStart.x + 10, shapeStart.y + height * 0.7);
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '10px Arial';
+          ctx.fillText('Description...', shapeStart.x + 10, shapeStart.y + height * 0.85);
+        } else if (wf.id === 'footer') {
+          ctx.fillStyle = '#f3f4f6';
+          ctx.fillRect(shapeStart.x, shapeStart.y, width, height);
+          ctx.strokeRect(shapeStart.x, shapeStart.y, width, height);
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '10px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Footer content', shapeStart.x + width/2, shapeStart.y + height/2);
+        }
       }
     }
     
@@ -198,10 +290,21 @@ function WhiteboardPage() {
 const tools = [
     { id: 'pen', icon: 'fa-pen', label: 'Pen' },
     { id: 'eraser', icon: 'fa-eraser', label: 'Eraser' },
+    { id: 'text', icon: 'fa-font', label: 'Text' },
+    { id: 'arrow', icon: 'fa-long-arrow-alt-right', label: 'Arrow' },
     { id: 'rectangle', icon: 'fa-square', label: 'Rectangle' },
     { id: 'circle', icon: 'fa-circle', label: 'Circle' },
     { id: 'line', icon: 'fa-minus', label: 'Line' },
     { id: 'grid', icon: 'fa-th', label: 'Grid', isToggle: true },
+  ];
+
+  const wireframes = [
+    { id: 'button', label: 'Button', icon: 'fa-stop', width: 120, height: 40 },
+    { id: 'input', label: 'Input', icon: 'fa-square', width: 200, height: 36 },
+    { id: 'header', label: 'Header', icon: 'fa-heading', width: 400, height: 60 },
+    { id: 'navbar', label: 'Nav', icon: 'fa-bars', width: 300, height: 50 },
+    { id: 'card', label: 'Card', icon: 'fa-id-card', width: 200, height: 150 },
+    { id: 'footer', icon: 'fa-footer', label: 'Footer', width: 400, height: 80 },
   ];
 
   return (
@@ -265,6 +368,51 @@ const tools = [
             className="w-16 sm:w-20"
           />
           <span className="text-xs w-5" style={{ color: 'var(--text-muted)' }}>{brushSize}</span>
+        </div>
+
+        <div className="flex items-center gap-1 overflow-x-auto">
+          <div className="relative">
+            <button
+              onClick={() => setShowShapesDropdown(!showShapesDropdown)}
+              className="px-2 py-1 rounded-lg text-xs transition whitespace-nowrap flex items-center gap-1"
+              style={{ 
+                color: wireframeType ? 'white' : 'var(--text-muted)',
+                background: wireframeType ? '#3b82f6' : 'var(--bg-hover)'
+              }}
+              title="Shapes"
+            >
+              <i className="fas fa-shapes mr-1"></i>
+              Shapes
+              <i className={`fas ${showShapesDropdown ? 'fa-chevron-up' : 'fa-chevron-down'} text-[10px]`}></i>
+            </button>
+            {showShapesDropdown && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowShapesDropdown(false)} />
+                <div 
+                  className="absolute left-0 top-full mt-1 z-50 rounded-lg shadow-lg overflow-hidden min-w-[140px]"
+                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+                >
+                  {wireframes.map((wf) => (
+                    <button
+                      key={wf.id}
+                      onClick={() => {
+                        setWireframeType(wf.id);
+                        setShowShapesDropdown(false);
+                      }}
+                      className="w-full px-3 py-2 text-xs text-left transition flex items-center gap-2"
+                      style={{ 
+                        color: wireframeType === wf.id ? '#3b82f6' : 'var(--text-main)',
+                        background: wireframeType === wf.id ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
+                      }}
+                    >
+                      <i className={`fas ${wf.icon} w-4`}></i>
+                      {wf.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-1">

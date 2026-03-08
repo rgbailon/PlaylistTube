@@ -60,7 +60,7 @@ function LivePage() {
         setResults(data.items);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
+        updateQuota(-100, 'search');
       } else {
         setResults([]);
       }
@@ -108,7 +108,7 @@ function LivePage() {
         setResults(data.items);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
+        updateQuota(-100, 'search');
       } else {
         setResults([]);
       }
@@ -152,7 +152,7 @@ function LivePage() {
         setResults([...results, ...data.items]);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
+        updateQuota(-100, 'search');
       }
     } catch (err) {
       console.error('Load more failed:', err);

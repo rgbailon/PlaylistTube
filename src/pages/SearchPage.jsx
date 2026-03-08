@@ -138,7 +138,7 @@ function SearchPage() {
         setResults(data.items);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
+        updateQuota(-1, 'playlists');
         saveSearchResults(searchQuery, 'playlist', data.items);
         fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
       }
@@ -179,7 +179,7 @@ function SearchPage() {
         setResults(data.items);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
+        updateQuota(-100, 'search');
       }
     } catch (err) {
       console.error('Failed to load trending videos:', err);
@@ -218,7 +218,7 @@ function SearchPage() {
         setResults(data.items);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
+        updateQuota(-100, 'search');
         fetchLiveDetails(data.items.map(item => item.id.videoId));
       }
     } catch (err) {
@@ -284,7 +284,7 @@ function SearchPage() {
         setResults(data.items);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
+        updateQuota(-1, 'playlists');
         fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
       }
     } catch (err) {
@@ -347,10 +347,10 @@ function SearchPage() {
         setResults(data.items);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
+        updateQuota(-100, 'search');
         saveSearchResults(searchQuery, activeType, data.items);
         
-        if (activeType === 'playlist') {
+        if (activeType === 'playlist' || activeType === 'shorts_playlist') {
           fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
         }
       }
@@ -382,6 +382,7 @@ function SearchPage() {
         });
         setPlaylistDetails(prev => ({ ...prev, ...details }));
       }
+      updateQuota(-1, 'playlists');
     } catch (err) {
       console.error('Failed to fetch playlist details:', err);
     }
@@ -412,10 +413,12 @@ function SearchPage() {
         setResults([...results, ...data.items]);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
-        updateQuota(-1);
         
-        if (searchType === 'playlist') {
+        if (searchType === 'playlist' || searchType === 'shorts_playlist') {
+          updateQuota(-1, 'playlists');
           fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
+        } else {
+          updateQuota(-100, 'search');
         }
       }
     } catch (err) {

@@ -27,6 +27,8 @@ function App() {
   const [apiKeys, setApiKeys] = useState([]);
   const [currentKeyIndex, setCurrentKeyIndex] = useState(0);
   const [quota, setQuota] = useState(0);
+  const [apiUsage, setApiUsage] = useState({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 });
+  const [apiCalls, setApiCalls] = useState({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -191,11 +193,26 @@ function App() {
     return true;
   };
 
-  const updateQuota = (amount) => {
+  const API_COSTS = {
+    search: 100,
+    playlistItems: 1,
+    playlists: 1,
+    videos: 1,
+    channels: 1,
+    other: 1,
+  };
+
+  const updateQuota = (amount, type = 'other') => {
+    const cost = Math.abs(amount);
     const newQuota = Math.max(0, quota + amount);
     setQuota(newQuota);
     localStorage.setItem('yt_quota', newQuota.toString());
     setCookie('yt_quota', newQuota.toString());
+    
+    if (amount < 0) {
+      setApiUsage(prev => ({ ...prev, [type]: prev[type] + cost }));
+      setApiCalls(prev => ({ ...prev, [type]: prev[type] + 1 }));
+    }
   };
 
   const checkAndSwitchApiKey = () => {
@@ -207,6 +224,8 @@ function App() {
 
   const resetQuota = () => {
     setQuota(0);
+    setApiUsage({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 });
+    setApiCalls({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 });
     localStorage.setItem('yt_quota', '0');
     setCookie('yt_quota', '0');
   };
@@ -272,7 +291,7 @@ function App() {
     playlistHistory,
     theme, setTheme: setNewTheme,
     apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, getCurrentApiKey, switchToNextApiKey,
-    quota, updateQuota, resetQuota, checkAndSwitchApiKey,
+    quota, updateQuota, resetQuota, checkAndSwitchApiKey, apiUsage, apiCalls,
     addToHistory, clearHistory, addVideoToPlaylist, removeFromHistory,
     sidebarCollapsed, setSidebarCollapsed, toggleSidebar,
     settingsOpen, setSettingsOpen,
@@ -304,7 +323,7 @@ function App() {
                 <Route path="/video" element={<VideoPage />} />
                 <Route path="/live" element={<LivePage />} />
                 <Route path="/chat" element={<ChatPage />} />
-                <Route path="/whiteboard" element={<WhiteboardPage />} />
+<Route path="/whiteboard" element={<WhiteboardPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
               </Routes>
             </main>
