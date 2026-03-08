@@ -64,7 +64,7 @@ function SearchPage() {
       loadPlaylist(list, playlist);
     } else if (q) {
       setSearchQuery(q);
-      searchPlaylists(searchTypeFromUrl);
+      searchPlaylists(searchTypeFromUrl, q);
     } else if (lastSearchResults.length > 0 && lastSearchType === searchType) {
       setResults(lastSearchResults);
       setSearchQuery(lastSearchQuery);
@@ -295,10 +295,11 @@ function SearchPage() {
     }
   };
 
-  const searchPlaylists = async (overrideType = null) => {
+  const searchPlaylists = async (overrideType = null, overrideQuery = null) => {
     const activeType = overrideType || searchType;
+    const activeQuery = overrideQuery !== null ? overrideQuery : searchQuery;
     
-    if (!searchQuery.trim()) {
+    if (!activeQuery.trim()) {
       if (activeType === 'playlist') {
         loadTrendingPlaylists();
       } else if (activeType === 'video') {
@@ -320,14 +321,14 @@ function SearchPage() {
     setLoading(true);
     setError(null);
     try {
-      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=video&order=${sortOrder}&key=${apiKey}`;
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&order=${sortOrder}&key=${apiKey}`;
       
       if (activeType === 'playlist') {
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=playlist&order=${sortOrder}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=playlist&order=${sortOrder}&key=${apiKey}`;
       } else if (activeType === 'live') {
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=video&eventType=live&order=${sortOrder}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&eventType=live&order=${sortOrder}&key=${apiKey}`;
       } else if (activeType === 'shorts_playlist') {
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${sortOrder}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${sortOrder}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -432,7 +433,7 @@ function SearchPage() {
       else if (searchType === 'live') loadTrendingLive();
       else if (searchType === 'shorts_playlist') loadTrendingShortsPlaylists();
     } else {
-      searchPlaylists();
+      searchPlaylists(searchType, searchQuery);
     }
   };
 
@@ -444,7 +445,7 @@ function SearchPage() {
       else if (type === 'live') loadTrendingLive();
       else if (type === 'shorts_playlist') loadTrendingShortsPlaylists();
     } else {
-      searchPlaylists(type);
+      searchPlaylists(type, searchQuery);
     }
   };
 
