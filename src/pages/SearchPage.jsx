@@ -54,6 +54,11 @@ function SearchPage() {
     const params = new URLSearchParams(location.search);
     const q = params.get('q');
     const list = params.get('list');
+    const type = params.get('type');
+    
+    if (type && ['video', 'playlist', 'live', 'shorts'].includes(type)) {
+      setSearchType(type);
+    }
     
     if (list) {
       const playlist = { id: { playlistId: list }, snippet: { title: 'Playlist', channelTitle: '' } };

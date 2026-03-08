@@ -71,7 +71,7 @@ const navItems = [
     } else if (playlistId) {
       navigate(`/search?list=${playlistId}`);
     } else {
-      navigate(`/search?q=${encodeURIComponent(input)}`);
+      navigate(`/search?q=${encodeURIComponent(input)}&type=video`);
     }
     setVideoSearchQuery('');
   };
