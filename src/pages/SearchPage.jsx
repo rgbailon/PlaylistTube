@@ -11,7 +11,7 @@ function SearchPage() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState('relevance');
-  const [searchType, setSearchType] = useState('playlist');
+  const [searchType, setSearchType] = useState('video');
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [loadingPlaylist, setLoadingPlaylist] = useState(null);
@@ -56,29 +56,26 @@ function SearchPage() {
     const list = params.get('list');
     const type = params.get('type');
     
-    const currentType = (type && ['video', 'playlist', 'live', 'shorts'].includes(type)) ? type : searchType;
-    
-    if (type && ['video', 'playlist', 'live', 'shorts'].includes(type)) {
-      setSearchType(type);
-    }
+    const searchTypeFromUrl = (type && ['video', 'playlist', 'live', 'shorts'].includes(type)) ? type : 'video';
+    setSearchType(searchTypeFromUrl);
     
     if (list) {
       const playlist = { id: { playlistId: list }, snippet: { title: 'Playlist', channelTitle: '' } };
       loadPlaylist(list, playlist);
     } else if (q) {
       setSearchQuery(q);
-      searchPlaylists(currentType);
+      searchPlaylists(searchTypeFromUrl);
     } else if (lastSearchResults.length > 0 && lastSearchType === searchType) {
       setResults(lastSearchResults);
       setSearchQuery(lastSearchQuery);
     } else {
-      if (searchType === 'playlist') {
+      if (searchTypeFromUrl === 'playlist') {
         loadTrendingPlaylists();
-      } else if (searchType === 'video') {
+      } else if (searchTypeFromUrl === 'video') {
         loadTrendingVideos();
-      } else if (searchType === 'live') {
+      } else if (searchTypeFromUrl === 'live') {
         loadTrendingLive();
-      } else if (searchType === 'shorts') {
+      } else if (searchTypeFromUrl === 'shorts') {
         loadTrendingShorts();
       }
     }
@@ -690,8 +687,8 @@ if (allVideos.length > 0) {
                 className="text-sm rounded-lg px-3 py-2"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
               >
-                <option value="playlist">Playlists</option>
                 <option value="video">Videos</option>
+                <option value="playlist">Playlists</option>
                 <option value="live">Live Videos</option>
                 <option value="shorts">Shorts</option>
               </select>
