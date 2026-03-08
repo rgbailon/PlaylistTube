@@ -405,7 +405,7 @@ const navItems = [
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && videoSearchQuery.trim()) {
                   setSearchModalOpen(false);
-                  navigate(`/video?q=${encodeURIComponent(videoSearchQuery)}`);
+                  navigate(`/search?q=${encodeURIComponent(videoSearchQuery)}&type=video`);
                   setVideoSearchQuery('');
                 }
               }}
