@@ -35,7 +35,17 @@ function SearchPage() {
   };
 
   useEffect(() => {
-    if (lastSearchResults.length > 0 && lastSearchType === searchType) {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q');
+    const list = params.get('list');
+    
+    if (list) {
+      const playlist = { id: { playlistId: list }, snippet: { title: 'Playlist', channelTitle: '' } };
+      loadPlaylist(list, playlist);
+    } else if (q) {
+      setSearchQuery(q);
+      searchPlaylists();
+    } else if (lastSearchResults.length > 0 && lastSearchType === searchType) {
       setResults(lastSearchResults);
       setSearchQuery(lastSearchQuery);
     } else {

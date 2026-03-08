@@ -18,7 +18,7 @@ function Header() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
 
-  const navItems = [
+const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
     { id: 'search', path: '/search', icon: 'fa-list', label: 'Playlists' },
     { id: 'video', path: '/video', icon: 'fa-play-circle', label: 'Video' },
@@ -50,40 +50,30 @@ function Header() {
   const handleVideoSearch = async (e) => {
     e.preventDefault();
     if (!videoSearchQuery.trim()) return;
-    if (!getCurrentApiKey()) {
-      setSearchError('Please add a YouTube API key in Settings');
-      return;
-    }
     
-    setSearching(true);
-    setSearchError(null);
-    try {
-      const input = videoSearchQuery.trim();
-      
-      const videoId = extractVideoId(input);
-      const playlistId = extractPlaylistId(input);
-      
-      if (videoId) {
-        const video = {
-          id: videoId,
-          title: videoId,
-          channelTitle: 'Direct URL',
-        };
-        setCurrentPlaylist([video]);
-        setCurrentVideoIndex(0);
-        navigate('/');
-      } else if (playlistId) {
-        navigate(`/search?list=${playlistId}`);
-      } else {
-        navigate(`/video?q=${encodeURIComponent(input)}`);
+    const input = videoSearchQuery.trim();
+    const videoId = extractVideoId(input);
+    const playlistId = extractPlaylistId(input);
+    
+    if (videoId) {
+      if (!getCurrentApiKey()) {
+        setSearchError('Please add a YouTube API key in Settings');
+        return;
       }
-      setVideoSearchQuery('');
-    } catch (err) {
-      console.error('Search failed:', err);
-      setSearchError('Search failed. Please try again.');
-    } finally {
-      setSearching(false);
+      const video = {
+        id: videoId,
+        title: videoId,
+        channelTitle: 'Direct URL',
+      };
+      setCurrentPlaylist([video]);
+      setCurrentVideoIndex(0);
+      navigate('/');
+    } else if (playlistId) {
+      navigate(`/search?list=${playlistId}`);
+    } else {
+      navigate(`/search?q=${encodeURIComponent(input)}`);
     }
+    setVideoSearchQuery('');
   };
 
   return (
@@ -252,7 +242,7 @@ function Header() {
                   className="p-2 rounded-lg hover:bg-[var(--bg-hover)] transition flex items-center gap-2 w-full"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  <i className="fas fa-palette text-lg"></i>
+<i className="fas fa-palette text-base"></i>
                   <span className="text-sm capitalize">{theme}</span>
                   <i className="fas fa-chevron-down text-xs ml-auto"></i>
                 </button>
