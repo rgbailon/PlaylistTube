@@ -11,11 +11,28 @@ function SearchPage() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState('relevance');
+  const [searchType, setSearchType] = useState('playlist');
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [loadingPlaylist, setLoadingPlaylist] = useState(null);
   const [addedMessage, setAddedMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [playlistDetails, setPlaylistDetails] = useState({});
+
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'today';
+    if (diffDays === 1) return 'yesterday';
+    if (diffDays < 7) return diffDays + ' days ago';
+    if (diffDays < 30) return Math.floor(diffDays / 7) + ' weeks ago';
+    if (diffDays < 365) return Math.floor(diffDays / 30) + ' months ago';
+    return Math.floor(diffDays / 365) + ' years ago';
+  };
 
   useEffect(() => {
     if (lastSearchResults.length > 0 && lastSearchType === 'playlist') {
@@ -85,6 +102,7 @@ function SearchPage() {
         setHasMore(!!data.nextPageToken);
         updateQuota(-1);
         saveSearchResults(searchQuery, 'playlist', data.items);
+        fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
       }
     } catch (err) {
       console.error('Failed to load trending:', err);
@@ -95,7 +113,10 @@ function SearchPage() {
   };
 
   const searchPlaylists = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim() && searchType === 'playlist') {
+      loadTrendingPlaylists();
+      return;
+    }
     
     const apiKey = getCurrentApiKey();
     if (!apiKey) {
@@ -107,7 +128,7 @@ function SearchPage() {
     setError(null);
     try {
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=playlist&order=${sortOrder}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=${searchType}&order=${sortOrder}&key=${apiKey}`
       );
       const data = await resp.json();
       
@@ -126,6 +147,10 @@ function SearchPage() {
         setHasMore(!!data.nextPageToken);
         updateQuota(-1);
         saveSearchResults(searchQuery, 'playlist', data.items);
+        
+        if (searchType === 'playlist') {
+          fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
+        }
       } else {
         setResults([]);
       }
@@ -134,6 +159,31 @@ function SearchPage() {
       setError('Search failed. Check your internet connection.');
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchPlaylistDetails = async (playlistIds) => {
+    if (!playlistIds.length) return;
+    const apiKey = getCurrentApiKey();
+    if (!apiKey) return;
+    
+    try {
+      const resp = await fetch(
+        `https://www.googleapis.com/youtube/v3/playlists?part=contentDetails,snippet&id=${playlistIds.join(',')}&key=${apiKey}`
+      );
+      const data = await resp.json();
+      if (data.items) {
+        const details = {};
+        data.items.forEach(item => {
+          details[item.id] = {
+            videoCount: item.contentDetails?.itemCount,
+            publishedAt: item.snippet?.publishedAt,
+          };
+        });
+        setPlaylistDetails(prev => ({ ...prev, ...details }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch playlist details:', err);
     }
   };
 
@@ -146,7 +196,7 @@ function SearchPage() {
     setLoading(true);
     try {
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=playlist&order=${sortOrder}&pageToken=${nextPageToken}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=${searchType}&order=${sortOrder}&pageToken=${nextPageToken}&key=${apiKey}`
       );
       const data = await resp.json();
       
@@ -155,6 +205,10 @@ function SearchPage() {
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         updateQuota(-1);
+        
+        if (searchType === 'playlist') {
+          fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
+        }
       }
     } catch (err) {
       console.error('Load more failed:', err);
@@ -165,7 +219,16 @@ function SearchPage() {
 
   const handleSortChange = (order) => {
     setSortOrder(order);
-    if (searchQuery) {
+    if (searchQuery || searchType !== 'playlist') {
+      searchPlaylists();
+    } else {
+      loadTrendingPlaylists();
+    }
+  };
+
+  const handleTypeChange = (type) => {
+    setSearchType(type);
+    if (searchQuery || type !== 'playlist') {
       searchPlaylists();
     } else {
       loadTrendingPlaylists();
@@ -377,6 +440,19 @@ if (allVideos.length > 0) {
 
         <div className="px-4 md:px-8 pb-4">
           <div className="flex flex-wrap items-center gap-3 justify-center">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Type:</span>
+              <select
+                value={searchType}
+                onChange={(e) => handleTypeChange(e.target.value)}
+                className="text-sm rounded-lg px-3 py-2"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+              >
+                <option value="playlist">Playlists</option>
+                <option value="video">Videos</option>
+                <option value="channel">Channels</option>
+              </select>
+            </div>
             <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
               <i className="fas fa-sort mr-2"></i>Sort by:
             </span>
@@ -402,6 +478,14 @@ if (allVideos.length > 0) {
       </div>
 
       <div className="px-4 md:px-8 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
+            {searchType === 'playlist' ? 'Playlists' : searchType === 'video' ? 'Videos' : 'Channels'}
+          </h2>
+          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            {results.length} results
+          </span>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {loading ? (
             Array.from({ length: 8 }).map((_, i) => (
@@ -415,13 +499,18 @@ if (allVideos.length > 0) {
             <div className="col-span-full text-center py-20">
               <i className="fab fa-youtube text-6xl mb-4" style={{ color: 'var(--text-muted)' }}></i>
               <p style={{ color: 'var(--text-muted)' }} className="text-lg">
-                {getCurrentApiKey() ? 'No playlists found' : 'Add an API key to search'}
+                {getCurrentApiKey() 
+                  ? (searchType === 'playlist' ? 'No playlists found' : searchType === 'video' ? 'No videos found' : 'No channels found')
+                  : 'Add an API key to search'}
               </p>
             </div>
           ) : (
             results.map((item) => (
-              <div key={item.id.playlistId} className="group">
-                <div className="relative aspect-video rounded-xl overflow-hidden mb-3 cursor-pointer" onClick={() => loadPlaylist(item.id.playlistId, item)}>
+              <div key={item.id.playlistId || item.id.videoId || item.id.channelId} className="group">
+                <div className="relative aspect-video rounded-xl overflow-hidden mb-3 cursor-pointer" onClick={() => {
+                  if (searchType === 'playlist') loadPlaylist(item.id.playlistId, item);
+                  else if (searchType === 'channel') navigate(`/search?q=${encodeURIComponent(item.snippet.title)}`);
+                }}>
                   <img
                     src={item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url}
                     alt={item.snippet.title}
@@ -433,28 +522,48 @@ if (allVideos.length > 0) {
                       <i className="fas fa-play text-white text-xl ml-1"></i>
                     </div>
                   </div>
-                  <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
-                    <i className="fas fa-list"></i>
-                    Playlist
-                  </div>
+                  {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.videoCount && (
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                      <i className="fas fa-video"></i>
+                      {playlistDetails[item.id.playlistId].videoCount}
+                    </div>
+                  )}
+                  {searchType === 'playlist' && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/70 text-white text-xs">
+                      Playlist
+                    </div>
+                  )}
+                  {searchType === 'channel' && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/70 text-white text-xs">
+                      Channel
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0" onClick={() => loadPlaylist(item.id.playlistId, item)}>
+                  <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-medium line-clamp-2 group-hover:text-blue-500 transition-colors cursor-pointer" style={{ color: 'var(--text-main)' }}>
                       {item.snippet.title}
                     </h3>
                     <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
                       {item.snippet.channelTitle}
+                      {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.publishedAt && (
+                        <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
+                      )}
+                      {searchType === 'video' && item.snippet.publishedAt && (
+                        <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
+                      )}
                     </p>
                   </div>
-                  <button
-                    onClick={(e) => addToPlaylist(item.id.playlistId, item, e)}
-                    disabled={loadingPlaylist === item.id.playlistId}
-                    className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium transition disabled:opacity-50 hover:scale-110 active:scale-95"
-                    style={{ background: 'var(--accent-color)' }}
-                  >
-                    {loadingPlaylist === item.id.playlistId ? <i className="fas fa-spinner fa-spin text-xs"></i> : <i className="fas fa-plus text-xs"></i>}
-                  </button>
+                  {searchType === 'playlist' && (
+                    <button
+                      onClick={(e) => addToPlaylist(item.id.playlistId, item, e)}
+                      disabled={loadingPlaylist === item.id.playlistId}
+                      className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium transition disabled:opacity-50 hover:scale-110 active:scale-95"
+                      style={{ background: 'var(--accent-color)' }}
+                    >
+                      {loadingPlaylist === item.id.playlistId ? <i className="fas fa-spinner fa-spin text-xs"></i> : <i className="fas fa-plus text-xs"></i>}
+                    </button>
+                  )}
                 </div>
               </div>
             ))
