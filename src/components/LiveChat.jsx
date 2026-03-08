@@ -28,7 +28,7 @@ function LiveChat({ videoId }) {
   };
 
   return (
-    <div className="flex flex-col h-full" style={{ background: 'var(--bg-card)' }}>
+    <div className="flex flex-col min-h-0 h-full" style={{ background: 'var(--bg-card)' }}>
       <div className="p-3 border-b flex items-center justify-between flex-shrink-0" style={{ borderColor: 'var(--border-color)' }}>
         <h3 className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
           <i className="fas fa-comments text-red-500"></i>
@@ -44,7 +44,7 @@ function LiveChat({ videoId }) {
         </button>
       </div>
 
-      <div className="flex-1 relative" style={{ background: 'var(--bg-main)' }}>
+      <div className="flex-1 relative min-h-0" style={{ background: 'var(--bg-main)' }}>
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">

@@ -11,6 +11,8 @@ function WhiteboardPage() {
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 600 });
+  const [showGrid, setShowGrid] = useState(false);
+  const [shapeStart, setShapeStart] = useState(null);
 
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -35,6 +37,35 @@ function WhiteboardPage() {
     window.addEventListener('resize', initCanvas);
     return () => window.removeEventListener('resize', initCanvas);
   }, [initCanvas]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    if (showGrid) {
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      
+      for (let x = 0; x <= canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      
+      for (let y = 0; y <= canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      saveState();
+    } else {
+      initCanvas();
+    }
+  }, [showGrid]);
 
   const saveState = () => {
     const canvas = canvasRef.current;
@@ -99,7 +130,12 @@ function WhiteboardPage() {
     e.preventDefault();
     const coords = getCoords(e);
     setLastPos(coords);
+    setShapeStart(coords);
     setIsDrawing(true);
+    
+    if (['rectangle', 'circle', 'line'].includes(tool)) {
+      tempImage.current = canvasRef.current.getContext('2d').getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
   };
 
   const draw = (e) => {
@@ -110,20 +146,45 @@ function WhiteboardPage() {
     const ctx = canvas.getContext('2d');
     const coords = getCoords(e);
 
-    ctx.beginPath();
-    ctx.moveTo(lastPos.x, lastPos.y);
-    ctx.lineTo(coords.x, coords.y);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = brushSize;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
+    if (tool === 'pen' || tool === 'eraser') {
+      ctx.beginPath();
+      ctx.moveTo(lastPos.x, lastPos.y);
+      ctx.lineTo(coords.x, coords.y);
+      ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
+      ctx.lineWidth = brushSize;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    } else if (['rectangle', 'circle', 'line'].includes(tool)) {
+      ctx.putImageData(tempImage.current, 0, 0);
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = brushSize;
+      
+      if (tool === 'rectangle') {
+        ctx.strokeRect(shapeStart.x, shapeStart.y, coords.x - shapeStart.x, coords.y - shapeStart.y);
+      } else if (tool === 'circle') {
+        const radiusX = Math.abs(coords.x - shapeStart.x) / 2;
+        const radiusY = Math.abs(coords.y - shapeStart.y) / 2;
+        const centerX = shapeStart.x + (coords.x - shapeStart.x) / 2;
+        const centerY = shapeStart.y + (coords.y - shapeStart.y) / 2;
+        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+      } else if (tool === 'line') {
+        ctx.moveTo(shapeStart.x, shapeStart.y);
+        ctx.lineTo(coords.x, coords.y);
+        ctx.stroke();
+      }
+    }
     
     setLastPos(coords);
   };
 
+  const tempImage = useRef(null);
+
   const stopDrawing = (e) => {
     if (isDrawing) {
+      tempImage.current = null;
       setIsDrawing(false);
       saveState();
     }
@@ -134,9 +195,13 @@ function WhiteboardPage() {
     '#4caf50', '#2196f3', '#9c27b0', '#795548', '#607d8b'
   ];
 
-  const tools = [
+const tools = [
     { id: 'pen', icon: 'fa-pen', label: 'Pen' },
     { id: 'eraser', icon: 'fa-eraser', label: 'Eraser' },
+    { id: 'rectangle', icon: 'fa-square', label: 'Rectangle' },
+    { id: 'circle', icon: 'fa-circle', label: 'Circle' },
+    { id: 'line', icon: 'fa-minus', label: 'Line' },
+    { id: 'grid', icon: 'fa-th', label: 'Grid', isToggle: true },
   ];
 
   return (
@@ -156,13 +221,17 @@ function WhiteboardPage() {
             <button
               key={t.id}
               onClick={() => {
-                setTool(t.id);
-                setColor(t.id === 'eraser' ? '#ffffff' : color);
+                if (t.isToggle) {
+                  setShowGrid(!showGrid);
+                } else {
+                  setTool(t.id);
+                  setColor(t.id === 'eraser' ? '#ffffff' : color);
+                }
               }}
               className="p-2 rounded-lg transition"
               style={{ 
-                color: tool === t.id ? '#3b82f6' : 'var(--text-muted)',
-                background: tool === t.id ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
+                color: (t.isToggle ? showGrid : tool) === t.id ? '#3b82f6' : 'var(--text-muted)',
+                background: (t.isToggle ? showGrid : tool) === t.id ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
               }}
               title={t.label}
             >
