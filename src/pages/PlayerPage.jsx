@@ -275,6 +275,36 @@ return (
             <div className="hidden md:block mt-2 md:mt-3">
               <h3 className="text-sm md:text-lg font-bold line-clamp-2" style={{ color: 'var(--text-main)' }}>{videoTitle}</h3>
               <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{videoChannel}</p>
+              {currentPlaylist[currentVideoIndex]?.description && (
+                <div className="mt-2 p-2 rounded-lg" style={{ background: 'var(--bg-card)' }}>
+                  <p className="text-xs line-clamp-3" style={{ color: 'var(--text-muted)' }}>
+                    {currentPlaylist[currentVideoIndex].description}
+                  </p>
+                </div>
+              )}
+              {currentVideoId && (
+                <div className="mt-2 rounded-lg overflow-hidden" style={{ background: 'var(--bg-card)' }}>
+                  <button 
+                    onClick={() => setShowComments(!showComments)}
+                    className="w-full p-2 flex items-center justify-between border-b"
+                    style={{ borderColor: 'var(--border-color)' }}
+                  >
+                    <h4 className="text-xs font-semibold" style={{ color: 'var(--text-main)' }}>Comments</h4>
+                    <i className={`fas ${showComments ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs`} style={{ color: 'var(--text-muted)' }}></i>
+                  </button>
+                  {showComments && (
+                    <div className="h-48 overflow-y-auto">
+                      <iframe
+                        src={`https://www.youtube.com/comment_thread?video_id=${currentVideoId}&theme=dark`}
+                        className="w-full h-full border-0"
+                        title="YouTube Comments"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div className="hidden md:hidden gap-2 mt-2 md:mt-3">

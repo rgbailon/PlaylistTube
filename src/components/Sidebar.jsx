@@ -79,7 +79,7 @@ function Sidebar() {
               setSidebarCollapsed(false);
             }
           }}
-          className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-2 rounded-r-lg shadow-lg hidden md:block"
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-0.5 rounded-r-lg shadow-lg hidden md:block"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderLeft: 'none', color: 'var(--text-muted)' }}
           title="Show history"
         >
