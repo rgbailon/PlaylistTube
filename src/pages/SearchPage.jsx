@@ -147,16 +147,11 @@ function SearchPage() {
         setHasMore(!!data.nextPageToken);
         updateQuota(-1);
         saveSearchResults(searchQuery, 'playlist', data.items);
-        
-        if (searchType === 'playlist') {
-          fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
-        }
-      } else {
-        setResults([]);
+        fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
       }
     } catch (err) {
-      console.error('Search failed:', err);
-      setError('Search failed. Check your internet connection.');
+      console.error('Failed to load trending:', err);
+      setError('Failed to load playlists. Check your internet connection.');
     } finally {
       setLoading(false);
     }
