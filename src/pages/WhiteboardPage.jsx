@@ -224,6 +224,19 @@ function WhiteboardPage() {
           >
             <i className="fas fa-trash text-sm"></i>
           </button>
+          <button
+            onClick={() => {
+              const link = document.createElement('a');
+              link.download = 'whiteboard.png';
+              link.href = canvasRef.current.toDataURL();
+              link.click();
+            }}
+            className="p-2 rounded-lg transition hover:bg-[var(--bg-hover)]"
+            style={{ color: 'var(--text-muted)' }}
+            title="Download"
+          >
+            <i className="fas fa-download text-sm"></i>
+          </button>
         </div>
       </div>
 

@@ -49,6 +49,7 @@ useEffect(() => {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
       if (!playerRef.current) return;
       
       switch(e.key.toLowerCase()) {
