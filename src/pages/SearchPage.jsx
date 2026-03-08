@@ -250,6 +250,7 @@ function SearchPage() {
         });
         setLiveDetails(prev => ({ ...prev, ...details }));
       }
+      updateQuota(-1, 'videos');
     } catch (err) {
       console.error('Failed to fetch live details:', err);
     }
