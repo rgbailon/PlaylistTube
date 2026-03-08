@@ -202,7 +202,11 @@ function App() {
     localStorage.setItem('yt_current_key_index', nextIndex.toString());
     setCookie('yt_current_key_index', nextIndex.toString());
     setQuota(0);
+    setApiUsage({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 });
+    setApiCalls({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 });
     localStorage.setItem('yt_quota', '0');
+    localStorage.setItem('yt_api_usage', JSON.stringify({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 }));
+    localStorage.setItem('yt_api_calls', JSON.stringify({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 }));
     setCookie('yt_quota', '0');
     return true;
   };
@@ -245,6 +249,8 @@ function App() {
     setApiUsage({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 });
     setApiCalls({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 });
     localStorage.setItem('yt_quota', '0');
+    localStorage.setItem('yt_api_usage', JSON.stringify({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 }));
+    localStorage.setItem('yt_api_calls', JSON.stringify({ search: 0, playlistItems: 0, playlists: 0, videos: 0, channels: 0, other: 0 }));
     setCookie('yt_quota', '0');
   };
 
