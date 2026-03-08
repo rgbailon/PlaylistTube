@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../App';
 
 function SearchPage() {
-  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, addToHistory, currentPlaylist, checkAndSwitchApiKey, switchToNextApiKey, apiKeys, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType } = useApp();
+  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, addToHistory, currentPlaylist, checkAndSwitchApiKey, switchToNextApiKey, apiKeys, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType, addVideoToPlaylist } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -325,6 +325,33 @@ if (allVideos.length > 0) {
     }
   };
 
+  const playVideo = (item) => {
+    const video = {
+      id: item.id.videoId,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+    };
+    setCurrentPlaylist([video]);
+    setCurrentVideoIndex(0);
+    navigate('/');
+  };
+
+  const addSingleVideo = (item, e) => {
+    e.stopPropagation();
+    const video = {
+      id: item.id.videoId,
+      title: item.snippet.title,
+      channelTitle: item.snippet.channelTitle,
+      thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+      addedAt: new Date().toISOString(),
+    };
+    addVideoToPlaylist(video);
+    
+    setAddedMessage(item.snippet.title);
+    setTimeout(() => setAddedMessage(null), 3000);
+  };
+
   const addToPlaylist = async (playlistId, playlist, e) => {
     e.stopPropagation();
     
@@ -524,12 +551,13 @@ if (allVideos.length > 0) {
               <div key={item.id.playlistId || item.id.videoId || item.id.videoId} className="group">
                 <div className="relative aspect-video rounded-xl overflow-hidden mb-3 cursor-pointer" onClick={() => {
                   if (searchType === 'playlist') loadPlaylist(item.id.playlistId, item);
+                  else playVideo(item);
                 }}>
                   <img
                     src={item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url}
                     alt={item.snippet.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/320x180?text=Playlist'; }}
+                    onError={(e) => { e.target.src = 'https://via.placeholder.com/320x180?text=Video'; }}
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                     <div className="w-14 h-14 rounded-full bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -577,9 +605,15 @@ if (allVideos.length > 0) {
                       )}
                     </p>
                   </div>
-                  {searchType === 'playlist' && (
+                  {(searchType === 'playlist' || searchType === 'video' || searchType === 'shorts' || searchType === 'live') && (
                     <button
-                      onClick={(e) => addToPlaylist(item.id.playlistId, item, e)}
+                      onClick={(e) => {
+                        if (searchType === 'playlist') {
+                          addToPlaylist(item.id.playlistId, item, e);
+                        } else {
+                          addSingleVideo(item, e);
+                        }
+                      }}
                       disabled={loadingPlaylist === item.id.playlistId}
                       className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-medium transition disabled:opacity-50 hover:scale-110 active:scale-95"
                       style={{ background: 'var(--accent-color)' }}
