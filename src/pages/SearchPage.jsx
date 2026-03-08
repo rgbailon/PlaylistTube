@@ -353,63 +353,55 @@ if (allVideos.length > 0) {
         </div>
       )}
       
-      <div className="max-w-3xl mx-auto p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
         {error && (
-          <div className="mb-4 p-4 rounded-xl bg-red-100 border border-red-300 text-red-700 text-sm flex items-center gap-2">
+          <div className="mx-4 md:mx-8 mt-4 p-4 rounded-xl bg-red-100 border border-red-300 text-red-700 text-sm flex items-center gap-2">
             <i className="fas fa-exclamation-triangle"></i>
             {error}
           </div>
         )}
-        <div className="rounded-2xl p-6 shadow-sm border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="w-full relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => handleSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchPlaylists()}
-                  placeholder="Search or paste URL..."
-                  className="w-full rounded-xl pl-12 pr-4 py-4 text-sm md:text-base"
-                  style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
-                />
-                <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
-              </div>
-              <button
-                onClick={searchPlaylists}
-                className="w-full md:w-auto px-8 py-4 rounded-xl font-medium transition flex items-center justify-center gap-2 min-w-[140px]"
-                style={{ background: 'var(--accent-color)', color: 'white' }}
-              >
-                <i className="fas fa-search"></i> Search
-              </button>
-            </div>
+        <div className="px-4 md:px-8 py-6">
+          <div className="relative max-w-2xl mx-auto">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && searchPlaylists()}
+              placeholder="Search or paste URL..."
+              className="w-full rounded-xl pl-12 pr-4 py-4 text-sm md:text-base shadow-lg"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+            />
+            <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
+          </div>
+        </div>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
-              <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
-                <i className="fas fa-sort mr-2"></i>Sort by:
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {sortOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => handleSortChange(option.value)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium transition"
-                    style={{ 
-                      background: sortOrder === option.value ? 'var(--accent-color)' : 'var(--bg-hover)',
-                      color: sortOrder === option.value ? 'white' : 'var(--text-main)'
-                    }}
-                  >
-                    <i className={`fas ${option.icon} mr-1.5`}></i>
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+        <div className="px-4 md:px-8 pb-4">
+          <div className="flex flex-wrap items-center gap-3 justify-center">
+            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+              <i className="fas fa-sort mr-2"></i>Sort by:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {sortOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleSortChange(option.value)}
+                  className="px-4 py-2 rounded-lg text-sm font-medium transition"
+                  style={{ 
+                    background: sortOrder === option.value ? 'var(--accent-color)' : 'var(--bg-card)', 
+                    color: sortOrder === option.value ? 'white' : 'var(--text-main)',
+                    border: '1px solid ' + (sortOrder === option.value ? 'var(--accent-color)' : 'var(--border-color)')
+                  }}
+                >
+                  <i className={`fas ${option.icon} mr-1.5`}></i>
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto p-4 md:p-8">
+      <div className="px-4 md:px-8 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
           {loading ? (
             Array.from({ length: 8 }).map((_, i) => (
@@ -470,11 +462,11 @@ if (allVideos.length > 0) {
         </div>
 
         {hasMore && (
-          <div className="mt-8 text-center pb-8">
+          <div className="px-4 md:px-8 pb-8 text-center">
             <button
               onClick={loadMore}
               disabled={loading}
-              className="px-8 py-3 rounded-xl font-medium disabled:opacity-50"
+              className="px-8 py-3 rounded-xl font-medium disabled:opacity-50 hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] transition"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
             >
               {loading ? 'Loading...' : 'Load More Results'}
