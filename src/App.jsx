@@ -94,6 +94,20 @@ function App() {
       setQuota(parseInt(savedQuota) || 0);
     }
 
+    const savedApiUsage = localStorage.getItem('yt_api_usage');
+    if (savedApiUsage) {
+      try {
+        setApiUsage(JSON.parse(savedApiUsage));
+      } catch (e) {}
+    }
+
+    const savedApiCalls = localStorage.getItem('yt_api_calls');
+    if (savedApiCalls) {
+      try {
+        setApiCalls(JSON.parse(savedApiCalls));
+      } catch (e) {}
+    }
+
     const savedSidebarState = localStorage.getItem('yt_sidebar_collapsed') || getCookie('yt_sidebar_collapsed');
     if (savedSidebarState === '1') {
       setSidebarCollapsed(true);
@@ -210,8 +224,12 @@ function App() {
     setCookie('yt_quota', newQuota.toString());
     
     if (amount < 0) {
-      setApiUsage(prev => ({ ...prev, [type]: prev[type] + cost }));
-      setApiCalls(prev => ({ ...prev, [type]: prev[type] + 1 }));
+      const newApiUsage = { ...apiUsage, [type]: apiUsage[type] + cost };
+      const newApiCalls = { ...apiCalls, [type]: apiCalls[type] + 1 };
+      setApiUsage(newApiUsage);
+      setApiCalls(newApiCalls);
+      localStorage.setItem('yt_api_usage', JSON.stringify(newApiUsage));
+      localStorage.setItem('yt_api_calls', JSON.stringify(newApiCalls));
     }
   };
 
