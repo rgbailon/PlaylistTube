@@ -56,7 +56,7 @@ function SearchPage() {
     const list = params.get('list');
     const type = params.get('type');
     
-    const searchTypeFromUrl = (type && ['video', 'playlist', 'live', 'shorts'].includes(type)) ? type : 'video';
+    const searchTypeFromUrl = (type && ['video', 'playlist', 'live', 'shorts_playlist'].includes(type)) ? type : 'video';
     setSearchType(searchTypeFromUrl);
     
     if (list) {
@@ -75,8 +75,8 @@ function SearchPage() {
         loadTrendingVideos();
       } else if (searchTypeFromUrl === 'live') {
         loadTrendingLive();
-      } else if (searchTypeFromUrl === 'shorts') {
-        loadTrendingShorts();
+      } else if (searchTypeFromUrl === 'shorts_playlist') {
+        loadTrendingShortsPlaylists();
       }
     }
   }, []);
@@ -255,7 +255,7 @@ function SearchPage() {
     }
   };
 
-  const loadTrendingShorts = async () => {
+  const loadTrendingShortsPlaylists = async () => {
     const apiKey = getCurrentApiKey();
     if (!apiKey) {
       setResults([]);
@@ -267,7 +267,7 @@ function SearchPage() {
     setError(null);
     try {
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=trending&type=video&videoDuration=short&order=${sortOrder}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=shorts+playlist&type=playlist&order=${sortOrder}&key=${apiKey}`
       );
       const data = await resp.json();
       
@@ -285,9 +285,10 @@ function SearchPage() {
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         updateQuota(-1);
+        fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
       }
     } catch (err) {
-      console.error('Failed to load shorts:', err);
+      console.error('Failed to load shorts playlists:', err);
       setError('Failed to load shorts. Check your internet connection.');
     } finally {
       setLoading(false);
@@ -325,8 +326,8 @@ function SearchPage() {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=playlist&order=${sortOrder}&key=${apiKey}`;
       } else if (activeType === 'live') {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=video&eventType=live&order=${sortOrder}&key=${apiKey}`;
-      } else if (activeType === 'shorts') {
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=video&videoDuration=short&order=${sortOrder}&key=${apiKey}`;
+      } else if (activeType === 'shorts_playlist') {
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${sortOrder}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -399,8 +400,8 @@ function SearchPage() {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'popular+playlists')}&type=playlist&order=${sortOrder}&pageToken=${nextPageToken}&key=${apiKey}`;
       } else if (searchType === 'live') {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'live+stream')}&type=video&eventType=live&order=${sortOrder}&pageToken=${nextPageToken}&key=${apiKey}`;
-      } else if (searchType === 'shorts') {
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'trending+shorts')}&type=video&videoDuration=short&order=${sortOrder}&pageToken=${nextPageToken}&key=${apiKey}`;
+      } else if (searchType === 'shorts_playlist') {
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${sortOrder}&pageToken=${nextPageToken}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -429,7 +430,7 @@ function SearchPage() {
       if (searchType === 'playlist') loadTrendingPlaylists();
       else if (searchType === 'video') loadTrendingVideos();
       else if (searchType === 'live') loadTrendingLive();
-      else if (searchType === 'shorts') loadTrendingShorts();
+      else if (searchType === 'shorts_playlist') loadTrendingShortsPlaylists();
     } else {
       searchPlaylists();
     }
@@ -441,7 +442,7 @@ function SearchPage() {
       if (type === 'playlist') loadTrendingPlaylists();
       else if (type === 'video') loadTrendingVideos();
       else if (type === 'live') loadTrendingLive();
-      else if (type === 'shorts') loadTrendingShorts();
+      else if (type === 'shorts_playlist') loadTrendingShortsPlaylists();
     } else {
       searchPlaylists(type);
     }
@@ -690,7 +691,7 @@ if (allVideos.length > 0) {
                 <option value="video">Videos</option>
                 <option value="playlist">Playlists</option>
                 <option value="live">Live Videos</option>
-                <option value="shorts">Shorts</option>
+                <option value="shorts_playlist">Shorts Playlist</option>
               </select>
             </div>
             <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
@@ -720,7 +721,7 @@ if (allVideos.length > 0) {
       <div className="px-4 md:px-8 py-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
-            {searchType === 'playlist' ? 'Playlists' : searchType === 'video' ? 'Videos' : searchType === 'live' ? 'Live Videos' : 'Shorts'}
+            {searchType === 'playlist' ? 'Playlists' : searchType === 'video' ? 'Videos' : searchType === 'live' ? 'Live Videos' : 'Shorts Playlists'}
           </h2>
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
             {results.length} results
@@ -740,7 +741,7 @@ if (allVideos.length > 0) {
               <i className="fab fa-youtube text-6xl mb-4" style={{ color: 'var(--text-muted)' }}></i>
               <p style={{ color: 'var(--text-muted)' }} className="text-lg">
                 {getCurrentApiKey() 
-                  ? (searchType === 'playlist' ? 'No playlists found' : searchType === 'video' ? 'No videos found' : searchType === 'live' ? 'No live videos found' : 'No shorts found')
+                  ? (searchType === 'playlist' ? 'No playlists found' : searchType === 'video' ? 'No videos found' : searchType === 'live' ? 'No live videos found' : 'No shorts playlists found')
                   : 'Add an API key to search'}
               </p>
             </div>
@@ -785,7 +786,7 @@ if (allVideos.length > 0) {
                       LIVE
                     </div>
                   )}
-                  {searchType === 'shorts' && (
+                  {searchType === 'shorts_playlist' && (
                     <div className="absolute top-2 right-2 px-2 py-1 rounded bg-red-600 text-white text-xs font-medium">
                       SHORTS
                     </div>
@@ -804,12 +805,12 @@ if (allVideos.length > 0) {
                       {searchType === 'video' && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
-                      {searchType === 'shorts' && item.snippet.publishedAt && (
+                      {searchType === 'shorts_playlist' && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
                     </p>
                   </div>
-                  {(searchType === 'playlist' || searchType === 'video' || searchType === 'shorts' || searchType === 'live') && (
+                  {(searchType === 'playlist' || searchType === 'video' || searchType === 'shorts_playlist' || searchType === 'live') && (
                     <button
                       onClick={(e) => {
                         if (searchType === 'playlist') {
