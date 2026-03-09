@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../App';
 
@@ -19,6 +19,8 @@ function SearchPage() {
   const [error, setError] = useState(null);
   const [playlistDetails, setPlaylistDetails] = useState({});
   const [liveDetails, setLiveDetails] = useState({});
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -48,6 +50,47 @@ function SearchPage() {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
+  };
+
+  useEffect(() => {
+    const fetchSuggestions = async (query) => {
+      if (!query.trim() || query.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+      try {
+        const res = await fetch(`https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`);
+        const text = await res.text();
+        const lines = text.split('\n');
+        const suggestions = [];
+        for (const line of lines) {
+          const matches = line.match(/"([^"]+)"/g);
+          if (matches) {
+            for (const m of matches) {
+              const val = m.replace(/"/g, '');
+              if (val && !val.includes('window.') && val.length > 1) {
+                suggestions.push(val);
+              }
+            }
+          }
+        }
+        const unique = [...new Set(suggestions)].slice(0, 6);
+        setSuggestions(unique);
+      } catch (err) {
+        setSuggestions([]);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      fetchSuggestions(searchQuery);
+    }, 150);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
+  const handleSelectSuggestion = (suggestion) => {
+    setSearchQuery(suggestion);
+    navigate(`/search?q=${encodeURIComponent(suggestion)}&type=${searchType}`);
   };
 
   useEffect(() => {
@@ -675,11 +718,30 @@ if (allVideos.length > 0) {
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && searchPlaylists()}
+              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
               placeholder="Search or paste URL..."
               className="w-full rounded-xl pl-12 pr-4 py-4 text-sm md:text-base shadow-lg"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
             />
             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
+            {suggestions.length > 0 && (
+              <div
+                className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+              >
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                    className="px-4 py-2.5 cursor-pointer text-sm hover:bg-[var(--bg-hover)]"
+                    style={{ color: 'var(--text-main)', borderBottom: index < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none' }}
+                  >
+                    {suggestion}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

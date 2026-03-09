@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import LiveChat from './LiveChat';
- 
+
 const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
 
 function Header() {
@@ -15,8 +15,12 @@ function Header() {
   const [playlistPanelOpen, setPlaylistPanelOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState('playlist');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [searching, setSearching] = useState(false);
+  const [searching] = useState(false);
   const [searchError, setSearchError] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mobileSuggestions, setMobileSuggestions] = useState([]);
+  const [showMobileSuggestions, setShowMobileSuggestions] = useState(false);
 
 const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
@@ -27,6 +31,92 @@ const navItems = [
   ];
 
   const isActive = (path) => location.pathname === path;
+
+  useEffect(() => {
+    const fetchSuggestions = async (query) => {
+      if (!query.trim() || query.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+      try {
+        const res = await fetch(`https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`);
+        const text = await res.text();
+        const lines = text.split('\n');
+        const suggestions = [];
+        for (const line of lines) {
+          const matches = line.match(/"([^"]+)"/g);
+          if (matches) {
+            for (const m of matches) {
+              const val = m.replace(/"/g, '');
+              if (val && !val.includes('window.') && val.length > 1) {
+                suggestions.push(val);
+              }
+            }
+          }
+        }
+        const unique = [...new Set(suggestions)].slice(0, 6);
+        setSuggestions(unique);
+      } catch (err) {
+        setSuggestions([]);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      fetchSuggestions(videoSearchQuery);
+    }, 150);
+
+    return () => clearTimeout(timeoutId);
+  }, [videoSearchQuery]);
+
+  useEffect(() => {
+    const fetchSuggestions = async (query) => {
+      if (!query.trim() || query.length < 2) {
+        setMobileSuggestions([]);
+        return;
+      }
+      try {
+        const res = await fetch(`https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`);
+        const text = await res.text();
+        const lines = text.split('\n');
+        const suggestions = [];
+        for (const line of lines) {
+          const matches = line.match(/"([^"]+)"/g);
+          if (matches) {
+            for (const m of matches) {
+              const val = m.replace(/"/g, '');
+              if (val && !val.includes('window.') && val.length > 1) {
+                suggestions.push(val);
+              }
+            }
+          }
+        }
+        const unique = [...new Set(suggestions)].slice(0, 6);
+        setMobileSuggestions(unique);
+      } catch (err) {
+        setMobileSuggestions([]);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      fetchSuggestions(videoSearchQuery);
+    }, 150);
+
+    return () => clearTimeout(timeoutId);
+  }, [videoSearchQuery]);
+
+  const handleSelectSuggestion = (suggestion) => {
+    setVideoSearchQuery(suggestion);
+    const form = document.querySelector('.header-search-form');
+    if (form) {
+      form.dispatchEvent(new Event('submit', { bubbles: true }));
+    }
+  };
+
+  const handleMobileSelectSuggestion = (suggestion) => {
+    setVideoSearchQuery(suggestion);
+    setSearchModalOpen(false);
+    navigate(`/search?q=${encodeURIComponent(suggestion)}&type=video`);
+  };
 
   const extractVideoId = (input) => {
     const patterns = [
@@ -117,7 +207,7 @@ const navItems = [
         )}
       </div>
 
-      <form onSubmit={handleVideoSearch} className="hidden md:flex items-center gap-2 mx-4 flex-1 max-w-md">
+      <form onSubmit={handleVideoSearch} className="header-search-form hidden md:flex items-center gap-2 mx-4 flex-1 max-w-md">
         {searchError && (
           <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs whitespace-nowrap">
             {searchError}
@@ -128,9 +218,28 @@ const navItems = [
             type="text"
             value={videoSearchQuery}
             onChange={(e) => setVideoSearchQuery(e.target.value)}
+            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
             placeholder="Search video or paste URL..."
             className="w-full rounded-full px-4 py-1.5 text-sm bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
           />
+          {suggestions.length > 0 && (
+            <div
+              className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
+              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
+            >
+              {suggestions.map((suggestion, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                  className="px-4 py-2.5 cursor-pointer text-sm hover:bg-[var(--bg-hover)]"
+                  style={{ color: 'var(--text-main)', borderBottom: index < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none' }}
+                >
+                  {suggestion}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <button
           type="button"
@@ -403,6 +512,8 @@ const navItems = [
               type="text"
               value={videoSearchQuery}
               onChange={(e) => setVideoSearchQuery(e.target.value)}
+              onFocus={() => mobileSuggestions.length > 0 && setShowMobileSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowMobileSuggestions(false), 300)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && videoSearchQuery.trim()) {
                   setSearchModalOpen(false);
@@ -419,6 +530,23 @@ const navItems = [
               <i className="fas fa-times"></i>
             </button>
           </div>
+          {mobileSuggestions.length > 0 && (
+            <div
+              className="mt-2 rounded-xl shadow-xl overflow-hidden"
+              style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)' }}
+            >
+              {mobileSuggestions.map((suggestion, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleMobileSelectSuggestion(suggestion)}
+                  className="px-4 py-2.5 cursor-pointer text-sm hover:bg-[var(--bg-hover)]"
+                  style={{ color: 'var(--text-main)', borderBottom: index < mobileSuggestions.length - 1 ? '1px solid var(--border-color)' : 'none' }}
+                >
+                  {suggestion}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )}
