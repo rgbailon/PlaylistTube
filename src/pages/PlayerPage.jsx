@@ -33,12 +33,20 @@ function PlayerPage() {
       streamRef.current = stream;
       recordedChunksRef.current = [];
       
-      const options = { mimeType: 'video/webm' };
-      if (!MediaRecorder.isTypeSupported('video/webm')) {
+      const options = { 
+        mimeType: 'video/webm;codecs=vp9,opus',
+        audioBitsPerSecond: 256000,
+        videoBitsPerSecond: 8000000,
+      };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
         options.mimeType = 'video/webm;codecs=vp9';
+        delete options.audioBitsPerSecond;
+        delete options.videoBitsPerSecond;
       }
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'video/webm;codecs=vp8';
+        options.mimeType = 'video/webm;codecs=vp8,opus';
+        delete options.audioBitsPerSecond;
+        delete options.videoBitsPerSecond;
       }
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
         console.error('WebM not supported');
