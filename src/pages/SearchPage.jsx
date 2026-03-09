@@ -61,6 +61,14 @@ function SearchPage() {
     return num.toString() + ' views';
   };
 
+  const formatLikes = (count) => {
+    if (!count) return '';
+    const num = parseInt(count);
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+  };
+
   useEffect(() => {
     const fetchSuggestions = async (query) => {
       if (!query.trim() || query.length < 2) {
@@ -512,6 +520,7 @@ function SearchPage() {
         data.items.forEach(item => {
           stats[item.id] = {
             viewCount: parseInt(item.statistics?.viewCount) || 0,
+            likeCount: parseInt(item.statistics?.likeCount) || 0,
           };
         });
         setVideoStats(prev => ({ ...prev, ...stats }));
@@ -569,6 +578,7 @@ function SearchPage() {
 
   const handleSortChange = (order) => {
     setSortOrder(order);
+    setVideoStats({});
     if (!searchQuery.trim()) {
       if (searchType === 'playlist') loadTrendingPlaylists();
       else if (searchType === 'video') loadTrendingVideos();
@@ -980,13 +990,16 @@ if (allVideos.length > 0) {
                     </h3>
                     <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
                       {decodeHtml(item.snippet.channelTitle)}
-                      {searchType === 'video' && videoStats[item.id.videoId]?.viewCount > 0 && (
-                        <span> • {formatViews(videoStats[item.id.videoId].viewCount)}</span>
+                      {searchType === 'video' && (videoStats[item.id.videoId]?.viewCount > 0 || videoStats[item.id.videoId]?.likeCount > 0) && (
+                        <span>
+                          {videoStats[item.id.videoId]?.viewCount > 0 && <span> • {formatViews(videoStats[item.id.videoId].viewCount)}</span>}
+                          {videoStats[item.id.videoId]?.likeCount > 0 && <span> • {formatLikes(videoStats[item.id.videoId].likeCount)} likes</span>}
+                        </span>
                       )}
-                      {searchType === 'video' && item.snippet.publishedAt && !videoStats[item.id.videoId]?.viewCount && (
+                      {searchType === 'video' && !videoStats[item.id.videoId]?.viewCount && !videoStats[item.id.videoId]?.likeCount && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
-                      {searchType === 'video' && videoStats[item.id.videoId]?.viewCount > 0 && item.snippet.publishedAt && (
+                      {searchType === 'video' && (videoStats[item.id.videoId]?.viewCount > 0 || videoStats[item.id.videoId]?.likeCount > 0) && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
                       {searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
