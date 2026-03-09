@@ -427,6 +427,15 @@ body {
   color: white;
 }
 
+[data-theme="sun"] .btn-add,
+[data-theme="sun"] button[class*="rounded-full"]:not([class*="border"]) {
+  color: #000000 !important;
+}
+
+[data-theme="sun"] .sort-btn.active {
+  color: #000000 !important;
+}
+
 .sort-btn {
   background: var(--bg-main);
   color: var(--text-muted);
