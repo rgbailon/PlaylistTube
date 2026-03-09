@@ -683,6 +683,8 @@ if (allVideos.length > 0) {
       title: item.snippet.title,
       channelTitle: item.snippet.channelTitle,
       thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+      liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers 
+        ? parseInt(liveDetails[item.id.videoId].concurrentViewers) : 0,
     };
     setCurrentPlaylist([video]);
     setCurrentVideoIndex(0);
@@ -697,6 +699,8 @@ if (allVideos.length > 0) {
       channelTitle: item.snippet.channelTitle,
       thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
       addedAt: new Date().toISOString(),
+      liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers 
+        ? parseInt(liveDetails[item.id.videoId].concurrentViewers) : 0,
     };
     addVideoToPlaylist(video);
     
@@ -749,7 +753,7 @@ if (data.items) {
 if (allVideos.length > 0) {
         const videoIds = allVideos.map(v => v.id).join(',');
         try {
-          const statsResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics,liveDetails&id=${videoIds}&key=${apiKey}`);
+          const statsResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics,liveStreamingDetails&id=${videoIds}&key=${apiKey}`);
           const statsData = await statsResp.json();
           console.log('View count response:', statsData);
           if (statsData.items) {
@@ -759,8 +763,8 @@ if (allVideos.length > 0) {
                 if (item.statistics) {
                   video.viewCount = parseInt(item.statistics.viewCount) || 0;
                 }
-                if (item.liveDetails) {
-                  video.liveViewers = parseInt(item.liveDetails.concurrentViewers) || 0;
+if (item.liveStreamingDetails) {
+                  video.liveViewers = parseInt(item.liveStreamingDetails.concurrentViewers) || 0;
                 }
               }
             });

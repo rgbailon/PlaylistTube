@@ -353,7 +353,7 @@ function LivePage() {
                     <p className="text-xs truncate flex-1" style={{ color: 'var(--text-muted)' }}>
                       {item.snippet.channelTitle}
                     </p>
-                    <button
+<button
                       onClick={(e) => {
                         e.stopPropagation();
                         const video = {
@@ -362,6 +362,7 @@ function LivePage() {
                           channelTitle: item.snippet.channelTitle,
                           thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
                           addedAt: new Date().toISOString(),
+                          liveViewers: viewerCounts[item.id.videoId] ? parseInt(viewerCounts[item.id.videoId].replace(/,/g, '')) : 0,
                         };
                         addVideoToPlaylist(video);
                       }}

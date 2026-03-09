@@ -708,9 +708,29 @@ const toggleFullscreen = () => {
                       </div>
                     )}
                   </div>
-                  <div className="flex-1 min-w-0 mt-1">
+<div className="flex-1 min-w-0 mt-1">
                     <h4 className="text-xs line-clamp-2" style={{ color: '#f3f4f6' }}>{video.title}</h4>
                     <p className="text-[10px] mt-0.5 truncate" style={{ color: '#9ca3af' }}>{video.channelTitle || 'Unknown'}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {video.publishedAt && (
+                        <span className="text-[9px]" style={{ color: '#9ca3af' }}>
+                          <i className="fas fa-calendar-alt mr-1"></i>
+                          {new Date(video.publishedAt).toLocaleDateString()}
+                        </span>
+                      )}
+                      {video.liveViewers > 0 && (
+                        <span className="text-[9px]" style={{ color: '#ef4444' }}>
+                          <i className="fas fa-circle mr-1"></i>
+                          {video.liveViewers.toLocaleString()} watching
+                        </span>
+                      )}
+                      {video.viewCount !== undefined && video.viewCount > 0 && !video.liveViewers && (
+                        <span className="text-[9px]" style={{ color: '#9ca3af' }}>
+                          <i className="fas fa-eye mr-1"></i>
+                          {video.viewCount.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
