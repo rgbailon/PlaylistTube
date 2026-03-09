@@ -215,7 +215,6 @@ const navItems = [
           </div>
           <span 
             className="text-base font-bold logo-text"
-            style={{ color: 'var(--text-main)' }}
           >
             PlaylistPlay
           </span>
