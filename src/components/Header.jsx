@@ -18,9 +18,9 @@ function Header() {
   const [searching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [mobileSuggestions, setMobileSuggestions] = useState([]);
-  const [showMobileSuggestions, setShowMobileSuggestions] = useState(false);
+  const [mobileSelectedIndex, setMobileSelectedIndex] = useState(-1);
 
 const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
@@ -72,6 +72,7 @@ const navItems = [
     const handleClickOutside = (e) => {
       if (!e.target.closest('.header-suggestions-container')) {
         setSuggestions([]);
+        setSelectedIndex(-1);
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -82,6 +83,7 @@ const navItems = [
     const handleMobileClickOutside = (e) => {
       if (!e.target.closest('.mobile-suggestions-container')) {
         setMobileSuggestions([]);
+        setMobileSelectedIndex(-1);
       }
     };
     document.addEventListener('click', handleMobileClickOutside);
@@ -91,6 +93,7 @@ const navItems = [
   const handleSelectSuggestion = (suggestion) => {
     setVideoSearchQuery(suggestion);
     setSuggestions([]);
+    setSelectedIndex(-1);
     const form = document.querySelector('.header-search-form');
     if (form) {
       form.dispatchEvent(new Event('submit', { bubbles: true }));
@@ -100,6 +103,7 @@ const navItems = [
   const handleMobileSelectSuggestion = (suggestion) => {
     setVideoSearchQuery(suggestion);
     setMobileSuggestions([]);
+    setMobileSelectedIndex(-1);
     setSearchModalOpen(false);
     navigate(`/search?q=${encodeURIComponent(suggestion)}&type=video`);
   };
@@ -239,9 +243,26 @@ const navItems = [
           <input
             type="text"
             value={videoSearchQuery}
-            onChange={(e) => setVideoSearchQuery(e.target.value)}
-            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
+            onChange={(e) => {
+              setVideoSearchQuery(e.target.value);
+              setSelectedIndex(-1);
+            }}
+            onKeyDown={(e) => {
+              if (suggestions.length === 0) return;
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
+              } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                e.preventDefault();
+                handleSelectSuggestion(suggestions[selectedIndex]);
+              } else if (e.key === 'Escape') {
+                setSuggestions([]);
+                setSelectedIndex(-1);
+              }
+            }}
             placeholder="Search video or paste URL..."
             className="w-full rounded-full px-4 py-1.5 text-sm bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
           />
@@ -254,8 +275,12 @@ const navItems = [
                 <div
                   key={index}
                   onClick={() => handleSelectSuggestion(suggestion)}
-                  className="px-4 py-2.5 cursor-pointer text-sm hover:bg-[var(--bg-hover)]"
-                  style={{ color: 'var(--text-main)', borderBottom: index < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none' }}
+                  className="px-4 py-2.5 cursor-pointer text-sm"
+                  style={{ 
+                    color: 'var(--text-main)', 
+                    background: index === selectedIndex ? 'var(--bg-hover)' : 'transparent',
+                    borderBottom: index < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none' 
+                  }}
                 >
                   {suggestion}
                 </div>
@@ -533,10 +558,28 @@ const navItems = [
             <input
               type="text"
               value={videoSearchQuery}
-              onChange={(e) => setVideoSearchQuery(e.target.value)}
-              onFocus={() => mobileSuggestions.length > 0 && setShowMobileSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowMobileSuggestions(false), 300)}
+              onChange={(e) => {
+                setVideoSearchQuery(e.target.value);
+                setMobileSelectedIndex(-1);
+              }}
               onKeyDown={(e) => {
+                if (mobileSuggestions.length > 0) {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setMobileSelectedIndex(prev => prev < mobileSuggestions.length - 1 ? prev + 1 : 0);
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setMobileSelectedIndex(prev => prev > 0 ? prev - 1 : mobileSuggestions.length - 1);
+                  } else if (e.key === 'Enter' && mobileSelectedIndex >= 0) {
+                    e.preventDefault();
+                    handleMobileSelectSuggestion(mobileSuggestions[mobileSelectedIndex]);
+                    return;
+                  } else if (e.key === 'Escape') {
+                    setMobileSuggestions([]);
+                    setMobileSelectedIndex(-1);
+                    return;
+                  }
+                }
                 if (e.key === 'Enter' && videoSearchQuery.trim()) {
                   setSearchModalOpen(false);
                   navigate(`/search?q=${encodeURIComponent(videoSearchQuery)}&type=video`);
@@ -561,8 +604,12 @@ const navItems = [
                 <div
                   key={index}
                   onClick={() => handleMobileSelectSuggestion(suggestion)}
-                  className="px-4 py-2.5 cursor-pointer text-sm hover:bg-[var(--bg-hover)]"
-                  style={{ color: 'var(--text-main)', borderBottom: index < mobileSuggestions.length - 1 ? '1px solid var(--border-color)' : 'none' }}
+                  className="px-4 py-2.5 cursor-pointer text-sm"
+                  style={{ 
+                    color: 'var(--text-main)', 
+                    background: index === mobileSelectedIndex ? 'var(--bg-hover)' : 'transparent',
+                    borderBottom: index < mobileSuggestions.length - 1 ? '1px solid var(--border-color)' : 'none' 
+                  }}
                 >
                   {suggestion}
                 </div>

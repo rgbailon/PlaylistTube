@@ -20,7 +20,7 @@ function SearchPage() {
   const [playlistDetails, setPlaylistDetails] = useState({});
   const [liveDetails, setLiveDetails] = useState({});
   const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -92,6 +92,7 @@ function SearchPage() {
     const handleClickOutside = (e) => {
       if (!e.target.closest('.search-suggestions-container')) {
         setSuggestions([]);
+        setSelectedIndex(-1);
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -101,7 +102,26 @@ function SearchPage() {
   const handleSelectSuggestion = (suggestion) => {
     setSearchQuery(suggestion);
     setSuggestions([]);
+    setSelectedIndex(-1);
     navigate(`/search?q=${encodeURIComponent(suggestion)}&type=${searchType}`);
+  };
+
+  const handleKeyDown = (e) => {
+    if (suggestions.length === 0) return;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      handleSelectSuggestion(suggestions[selectedIndex]);
+    } else if (e.key === 'Escape') {
+      setSuggestions([]);
+      setSelectedIndex(-1);
+    }
   };
 
   useEffect(() => {
@@ -154,6 +174,7 @@ function SearchPage() {
 
   const handleSearchInput = (value) => {
     setSearchQuery(value);
+    setSelectedIndex(-1);
     const videoId = extractVideoId(value);
     const playlistId = extractPlaylistId(value);
     if (videoId) {
@@ -728,9 +749,24 @@ if (allVideos.length > 0) {
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && searchPlaylists()}
-              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && selectedIndex >= 0) {
+                  e.preventDefault();
+                  handleSelectSuggestion(suggestions[selectedIndex]);
+                } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  if (suggestions.length > 0) {
+                    setSelectedIndex(prev => e.key === 'ArrowDown' 
+                      ? (prev < suggestions.length - 1 ? prev + 1 : 0)
+                      : (prev > 0 ? prev - 1 : suggestions.length - 1));
+                  }
+                } else if (e.key === 'Escape') {
+                  setSuggestions([]);
+                  setSelectedIndex(-1);
+                } else {
+                  searchPlaylists();
+                }
+              }}
               placeholder="Search or paste URL..."
               className="w-full rounded-xl pl-12 pr-4 py-4 text-sm md:text-base shadow-lg"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
@@ -745,8 +781,12 @@ if (allVideos.length > 0) {
                   <div
                     key={index}
                     onClick={() => handleSelectSuggestion(suggestion)}
-                    className="px-4 py-2.5 cursor-pointer text-sm hover:bg-[var(--bg-hover)]"
-                    style={{ color: 'var(--text-main)', borderBottom: index < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none' }}
+                    className="px-4 py-2.5 cursor-pointer text-sm"
+                    style={{ 
+                      color: 'var(--text-main)', 
+                      background: index === selectedIndex ? 'var(--bg-hover)' : 'transparent',
+                      borderBottom: index < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none' 
+                    }}
                   >
                     {suggestion}
                   </div>
