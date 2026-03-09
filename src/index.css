@@ -294,11 +294,20 @@
   --scrollbar-track: #151515;
 }
 
+[data-theme="sun"] .nav-btn.active,
+[data-theme="sun"] .mobile-tab.active,
+[data-theme="sun"] .sort-btn.active {
+  color: #000000 !important;
+}
+
 [data-theme="light"] .logo-icon i,
 [data-theme="light"] .logo-text,
-[data-theme="sun"] .logo-icon i,
-[data-theme="sun"] .logo-text {
+[data-theme="sun"] .logo-icon i {
   color: #000000 !important;
+}
+
+.logo-text {
+  color: var(--text-main);
 }
 
 [data-theme="photo"] .logo-icon i,
