@@ -296,7 +296,8 @@
 
 [data-theme="sun"] .nav-btn.active,
 [data-theme="sun"] .mobile-tab.active,
-[data-theme="sun"] .sort-btn.active {
+[data-theme="sun"] .sort-btn.active,
+[data-theme="sun"] .btn-add {
   color: #000000 !important;
 }
 
