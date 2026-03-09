@@ -94,10 +94,6 @@ const navItems = [
     setVideoSearchQuery(suggestion);
     setSuggestions([]);
     setSelectedIndex(-1);
-    const form = document.querySelector('.header-search-form');
-    if (form) {
-      form.dispatchEvent(new Event('submit', { bubbles: true }));
-    }
   };
 
   const handleMobileSelectSuggestion = (suggestion) => {
@@ -105,7 +101,6 @@ const navItems = [
     setMobileSuggestions([]);
     setMobileSelectedIndex(-1);
     setSearchModalOpen(false);
-    navigate(`/search?q=${encodeURIComponent(suggestion)}&type=video`);
   };
 
   useEffect(() => {

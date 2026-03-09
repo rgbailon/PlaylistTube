@@ -103,7 +103,7 @@ function SearchPage() {
     setSearchQuery(suggestion);
     setSuggestions([]);
     setSelectedIndex(-1);
-    navigate(`/search?q=${encodeURIComponent(suggestion)}&type=${searchType}`);
+    searchPlaylists(null, suggestion);
   };
 
   const handleKeyDown = (e) => {
@@ -763,7 +763,7 @@ if (allVideos.length > 0) {
                 } else if (e.key === 'Escape') {
                   setSuggestions([]);
                   setSelectedIndex(-1);
-                } else {
+                } else if (e.key === 'Enter') {
                   searchPlaylists();
                 }
               }}
