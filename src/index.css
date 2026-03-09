@@ -276,6 +276,40 @@
   --scrollbar-track: #1f1f1f;
 }
 
+[data-theme="sun"] {
+  --bg-main: #0d0d0d;
+  --bg-card: #151515;
+  --bg-glass: rgba(21, 21, 21, 0.95);
+  --bg-hover: #222222;
+  --bg-active: #2e2e2e;
+  --text-main: #ffffff;
+  --text-muted: #b3b3b3;
+  --border-color: #2a2a2a;
+  --border-hover: #404040;
+  --accent-color: #ebf05d;
+  --accent-hover: #f0f57d;
+  --accent-bg: rgba(235, 240, 93, 0.15);
+  --accent-border: #ebf05d;
+  --scrollbar-thumb: #404040;
+  --scrollbar-track: #151515;
+}
+
+[data-theme="light"] .logo-icon i,
+[data-theme="light"] .logo-text,
+[data-theme="sun"] .logo-icon i,
+[data-theme="sun"] .logo-text {
+  color: #000000 !important;
+}
+
+[data-theme="photo"] .logo-icon i,
+[data-theme="photo"] .logo-text,
+[data-theme="netflix"] .logo-icon i,
+[data-theme="netflix"] .logo-text,
+[data-theme="coffee"] .logo-icon i,
+[data-theme="coffee"] .logo-text {
+  color: #ffffff !important;
+}
+
 * {
   font-family: "Helvetica Neue", "Inter", sans-serif;
 }

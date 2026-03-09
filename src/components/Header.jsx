@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import LiveChat from './LiveChat';
 
-const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix'];
+const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix', 'sun'];
 
 function Header() {
   const { theme, setTheme, apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey } = useApp();
@@ -208,13 +208,13 @@ const navItems = [
       <div className="flex items-center gap-3">
         <Link to="/" className="flex items-center gap-2">
           <div 
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            className="w-8 h-8 rounded-lg flex items-center justify-center logo-icon"
             style={{ background: 'var(--accent-color)' }}
           >
-            <i className="fa-solid fa-circle-play text-white text-base"></i>
+            <i className="fa-solid fa-circle-play text-base" style={{ color: '#000000' }}></i>
           </div>
           <span 
-            className="text-base font-bold"
+            className="text-base font-bold logo-text"
             style={{ color: 'var(--text-main)' }}
           >
             PlaylistPlay
