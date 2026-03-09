@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useApp } from '../App';
 import Settings from '../components/Settings';
@@ -7,6 +7,101 @@ import LiveChat from '../components/LiveChat';
 function PlayerPage() {
   const { currentPlaylist, setCurrentPlaylist, currentVideoIndex, setCurrentVideoIndex, setPlayer, updateQuota, settingsOpen, setSettingsOpen, sidebarCollapsed, playerPanelOpen, setPlayerPanelOpen } = useApp();
   const location = useLocation();
+
+  // Screen recorder states
+  const [isRecording, setIsRecording] = useState(false);
+  const [formattedTime, setFormattedTime] = useState('00:00');
+  const [showRecordButton, setShowRecordButton] = useState(false);
+  const recordButtonTimeout = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
+  const timerRef = useRef(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const recordedChunksRef = useRef([]);
+
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          displaySurface: 'monitor',
+        },
+        audio: true,
+        selfBrowserSurface: 'include',
+        systemAudio: 'include',
+        surfaceSwitching: 'include',
+      });
+      streamRef.current = stream;
+      recordedChunksRef.current = [];
+      
+      const options = { mimeType: 'video/webm' };
+      if (!MediaRecorder.isTypeSupported('video/webm')) {
+        options.mimeType = 'video/webm;codecs=vp9';
+      }
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'video/webm;codecs=vp8';
+      }
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        console.error('WebM not supported');
+        return;
+      }
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: options.mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `recording-${Date.now()}.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(t => t.stop());
+        }
+        setIsRecording(false);
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
+      
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start(1000);
+      setIsRecording(true);
+      setRecordingTime(0);
+      
+      timerRef.current = setInterval(() => {
+        setRecordingTime(t => {
+          const mins = Math.floor(t / 60);
+          const secs = t % 60;
+          setFormattedTime(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
+          return t + 1;
+        });
+      }, 1000);
+      
+      stream.getVideoTracks()[0].onended = () => stopRecording();
+    } catch (err) {
+      console.error('Recording error:', err);
+      alert('Could not start recording: ' + err.message);
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    };
+  }, []);
 
   const [videoTitle, setVideoTitle] = useState('');
   const [videoChannel, setVideoChannel] = useState('');
@@ -22,9 +117,52 @@ function PlayerPage() {
   const playerContainerId = 'youtube-player';
   const playerRef = useRef(null);
   const isCreatingPlayer = useRef(false);
-const containerRef = useRef(null);
+  const containerRef = useRef(null);
   const hidePlaylistTimeout = useRef(null);
   const clickTimeout = useRef(null);
+
+  // Handle record button visibility
+  const handleMouseEnterLeftZone = () => {
+    if (recordButtonTimeout.current) {
+      clearTimeout(recordButtonTimeout.current);
+    }
+    setShowRecordButton(true);
+  };
+
+  const handleMouseLeaveLeftZone = () => {
+    recordButtonTimeout.current = setTimeout(() => {
+      setShowRecordButton(false);
+    }, 500);
+  };
+
+  const handleRecordButtonHover = () => {
+    if (recordButtonTimeout.current) {
+      clearTimeout(recordButtonTimeout.current);
+    }
+  };
+
+  const handleRecordButtonLeave = () => {
+    recordButtonTimeout.current = setTimeout(() => {
+      setShowRecordButton(false);
+    }, 1000);
+  };
+
+  const handleRecordClick = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (recordButtonTimeout.current) {
+        clearTimeout(recordButtonTimeout.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const initPlayer = () => {
@@ -92,6 +230,12 @@ useEffect(() => {
             playerRef.current.unMute();
           } else {
             playerRef.current.mute();
+          }
+          break;
+        case 'r':
+          if (isFullscreen) {
+            e.preventDefault();
+            setShowRecordButton(prev => !prev);
           }
           break;
         case '0':
@@ -193,6 +337,7 @@ const toggleFullscreen = () => {
       setIsFullscreen(!!document.fullscreenElement || !!document.webkitFullscreenElement);
       if (!document.fullscreenElement && !document.webkitFullscreenElement) {
         setShowFullscreenPlaylist(false);
+        setShowRecordButton(false);
       }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -208,14 +353,32 @@ const toggleFullscreen = () => {
 
     const handleMouseMove = (e) => {
       const screenWidth = window.innerWidth;
-      const edgeThreshold = 80;
+      const edgeThreshold = 100;
 
+      // Right edge - show playlist
       if (e.clientX >= screenWidth - edgeThreshold) {
         if (hidePlaylistTimeout.current) {
           clearTimeout(hidePlaylistTimeout.current);
           hidePlaylistTimeout.current = null;
         }
         setShowFullscreenPlaylist(true);
+      }
+
+      // Left edge - show record button
+      if (e.clientX <= edgeThreshold) {
+        if (recordButtonTimeout.current) {
+          clearTimeout(recordButtonTimeout.current);
+          recordButtonTimeout.current = null;
+        }
+        setShowRecordButton(true);
+      } else if (e.clientX > edgeThreshold && e.clientX < screenWidth - edgeThreshold) {
+        // Mouse is in middle - hide record button after delay
+        if (!recordButtonTimeout.current) {
+          recordButtonTimeout.current = setTimeout(() => {
+            setShowRecordButton(false);
+            recordButtonTimeout.current = null;
+          }, 300);
+        }
       }
     };
 
@@ -254,14 +417,72 @@ const toggleFullscreen = () => {
 
   const currentVideoId = currentPlaylist[currentVideoIndex]?.id;
 
-return (
+  return (
     <div 
       ref={containerRef} 
       className={`h-full flex flex-col md:flex-row overflow-hidden ${isFullscreen ? 'fixed inset-0 z-[9999] bg-black' : ''} ${immersiveMode ? 'fixed inset-0 z-[9999] bg-black' : ''}`}
     >
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden order-2 md:order-1 ${isFullscreen ? 'p-0' : ''} ${immersiveMode ? 'p-0' : ''}`}>
-        <div className={`flex-1 flex flex-col ${isFullscreen ? 'p-0' : 'p-1 md:p-2 pt-1 pb-24 md:pb-2'} ${immersiveMode ? 'p-0' : ''} overflow-y-auto relative`}>
-          <div className={`flex-1 flex items-center justify-center ${isFullscreen ? 'h-screen' : ''} ${immersiveMode ? 'h-screen' : ''}`}>
+      {/* Sliding Record Button - Left Side */}
+      {isFullscreen && (
+        <>
+          <div 
+            className="fixed left-0 top-0 h-[100vh] w-[100px] z-[9998] cursor-west"
+            onMouseEnter={() => {
+              if (recordButtonTimeout.current) {
+                clearTimeout(recordButtonTimeout.current);
+                recordButtonTimeout.current = null;
+              }
+              setShowRecordButton(true);
+            }}
+            onMouseLeave={() => {
+              recordButtonTimeout.current = setTimeout(() => {
+                setShowRecordButton(false);
+                recordButtonTimeout.current = null;
+              }, 300);
+            }}
+          />
+          <div 
+            className={`fixed left-0 top-1/2 -translate-y-1/2 z-[10000] transition-transform duration-300 ease-out ${showRecordButton ? 'translate-x-0' : '-translate-x-full'}`}
+            onMouseEnter={handleRecordButtonHover}
+            onMouseLeave={handleRecordButtonLeave}
+          >
+          <button
+            onClick={handleRecordClick}
+            className={`flex flex-col items-center gap-1 px-2 py-2 rounded-r-xl shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+              isRecording 
+                ? 'bg-red-600 hover:bg-red-500 animate-pulse' 
+                : 'bg-gray-900/90 hover:bg-red-600'
+            }`}
+            style={{ 
+              color: 'white',
+              backdropFilter: 'blur(10px)',
+              border: isRecording ? '2px solid #ef4444' : '2px solid rgba(255,255,255,0.2)'
+            }}
+          >
+            {isRecording ? (
+              <>
+                <div className="w-3 h-3 bg-white rounded-sm"></div>
+                <div className="flex flex-col items-center">
+                  <span className="text-[8px] font-bold">REC</span>
+                  <span className="text-[8px] opacity-80">{formattedTime}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-3 h-3 rounded-full bg-red-500 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                </div>
+                <span className="text-[10px] font-medium">Record</span>
+              </>
+            )}
+          </button>
+        </div>
+        </>
+      )}
+
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${isFullscreen ? 'h-screen' : ''} ${immersiveMode ? 'h-screen' : ''}`}>
+        <div className={`flex-1 flex flex-col ${isFullscreen ? 'h-screen' : 'p-1 md:p-2 pt-1 pb-24 md:pb-2'} ${immersiveMode ? 'h-screen' : ''} overflow-y-auto relative`}>
+          <div className={`flex-1 flex items-center justify-center ${isFullscreen ? 'h-full' : ''} ${immersiveMode ? 'h-full' : ''}`}>
             <div className={`w-full ${isFullscreen ? 'max-w-none h-full' : (sidebarCollapsed ? 'max-w-full' : 'max-w-5xl')} ${immersiveMode ? 'max-w-none h-full' : ''}`}>
               <div 
                 className="player-container relative w-full h-full"
