@@ -88,8 +88,19 @@ function SearchPage() {
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.search-suggestions-container')) {
+        setSuggestions([]);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const handleSelectSuggestion = (suggestion) => {
     setSearchQuery(suggestion);
+    setSuggestions([]);
     navigate(`/search?q=${encodeURIComponent(suggestion)}&type=${searchType}`);
   };
 
@@ -727,7 +738,7 @@ if (allVideos.length > 0) {
             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
             {suggestions.length > 0 && (
               <div
-                className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
+                className="search-suggestions-container absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
               >
                 {suggestions.map((suggestion, index) => (

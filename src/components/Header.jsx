@@ -69,6 +69,42 @@ const navItems = [
   }, [videoSearchQuery]);
 
   useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.header-suggestions-container')) {
+        setSuggestions([]);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleMobileClickOutside = (e) => {
+      if (!e.target.closest('.mobile-suggestions-container')) {
+        setMobileSuggestions([]);
+      }
+    };
+    document.addEventListener('click', handleMobileClickOutside);
+    return () => document.removeEventListener('click', handleMobileClickOutside);
+  }, []);
+
+  const handleSelectSuggestion = (suggestion) => {
+    setVideoSearchQuery(suggestion);
+    setSuggestions([]);
+    const form = document.querySelector('.header-search-form');
+    if (form) {
+      form.dispatchEvent(new Event('submit', { bubbles: true }));
+    }
+  };
+
+  const handleMobileSelectSuggestion = (suggestion) => {
+    setVideoSearchQuery(suggestion);
+    setMobileSuggestions([]);
+    setSearchModalOpen(false);
+    navigate(`/search?q=${encodeURIComponent(suggestion)}&type=video`);
+  };
+
+  useEffect(() => {
     const fetchSuggestions = async (query) => {
       if (!query.trim() || query.length < 2) {
         setMobileSuggestions([]);
@@ -103,20 +139,6 @@ const navItems = [
 
     return () => clearTimeout(timeoutId);
   }, [videoSearchQuery]);
-
-  const handleSelectSuggestion = (suggestion) => {
-    setVideoSearchQuery(suggestion);
-    const form = document.querySelector('.header-search-form');
-    if (form) {
-      form.dispatchEvent(new Event('submit', { bubbles: true }));
-    }
-  };
-
-  const handleMobileSelectSuggestion = (suggestion) => {
-    setVideoSearchQuery(suggestion);
-    setSearchModalOpen(false);
-    navigate(`/search?q=${encodeURIComponent(suggestion)}&type=video`);
-  };
 
   const extractVideoId = (input) => {
     const patterns = [
@@ -225,7 +247,7 @@ const navItems = [
           />
           {suggestions.length > 0 && (
             <div
-              className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
+              className="header-suggestions-container absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
             >
               {suggestions.map((suggestion, index) => (
@@ -532,7 +554,7 @@ const navItems = [
           </div>
           {mobileSuggestions.length > 0 && (
             <div
-              className="mt-2 rounded-xl shadow-xl overflow-hidden"
+              className="mobile-suggestions-container mt-2 rounded-xl shadow-xl overflow-hidden"
               style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)' }}
             >
               {mobileSuggestions.map((suggestion, index) => (
