@@ -72,9 +72,8 @@ function SearchPage() {
           if (matches) {
             for (const m of matches) {
               let val = m.replace(/"/g, '');
-              val = val.replace(/\\u003d/g, '=').replace(/\\u0026/g, '&').replace(/\\u003b/g, ';');
+              try { val = JSON.parse('"' + val + '"'); } catch(e) {}
               if (val && !val.includes('window.') && val.length > 1) {
-                try { val = decodeURIComponent(val); } catch(e) {}
                 suggestions.push(val);
               }
             }
