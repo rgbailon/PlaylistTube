@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../App';
 
 function Settings() {
@@ -9,7 +9,43 @@ function Settings() {
   const [statusMessage, setStatusMessage] = useState(null);
   const [showKey, setShowKey] = useState(false);
   const [validating, setValidating] = useState(false);
+  const [quotaResetTime, setQuotaResetTime] = useState({ pacific: '', philippines: '' });
   const btnRef = useRef(null);
+
+  useEffect(() => {
+    const updateResetTimes = () => {
+      const now = new Date();
+      const utcHours = now.getUTCHours();
+      const utcMinutes = now.getUTCMinutes();
+      
+      const totalMinutesUntilReset = (24 * 60) - (utcHours * 60 + utcMinutes);
+      const hoursUntilReset = Math.floor(totalMinutesUntilReset / 60);
+      const minutesUntilReset = totalMinutesUntilReset % 60;
+      
+      const pacificDate = new Date(now);
+      pacificDate.setHours(pacificDate.getHours() + hoursUntilReset);
+      const pacificHours = pacificDate.getHours();
+      const ampm = pacificHours >= 12 ? 'PM' : 'AM';
+      const pacific12 = pacificHours % 12 || 12;
+      
+      const phDate = new Date(now);
+      phDate.setHours(phDate.getHours() + 8 + hoursUntilReset);
+      const phHours = phDate.getHours();
+      const phampm = phHours >= 12 ? 'PM' : 'AM';
+      const ph12 = phHours % 12 || 12;
+      
+      setQuotaResetTime({
+        pacific: `${pacific12}:${minutesUntilReset.toString().padStart(2, '0')} ${ampm} PT`,
+        philippines: `${ph12}:${minutesUntilReset.toString().padStart(2, '0')} ${phampm} PHT`
+      });
+    };
+    
+    updateResetTimes();
+    const interval = setInterval(updateResetTimes, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const totalUsed = Object.values(apiUsage).reduce((a, b) => a + b, 0);
 
 const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(true);
 
@@ -147,29 +183,60 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(true);
                 <span className="text-[10px] text-[var(--text-muted)]">{quotaPercent.toFixed(1)}% used</span>
                 <button onClick={resetQuota} className="text-[10px] hover:text-blue-500 transition text-[var(--text-muted)]"><i className="fas fa-undo mr-0.5"></i>Reset</button>
               </div>
+              <div className="mt-2 text-[10px] text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1.5 rounded">
+                <div className="flex items-center gap-2">
+                  <i className="fas fa-clock"></i>
+                  <span>Resets in: {quotaResetTime.pacific} / {quotaResetTime.philippines}</span>
+                </div>
+              </div>
               
               <div className="mt-3 pt-3 border-t border-[var(--border-color)]">
                 <span className="text-xs font-medium text-[var(--text-muted)]">API Usage Breakdown</span>
-                <div className="mt-2 space-y-1.5">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-[var(--text-muted)]"><i className="fas fa-search mr-1"></i>Search</span>
-                    <span className="text-[var(--text-main)]">{apiUsage.search} units ({apiCalls.search} calls × 100)</span>
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <div className="flex justify-between items-center text-xs mb-1">
+                      <span className="text-[var(--text-muted)]"><i className="fas fa-search mr-1"></i>Search</span>
+                      <span className="text-[var(--text-main)]">{apiUsage.search} units</span>
+                    </div>
+                    <div className="w-full h-1 rounded-full overflow-hidden bg-[var(--bg-hover)]">
+                      <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: (apiUsage.search / maxQuota * 100) + '%' }}></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-[var(--text-muted)]"><i className="fas fa-list mr-1"></i>Playlists</span>
-                    <span className="text-[var(--text-main)]">{apiUsage.playlists} units ({apiCalls.playlists} calls)</span>
+                  <div>
+                    <div className="flex justify-between items-center text-xs mb-1">
+                      <span className="text-[var(--text-muted)]"><i className="fas fa-list mr-1"></i>Playlists</span>
+                      <span className="text-[var(--text-main)]">{apiUsage.playlists} units</span>
+                    </div>
+                    <div className="w-full h-1 rounded-full overflow-hidden bg-[var(--bg-hover)]">
+                      <div className="h-full bg-green-500 transition-all duration-300" style={{ width: (apiUsage.playlists / maxQuota * 100) + '%' }}></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-[var(--text-muted)]"><i className="fas fa-video mr-1"></i>Playlist Items</span>
-                    <span className="text-[var(--text-main)]">{apiUsage.playlistItems} units ({apiCalls.playlistItems} calls)</span>
+                  <div>
+                    <div className="flex justify-between items-center text-xs mb-1">
+                      <span className="text-[var(--text-muted)]"><i className="fas fa-video mr-1"></i>Playlist Items</span>
+                      <span className="text-[var(--text-main)]">{apiUsage.playlistItems} units</span>
+                    </div>
+                    <div className="w-full h-1 rounded-full overflow-hidden bg-[var(--bg-hover)]">
+                      <div className="h-full bg-purple-500 transition-all duration-300" style={{ width: (apiUsage.playlistItems / maxQuota * 100) + '%' }}></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-[var(--text-muted)]"><i className="fas fa-eye mr-1"></i>Video Details</span>
-                    <span className="text-[var(--text-main)]">{apiUsage.videos} units ({apiCalls.videos} calls)</span>
+                  <div>
+                    <div className="flex justify-between items-center text-xs mb-1">
+                      <span className="text-[var(--text-muted)]"><i className="fas fa-eye mr-1"></i>Video Stats</span>
+                      <span className="text-[var(--text-main)]">{apiUsage.videos} units</span>
+                    </div>
+                    <div className="w-full h-1 rounded-full overflow-hidden bg-[var(--bg-hover)]">
+                      <div className="h-full bg-yellow-500 transition-all duration-300" style={{ width: (apiUsage.videos / maxQuota * 100) + '%' }}></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-xs pt-1 border-t border-[var(--border-color)]">
-                    <span className="text-[var(--text-muted)] font-medium">Total Used</span>
-                    <span className="text-[var(--text-main)] font-medium">{quota} units</span>
+                  <div className="pt-2 border-t border-[var(--border-color)]">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-[var(--text-muted)] font-medium">Total Used</span>
+                      <span className="text-[var(--text-main)] font-medium">{totalUsed} units</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full overflow-hidden bg-[var(--bg-hover)] mt-1">
+                      <div className="h-full transition-all duration-300" style={{ width: (totalUsed / maxQuota * 100) + '%', background: totalUsed > 9000 ? '#ef4444' : totalUsed > 7000 ? '#f59e0b' : '#22c55e' }}></div>
+                    </div>
                   </div>
                 </div>
               </div>
