@@ -245,19 +245,19 @@
 }
 
 [data-theme="coffee"] {
-  --bg-main: #271c19;
-  --bg-card: #3c2a25;
-  --bg-glass: rgba(60, 42, 37, 0.95);
-  --bg-hover: #4e362e;
-  --bg-active: #5d4037;
-  --text-main: #d7ccc8;
-  --text-muted: #a1887f;
-  --border-color: #4e362e;
-  --border-hover: #5d4037;
-  --accent-color: #d7ccc8;
-  --accent-hover: #efebe9;
-  --scrollbar-thumb: #5d4037;
-  --scrollbar-track: #3c2a25;
+  --bg-main: #E8D8C4;
+  --bg-card: #C7B7A3;
+  --bg-glass: rgba(199, 183, 163, 0.95);
+  --bg-hover: #B5A593;
+  --bg-active: #A39283;
+  --text-main: #561C24;
+  --text-muted: #6D2932;
+  --border-color: #C7B7A3;
+  --border-hover: #A39283;
+  --accent-color: #561C24;
+  --accent-hover: #3D151C;
+  --scrollbar-thumb: #A39283;
+  --scrollbar-track: #E8D8C4;
 }
 
 [data-theme="netflix"] {
