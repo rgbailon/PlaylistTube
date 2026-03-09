@@ -51,8 +51,10 @@ const navItems = [
           const matches = line.match(/"([^"]+)"/g);
           if (matches) {
             for (const m of matches) {
-              const val = m.replace(/"/g, '');
+              let val = m.replace(/"/g, '');
+              val = val.replace(/\\u003d/g, '=').replace(/\\u0026/g, '&').replace(/\\u003b/g, ';');
               if (val && !val.includes('window.') && val.length > 1) {
+                try { val = decodeURIComponent(val); } catch(e) {}
                 suggestions.push(val);
               }
             }
@@ -126,8 +128,10 @@ const navItems = [
           const matches = line.match(/"([^"]+)"/g);
           if (matches) {
             for (const m of matches) {
-              const val = m.replace(/"/g, '');
+              let val = m.replace(/"/g, '');
+              val = val.replace(/\\u003d/g, '=').replace(/\\u0026/g, '&').replace(/\\u003b/g, ';');
               if (val && !val.includes('window.') && val.length > 1) {
+                try { val = decodeURIComponent(val); } catch(e) {}
                 suggestions.push(val);
               }
             }
