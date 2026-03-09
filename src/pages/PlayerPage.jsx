@@ -5,7 +5,7 @@ import Settings from '../components/Settings';
 import LiveChat from '../components/LiveChat';
 
 function PlayerPage() {
-  const { currentPlaylist, setCurrentPlaylist, currentVideoIndex, setCurrentVideoIndex, setPlayer, updateQuota, settingsOpen, setSettingsOpen, sidebarCollapsed, playerPanelOpen, setPlayerPanelOpen } = useApp();
+  const { currentPlaylist, setCurrentPlaylist, currentVideoIndex, setCurrentVideoIndex, setPlayer, updateQuota, settingsOpen, setSettingsOpen, sidebarCollapsed, playerPanelOpen, setPlayerPanelOpen, getCurrentApiKey } = useApp();
   const location = useLocation();
 
   // Screen recorder states
@@ -194,6 +194,41 @@ function PlayerPage() {
 useEffect(() => {
     if (playerReady && playerRef.current && currentPlaylist.length > 0) loadVideo(currentVideoIndex);
   }, [currentVideoIndex, currentPlaylist, playerReady]);
+
+  useEffect(() => {
+    const fetchVideoStats = async () => {
+      const apiKey = getCurrentApiKey();
+      if (!apiKey || currentPlaylist.length === 0) return;
+      
+      const videoIds = currentPlaylist.map(v => v.id).filter(id => id && !v.viewCount && !v.liveViewers);
+      if (videoIds.length === 0) return;
+      
+      try {
+        const resp = await fetch(
+          `https://www.googleapis.com/youtube/v3/videos?part=statistics,liveStreamingDetails&id=${videoIds.join(',')}&key=${apiKey}`
+        );
+        const data = await resp.json();
+        if (data.items) {
+          const updatedPlaylist = [...currentPlaylist];
+          data.items.forEach(item => {
+            const videoIndex = updatedPlaylist.findIndex(v => v.id === item.id);
+            if (videoIndex !== -1) {
+              if (item.statistics?.viewCount) {
+                updatedPlaylist[videoIndex] = { ...updatedPlaylist[videoIndex], viewCount: parseInt(item.statistics.viewCount) };
+              }
+              if (item.liveStreamingDetails?.concurrentViewers) {
+                updatedPlaylist[videoIndex] = { ...updatedPlaylist[videoIndex], liveViewers: parseInt(item.liveStreamingDetails.concurrentViewers) };
+              }
+            }
+          });
+          setCurrentPlaylist(updatedPlaylist);
+        }
+      } catch (err) {
+        console.error('Failed to fetch video stats:', err);
+      }
+    };
+    fetchVideoStats();
+  }, [currentVideoIndex]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
