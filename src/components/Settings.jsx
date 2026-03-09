@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../App';
 
 function Settings() {
-  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory, apiUsage, apiCalls } = useApp();
+  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory, apiUsage, apiCalls, theme, setTheme } = useApp();
   
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [apiKeysExpanded, setApiKeysExpanded] = useState(false);
@@ -10,6 +10,7 @@ function Settings() {
   const [showKey, setShowKey] = useState(false);
   const [validating, setValidating] = useState(false);
   const [quotaResetTime, setQuotaResetTime] = useState({ pacific: '', philippines: '' });
+  const [themeExpanded, setThemeExpanded] = useState(true);
   const btnRef = useRef(null);
 
   useEffect(() => {
@@ -109,6 +110,37 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(true);
       </h3>
 
       <div className="space-y-4">
+        <div className="hidden md:block">
+          <button 
+            onClick={() => setThemeExpanded(!themeExpanded)} 
+            className="flex items-center justify-between w-full text-xs font-medium mb-2 text-[var(--text-main)]"
+          >
+            <span><i className="fas fa-palette mr-2"></i>Theme</span>
+            <i className={`fas fa-chevron-${themeExpanded ? 'up' : 'down'} text-xs`}></i>
+          </button>
+          
+          {themeExpanded && (
+            <div className="grid grid-cols-4 gap-2">
+              {['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix', 'sun'].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`px-2 py-1.5 rounded-lg text-xs capitalize transition ${
+                    theme === t ? 'ring-2 ring-[var(--accent-color)]' : ''
+                  }`}
+                  style={{ 
+                    background: t === 'light' ? '#f5f5f5' : t === 'bold' ? '#171717' : t === 'dark' ? '#0f172a' : t === 'retro' ? '#fdf6e3' : t === 'cartoon' ? '#fff8f0' : t === 'photo' ? '#000000' : t === 'forest' ? '#14281d' : t === 'forest2' ? '#19270d' : t === 'ocean' ? '#0c4a6e' : t === 'sunset' ? '#4a044e' : t === 'cyber' ? '#000000' : t === 'coffee' ? '#E8D8C4' : t === 'netflix' ? '#141414' : '#1a1a1a',
+                    color: t === 'light' || t === 'retro' || t === 'cartoon' || t === 'coffee' ? '#000000' : '#ffffff',
+                    border: theme === t ? '2px solid var(--accent-color)' : '1px solid var(--border-color)'
+                  }}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div>
           <button 
             onClick={() => setYoutubeApiExpanded(!youtubeApiExpanded)} 
