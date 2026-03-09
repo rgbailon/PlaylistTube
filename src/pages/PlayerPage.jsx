@@ -228,6 +228,30 @@ const toggleFullscreen = () => {
     };
   }, [isFullscreen]);
 
+  useEffect(() => {
+    if (!isFullscreen) return;
+
+    let hideCursorTimeout;
+    const showCursor = () => {
+      document.body.style.cursor = 'default';
+      clearTimeout(hideCursorTimeout);
+      hideCursorTimeout = setTimeout(() => {
+        if (isFullscreen) {
+          document.body.style.cursor = 'none';
+        }
+      }, 3000);
+    };
+
+    document.addEventListener('mousemove', showCursor);
+    showCursor();
+
+    return () => {
+      clearTimeout(hideCursorTimeout);
+      document.body.style.cursor = 'default';
+      document.removeEventListener('mousemove', showCursor);
+    };
+  }, [isFullscreen]);
+
   const currentVideoId = currentPlaylist[currentVideoIndex]?.id;
 
 return (
