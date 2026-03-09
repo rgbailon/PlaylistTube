@@ -19,6 +19,7 @@ function SearchPage() {
   const [error, setError] = useState(null);
   const [playlistDetails, setPlaylistDetails] = useState({});
   const [liveDetails, setLiveDetails] = useState({});
+  const [videoStats, setVideoStats] = useState({});
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
@@ -50,6 +51,14 @@ function SearchPage() {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
+  };
+
+  const formatViews = (count) => {
+    if (!count) return '';
+    const num = parseInt(count);
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M views';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K views';
+    return num.toString() + ' views';
   };
 
   useEffect(() => {
@@ -264,6 +273,8 @@ function SearchPage() {
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         updateQuota(-100, 'search');
+        const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
+        if (videoIds.length > 0) fetchVideoStats(videoIds);
       }
     } catch (err) {
       console.error('Failed to load trending videos:', err);
@@ -305,6 +316,8 @@ function SearchPage() {
         setHasMore(!!data.nextPageToken);
         updateQuota(-100, 'search');
         fetchLiveDetails(data.items.map(item => item.id.videoId));
+        const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
+        if (videoIds.length > 0) fetchVideoStats(videoIds);
       }
     } catch (err) {
       console.error('Failed to load live streams:', err);
@@ -443,6 +456,11 @@ function SearchPage() {
         
         if (activeType === 'playlist' || activeType === 'shorts_playlist') {
           fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
+        } else if (activeType === 'video' || activeType === 'live') {
+          const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
+          if (videoIds.length > 0) {
+            fetchVideoStats(videoIds);
+          }
         }
       }
     } catch (err) {
@@ -479,6 +497,31 @@ function SearchPage() {
     }
   };
 
+  const fetchVideoStats = async (videoIds) => {
+    if (!videoIds.length) return;
+    const apiKey = getCurrentApiKey();
+    if (!apiKey) return;
+    
+    try {
+      const resp = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds.join(',')}&key=${apiKey}`
+      );
+      const data = await resp.json();
+      if (data.items) {
+        const stats = {};
+        data.items.forEach(item => {
+          stats[item.id] = {
+            viewCount: parseInt(item.statistics?.viewCount) || 0,
+          };
+        });
+        setVideoStats(prev => ({ ...prev, ...stats }));
+      }
+      updateQuota(-1, 'videos');
+    } catch (err) {
+      console.error('Failed to fetch video stats:', err);
+    }
+  };
+
   const loadMore = async () => {
     if (!nextPageToken) return;
     
@@ -511,8 +554,10 @@ function SearchPage() {
         if (searchType === 'playlist' || searchType === 'shorts_playlist') {
           updateQuota(-1, 'playlists');
           fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
-        } else {
+        } else if (searchType === 'video' || searchType === 'live') {
           updateQuota(-100, 'search');
+          const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
+          if (videoIds.length > 0) fetchVideoStats(videoIds);
         }
       }
     } catch (err) {
@@ -935,11 +980,20 @@ if (allVideos.length > 0) {
                     </h3>
                     <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
                       {decodeHtml(item.snippet.channelTitle)}
+                      {searchType === 'video' && videoStats[item.id.videoId]?.viewCount > 0 && (
+                        <span> • {formatViews(videoStats[item.id.videoId].viewCount)}</span>
+                      )}
+                      {searchType === 'video' && item.snippet.publishedAt && !videoStats[item.id.videoId]?.viewCount && (
+                        <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
+                      )}
+                      {searchType === 'video' && videoStats[item.id.videoId]?.viewCount > 0 && item.snippet.publishedAt && (
+                        <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
+                      )}
+                      {searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
+                        <span> • {formatViewers(liveDetails[item.id.videoId].concurrentViewers)} watching</span>
+                      )}
                       {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.publishedAt && (
                         <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
-                      )}
-                      {searchType === 'video' && item.snippet.publishedAt && (
-                        <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
                       {searchType === 'shorts_playlist' && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
