@@ -651,7 +651,7 @@ const toggleFullscreen = () => {
 
 {isFullscreen && (
         <aside 
-          className={`fixed right-0 top-0 h-full w-80 flex flex-col overflow-hidden transition-transform duration-300 z-[9998] min-h-0 ${showFullscreenPlaylist ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`fixed right-0 top-0 h-screen w-80 flex flex-col overflow-hidden transition-transform duration-300 z-[9998] ${showFullscreenPlaylist ? 'translate-x-0' : 'translate-x-full'}`}
           style={{ background: 'rgba(30,30,30,0.95)', backdropFilter: 'blur(10px)' }}
           onMouseEnter={() => {
             if (hidePlaylistTimeout.current) {
@@ -674,7 +674,7 @@ const toggleFullscreen = () => {
             </button>
           </div>
           {activeTab === 'playlist' ? (
-            <div className="flex-1 h-full overflow-y-auto" style={{ background: '#0f0f0f' }}>
+            <div className="flex-1 h-full overflow-y-auto scrollbar-hide" style={{ background: '#0f0f0f' }}>
               {currentPlaylist.length === 0 ? (
                 <div className="text-center py-8">
                   <i className="fas fa-film text-2xl mb-2" style={{ color: '#6b7280' }}></i>
