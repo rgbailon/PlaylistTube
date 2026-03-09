@@ -59,7 +59,7 @@ function SearchPage() {
         return;
       }
       try {
-        const res = await fetch(`https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`);
+        const res = await fetch(`/api/suggest?q=${encodeURIComponent(query)}`);
         const text = await res.text();
         const lines = text.split('\n');
         const suggestions = [];
