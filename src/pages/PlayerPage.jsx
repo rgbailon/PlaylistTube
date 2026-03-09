@@ -128,6 +128,8 @@ function PlayerPage() {
   const containerRef = useRef(null);
   const hidePlaylistTimeout = useRef(null);
   const clickTimeout = useRef(null);
+  const playlistLengthRef = useRef(currentPlaylist.length);
+  playlistLengthRef.current = currentPlaylist.length;
 
   // Handle record button visibility
   const handleMouseEnterLeftZone = () => {
@@ -281,7 +283,14 @@ useEffect(() => {
   const onPlayerReady = (event) => { setPlayer(event.target); setPlayerReady(true); };
   const onPlayerStateChange = (event) => {
     setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
-    if (event.data === window.YT.PlayerState.ENDED) playNext();
+    if (event.data === window.YT.PlayerState.ENDED) {
+      setCurrentVideoIndex(prev => {
+        if (prev < playlistLengthRef.current - 1) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }
   };
 
   const loadVideo = (index) => {
@@ -293,9 +302,10 @@ useEffect(() => {
     updateQuota(-1, 'playlistItems');
   };
 
-const playNext = () => { if (currentVideoIndex < currentPlaylist.length - 1) setCurrentVideoIndex(currentVideoIndex + 1); };
-  const playPrevious = () => { if (currentVideoIndex > 0) setCurrentVideoIndex(currentVideoIndex - 1); };
+  const playNext = () => { setCurrentVideoIndex(prev => prev < playlistLengthRef.current - 1 ? prev + 1 : prev); };
+  const playPrevious = () => { setCurrentVideoIndex(prev => prev > 0 ? prev - 1 : prev); };
   const playVideo = (index) => { setCurrentVideoIndex(index); };
+
 
   const togglePlay = () => {
     if (playerRef.current) {
