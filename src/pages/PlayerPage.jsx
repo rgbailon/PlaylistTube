@@ -479,7 +479,7 @@ const toggleFullscreen = () => {
       {isFullscreen && (
         <>
           <div 
-            className="fixed left-0 top-0 h-[100vh] w-[100px] z-[9998] cursor-west"
+            className="fixed left-0 top-0 h-[100vh] w-[40px] z-[9998] cursor-west"
             onMouseEnter={() => {
               if (recordButtonTimeout.current) {
                 clearTimeout(recordButtonTimeout.current);
