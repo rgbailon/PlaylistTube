@@ -10,7 +10,7 @@ function Settings() {
   const [showKey, setShowKey] = useState(false);
   const [validating, setValidating] = useState(false);
   const [quotaResetTime, setQuotaResetTime] = useState({ pacific: '', philippines: '' });
-  const [themeExpanded, setThemeExpanded] = useState(true);
+  const [themeExpanded, setThemeExpanded] = useState(false);
   const btnRef = useRef(null);
 
   useEffect(() => {

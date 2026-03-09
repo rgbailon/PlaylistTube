@@ -3,13 +3,10 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import LiveChat from './LiveChat';
 
-const themes = ['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix', 'sun'];
-
 function Header() {
-  const { theme, setTheme, apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey } = useApp();
+  const { apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
-  const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
   const [playlistPanelOpen, setPlaylistPanelOpen] = useState(false);
@@ -333,51 +330,6 @@ const navItems = [
         >
           <i className="fas fa-bars text-lg"></i>
         </button>
-        
-        <div className="relative hidden md:block">
-          <button
-            onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
-            className="p-2 rounded-lg hover:bg-[var(--bg-hover)] transition flex items-center gap-2"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            <i className="fas fa-palette text-lg"></i>
-            <span className="hidden sm:inline text-sm capitalize">{theme}</span>
-            <i className="fas fa-chevron-down text-xs"></i>
-          </button>
-
-          {themeDropdownOpen && (
-            <>
-              <div 
-                className="fixed inset-0 z-40" 
-                onClick={() => setThemeDropdownOpen(false)}
-              />
-              <div 
-                className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-lg z-50 overflow-hidden"
-                style={{ 
-                  background: 'var(--bg-card)', 
-                  border: '1px solid var(--border-color)' 
-                }}
-              >
-                {themes.map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => {
-                      setTheme(t);
-                      setThemeDropdownOpen(false);
-                    }}
-                    className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between hover:bg-[var(--bg-hover)] transition ${
-                      theme === t ? 'font-semibold' : ''
-                    }`}
-                    style={{ color: theme === t ? 'var(--accent-color)' : 'var(--text-main)' }}
-                  >
-                    <span className="capitalize">{t}</span>
-                    {theme === t && <i className="fas fa-check text-xs"></i>}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
       </div>
 
       {mobileMenuOpen && (
@@ -395,47 +347,6 @@ const navItems = [
         }}
       >
             <nav className="py-2">
-              <div className="px-4 py-2">
-                <button 
-                  onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
-                  className="p-2 rounded-lg hover:bg-[var(--bg-hover)] transition flex items-center gap-2 w-full"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-<i className="fas fa-palette text-base"></i>
-                  <span className="text-sm capitalize">{theme}</span>
-                  <i className="fas fa-chevron-down text-xs ml-auto"></i>
-                </button>
-              </div>
-              
-              {themeDropdownOpen && (
-                <div className="px-4 pb-2">
-                  <div 
-                    className="rounded-xl overflow-hidden"
-                    style={{ 
-                      background: 'var(--bg-main)', 
-                      border: '1px solid var(--border-color)' 
-                    }}
-                  >
-                    {themes.map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => {
-                          setTheme(t);
-                          setThemeDropdownOpen(false);
-                        }}
-                        className={`w-full px-3 py-2 text-left text-sm flex items-center justify-between hover:bg-[var(--bg-hover)] transition ${
-                          theme === t ? 'font-semibold' : ''
-                        }`}
-                        style={{ color: theme === t ? 'var(--accent-color)' : 'var(--text-main)' }}
-                      >
-                        <span className="capitalize">{t}</span>
-                        {theme === t && <i className="fas fa-check text-xs"></i>}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {navItems.map((item) => (
                 <Link
                   key={item.id}
