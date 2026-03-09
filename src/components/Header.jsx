@@ -39,7 +39,11 @@ const navItems = [
         return;
       }
       try {
-        const res = await fetch(`/api/suggest?q=${encodeURIComponent(query)}`);
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const url = isLocalhost 
+          ? `https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`
+          : `/api/suggest?q=${encodeURIComponent(query)}`;
+        const res = await fetch(url);
         const text = await res.text();
         const lines = text.split('\n');
         const suggestions = [];
@@ -110,7 +114,11 @@ const navItems = [
         return;
       }
       try {
-        const res = await fetch(`/api/suggest?q=${encodeURIComponent(query)}`);
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const url = isLocalhost 
+          ? `https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`
+          : `/api/suggest?q=${encodeURIComponent(query)}`;
+        const res = await fetch(url);
         const text = await res.text();
         const lines = text.split('\n');
         const suggestions = [];
