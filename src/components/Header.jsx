@@ -5,7 +5,7 @@ import LiveChat from './LiveChat';
 import Settings from './Settings';
 
 function Header() {
-  const { apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey, settingsOpen, setSettingsOpen } = useApp();
+  const { apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey, settingsOpen, setSettingsOpen, forceSearch, setForceSearch } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,6 +21,7 @@ function Header() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [mobileSuggestions, setMobileSuggestions] = useState([]);
   const [mobileSelectedIndex, setMobileSelectedIndex] = useState(-1);
+  const headerSearchTriggeredRef = useRef(false);
 
 const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
@@ -34,7 +35,7 @@ const navItems = [
 
   useEffect(() => {
     const fetchSuggestions = async (query) => {
-      if (!query.trim() || query.length < 2) {
+      if (!query.trim() || query.length < 2 || headerSearchTriggeredRef.current) {
         setSuggestions([]);
         return;
       }
@@ -96,12 +97,14 @@ const navItems = [
   }, []);
 
   const handleSelectSuggestion = (suggestion) => {
+    headerSearchTriggeredRef.current = true;
     setVideoSearchQuery(suggestion);
     setSuggestions([]);
     setSelectedIndex(-1);
   };
 
   const handleMobileSelectSuggestion = (suggestion) => {
+    headerSearchTriggeredRef.current = true;
     setVideoSearchQuery(suggestion);
     setMobileSuggestions([]);
     setMobileSelectedIndex(-1);
@@ -110,7 +113,7 @@ const navItems = [
 
   useEffect(() => {
     const fetchSuggestions = async (query) => {
-      if (!query.trim() || query.length < 2) {
+      if (!query.trim() || query.length < 2 || headerSearchTriggeredRef.current) {
         setMobileSuggestions([]);
         return;
       }
@@ -174,6 +177,12 @@ const navItems = [
     const videoId = extractVideoId(input);
     const playlistId = extractPlaylistId(input);
     
+    headerSearchTriggeredRef.current = true;
+    setSuggestions([]);
+    setSelectedIndex(-1);
+    setMobileSuggestions([]);
+    setMobileSelectedIndex(-1);
+    
     if (videoId) {
       if (!getCurrentApiKey()) {
         setSearchError('Please add a YouTube API key in Settings');
@@ -188,9 +197,17 @@ const navItems = [
       setCurrentVideoIndex(0);
       navigate('/');
     } else if (playlistId) {
-      navigate(`/search?list=${playlistId}`);
+      if (isActive('/search')) {
+        setForceSearch({ query: `?list=${playlistId}`, type: 'playlist' });
+      } else {
+        navigate(`/search?list=${playlistId}`);
+      }
     } else {
-      navigate(`/search?q=${encodeURIComponent(input)}&type=${searchType}`);
+      if (isActive('/search')) {
+        setForceSearch({ query: input, type: searchType });
+      } else {
+        navigate(`/search?q=${encodeURIComponent(input)}&type=${searchType}`);
+      }
     }
     setVideoSearchQuery('');
   };
@@ -251,7 +268,7 @@ const navItems = [
               setVideoSearchQuery(e.target.value);
               setSelectedIndex(-1);
             }}
-            onFocus={() => setSearchFocused(true)}
+            onFocus={() => { setSearchFocused(true); headerSearchTriggeredRef.current = false; }}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
                 setSuggestions([]);
@@ -669,6 +686,7 @@ const navItems = [
                   }
                 }
                 if (e.key === 'Enter' && videoSearchQuery.trim()) {
+                  headerSearchTriggeredRef.current = true;
                   setSearchModalOpen(false);
                   navigate(`/search?q=${encodeURIComponent(videoSearchQuery)}&type=video`);
                   setVideoSearchQuery('');

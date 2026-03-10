@@ -38,6 +38,7 @@ function App() {
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [lastSearchType, setLastSearchType] = useState('');
   const [notification, setNotification] = useState(null);
+  const [forceSearch, setForceSearch] = useState(null);
 
   useEffect(() => {
     loadSavedData();
@@ -324,7 +325,8 @@ function App() {
     playerPanelOpen, setPlayerPanelOpen,
     getCookie, setCookie,
     saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType,
-    notification, showNotification
+    notification, showNotification,
+    forceSearch, setForceSearch
   };
 
   return (

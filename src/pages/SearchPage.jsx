@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../App';
 
 function SearchPage() {
-  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, addToHistory, currentPlaylist, checkAndSwitchApiKey, switchToNextApiKey, apiKeys, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType, addVideoToPlaylist } = useApp();
+  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, addToHistory, currentPlaylist, checkAndSwitchApiKey, switchToNextApiKey, apiKeys, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType, addVideoToPlaylist, forceSearch, setForceSearch } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -23,6 +23,7 @@ function SearchPage() {
   const [videoStats, setVideoStats] = useState({});
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const searchTriggeredRef = useRef(false);
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -72,7 +73,7 @@ function SearchPage() {
 
   useEffect(() => {
     const fetchSuggestions = async (query) => {
-      if (!query.trim() || query.length < 2) {
+      if (!query.trim() || query.length < 2 || searchTriggeredRef.current) {
         setSuggestions([]);
         return;
       }
@@ -123,7 +124,27 @@ function SearchPage() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (forceSearch) {
+      const { query, type } = forceSearch;
+      setSearchType(type || 'video');
+      searchTriggeredRef.current = true;
+      setSuggestions([]);
+      setSelectedIndex(-1);
+      if (query.startsWith('?list=')) {
+        const playlistId = query.replace('?list=', '');
+        const playlist = { id: { playlistId }, snippet: { title: 'Playlist', channelTitle: '' } };
+        loadPlaylist(playlistId, playlist);
+      } else {
+        setSearchQuery(query);
+        searchPlaylists(type, query);
+      }
+      setForceSearch(null);
+    }
+  }, [forceSearch]);
+
   const handleSelectSuggestion = (suggestion) => {
+    searchTriggeredRef.current = true;
     setSearchQuery(suggestion);
     setSuggestions([]);
     setSelectedIndex(-1);
@@ -827,7 +848,7 @@ if (item.liveStreamingDetails) {
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
-              onFocus={() => setSearchFocused(true)}
+              onFocus={() => { setSearchFocused(true); searchTriggeredRef.current = false; }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && selectedIndex >= 0) {
                   e.preventDefault();
@@ -843,6 +864,9 @@ if (item.liveStreamingDetails) {
                   setSuggestions([]);
                   setSelectedIndex(-1);
                 } else if (e.key === 'Enter') {
+                  searchTriggeredRef.current = true;
+                  setSuggestions([]);
+                  setSelectedIndex(-1);
                   searchPlaylists();
                 }
               }}
@@ -851,7 +875,7 @@ if (item.liveStreamingDetails) {
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
             />
             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
-            {suggestions.length > 0 && !searchFocused && (
+            {suggestions.length > 0 && !searchFocused && !searchTriggeredRef.current && (
               <div
                 className="search-suggestions-container absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
@@ -924,6 +948,9 @@ if (item.liveStreamingDetails) {
                       }
                       if (e.key === 'Enter') {
                         e.preventDefault();
+                        searchTriggeredRef.current = true;
+                        setSuggestions([]);
+                        setSelectedIndex(-1);
                         searchPlaylists();
                         setSearchFocused(false);
                       } else if (e.key === 'Escape') {
