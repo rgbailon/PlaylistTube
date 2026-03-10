@@ -551,6 +551,17 @@ const toggleFullscreen = () => {
                   </div>
                 )}
                 <div id={playerContainerId} className="absolute inset-0"></div>
+                <div 
+                  className="absolute z-10"
+                  onClick={togglePlay}
+                  onDoubleClick={toggleFullscreen}
+                  style={{ 
+                    width: '85%',
+                    height: '85%',
+                    top: '7.5%',
+                    left: '7.5%'
+                  }}
+                ></div>
                 {(isFullscreen || immersiveMode) && (
                   <>
                     <div 

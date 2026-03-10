@@ -13,6 +13,7 @@ function Header() {
   const [mobileTab, setMobileTab] = useState('playlist');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchType, setSearchType] = useState('video');
   const [searching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
@@ -188,7 +189,7 @@ const navItems = [
     } else if (playlistId) {
       navigate(`/search?list=${playlistId}`);
     } else {
-      navigate(`/search?q=${encodeURIComponent(input)}&type=video`);
+      navigate(`/search?q=${encodeURIComponent(input)}&type=${searchType}`);
     }
     setVideoSearchQuery('');
   };
@@ -430,16 +431,38 @@ const navItems = [
                 style={{ color: '#ffffff' }}
                 autoFocus
               />
-              <button
-                onClick={() => setSearchFocused(false)}
-                className="px-2 py-1 rounded-md text-xs"
-                style={{ 
-                  color: 'rgba(255, 255, 255, 0.5)',
-                  background: 'rgba(255, 255, 255, 0.1)'
-                }}
-              >
-                ESC
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSearchType('video')}
+                  className="px-2 py-1 rounded-md text-xs"
+                  style={{ 
+                    color: searchType === 'video' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                    background: searchType === 'video' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                  }}
+                >
+                  Video
+                </button>
+                <button
+                  onClick={() => setSearchType('playlist')}
+                  className="px-2 py-1 rounded-md text-xs"
+                  style={{ 
+                    color: searchType === 'playlist' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                    background: searchType === 'playlist' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                  }}
+                >
+                  Playlist
+                </button>
+                <button
+                  onClick={() => setSearchFocused(false)}
+                  className="px-2 py-1 rounded-md text-xs"
+                  style={{ 
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    background: 'rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  ESC
+                </button>
+              </div>
             </div>
             {suggestions.length > 0 && (
               <div
