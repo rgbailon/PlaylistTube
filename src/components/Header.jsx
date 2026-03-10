@@ -68,7 +68,7 @@ const navItems = [
 
     const timeoutId = setTimeout(() => {
       fetchSuggestions(videoSearchQuery);
-    }, 50);
+    }, 10);
 
     return () => clearTimeout(timeoutId);
   }, [videoSearchQuery]);
@@ -144,7 +144,7 @@ const navItems = [
 
     const timeoutId = setTimeout(() => {
       fetchSuggestions(videoSearchQuery);
-    }, 50);
+    }, 10);
 
     return () => clearTimeout(timeoutId);
   }, [videoSearchQuery]);

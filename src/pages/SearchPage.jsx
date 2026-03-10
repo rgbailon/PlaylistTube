@@ -107,7 +107,7 @@ function SearchPage() {
 
     const timeoutId = setTimeout(() => {
       fetchSuggestions(searchQuery);
-    }, 50);
+    }, 10);
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
