@@ -1123,15 +1123,15 @@ if (item.liveStreamingDetails) {
                     onError={(e) => { e.target.src = 'https://via.placeholder.com/320x180?text=Video'; }}
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                    {searchType === 'video' && videoStats[item.id.videoId]?.viewCount && (
-                      <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-black/80 text-white text-xs">
-                        {formatViews(videoStats[item.id.videoId].viewCount)} views
-                      </div>
-                    )}
                     <div className="w-14 h-14 rounded-full bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <i className="fas fa-play text-white text-xl ml-1"></i>
                     </div>
                   </div>
+                  {searchType === 'video' && videoStats[item.id.videoId]?.viewCount && (
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs">
+                      {formatViews(videoStats[item.id.videoId].viewCount)} views
+                    </div>
+                  )}
                   {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.videoCount && (
                     <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
                       <i className="fas fa-video"></i>
