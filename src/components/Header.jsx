@@ -453,6 +453,16 @@ const navItems = [
                   Playlist
                 </button>
                 <button
+                  onClick={() => setSearchType('live')}
+                  className="px-2 py-1 rounded-md text-xs"
+                  style={{ 
+                    color: searchType === 'live' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                    background: searchType === 'live' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                  }}
+                >
+                  Live
+                </button>
+                <button
                   onClick={() => setSearchFocused(false)}
                   className="px-2 py-1 rounded-md text-xs"
                   style={{ 
