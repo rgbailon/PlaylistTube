@@ -8,6 +8,7 @@ function SearchPage() {
   const location = useLocation();
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState('relevance');
@@ -826,6 +827,7 @@ if (item.liveStreamingDetails) {
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearchInput(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && selectedIndex >= 0) {
                   e.preventDefault();
@@ -849,7 +851,7 @@ if (item.liveStreamingDetails) {
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
             />
             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
-            {suggestions.length > 0 && (
+            {suggestions.length > 0 && !searchFocused && (
               <div
                 className="search-suggestions-container absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
@@ -872,6 +874,109 @@ if (item.liveStreamingDetails) {
             )}
           </div>
         </div>
+
+        {/* Search Focus Modal with Aero Glass Effect */}
+        {searchFocused && (
+          <div 
+            className="fixed inset-0 z-[100] animate-fade-in"
+            style={{ 
+              background: 'rgba(20, 20, 20, 0.6)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              cursor: 'default'
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setSearchFocused(false);
+              }
+            }}
+          >
+            <div className="w-full h-full flex items-center justify-center p-4 pointer-events-none">
+              <div 
+                className="w-[60%] max-w-2xl rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 scale-100 pointer-events-auto"
+                style={{ 
+                  background: 'rgba(40, 40, 40, 0.9)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                <div className="flex items-center justify-center gap-3 px-6 py-5">
+                  <i className="fas fa-search text-xl" style={{ color: 'rgba(255, 255, 255, 0.6)' }}></i>
+                  <div className="flex-1 flex justify-center">
+                    <input
+                      placeholder="Search video or paste URL..."
+                      className="w-full max-w-lg bg-transparent border-none outline-none text-xl text-center"
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => handleSearchInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        e.stopPropagation();
+                        if (suggestions.length > 0) {
+                          if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
+                          } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
+                          } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                            e.preventDefault();
+                            handleSelectSuggestion(suggestions[selectedIndex]);
+                            setSearchFocused(false);
+                            return;
+                          }
+                        }
+                        if (e.key === 'Enter' && searchQuery.trim()) {
+                          e.preventDefault();
+                          searchPlaylists();
+                          setSearchFocused(false);
+                        } else if (e.key === 'Escape') {
+                          setSearchFocused(false);
+                        }
+                      }}
+                      style={{ color: '#ffffff' }}
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    onClick={() => setSearchFocused(false)}
+                    className="px-3 py-1.5 rounded-lg text-xs"
+                    style={{ 
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      background: 'rgba(255, 255, 255, 0.1)'
+                    }}
+                  >
+                    ESC
+                  </button>
+                </div>
+                {suggestions.length > 0 && (
+                  <div
+                    className="mx-2 mb-2 rounded-xl shadow-xl overflow-hidden"
+                    style={{ background: 'rgba(20, 20, 20, 0.95)', border: '1px solid rgba(255, 255, 255, 0.05)' }}
+                  >
+                    {suggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        onClick={() => {
+                          handleSelectSuggestion(suggestion);
+                          setSearchFocused(false);
+                        }}
+                        className="px-5 py-3 cursor-pointer text-sm flex items-center gap-3"
+                      style={{ 
+                        color: '#ffffff', 
+                        background: index === selectedIndex ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                          borderBottom: index < suggestions.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none' 
+                        }}
+                      >
+                        <i className="fas fa-search text-xs" style={{ color: 'rgba(255, 255, 255, 0.5)' }}></i>
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="px-4 md:px-8 pb-4">
           <div className="flex flex-wrap items-center gap-3 justify-center">
