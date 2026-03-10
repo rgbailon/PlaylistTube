@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import LiveChat from './LiveChat';
+import Settings from './Settings';
 
 function Header() {
-  const { apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey } = useApp();
+  const { apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey, settingsOpen, setSettingsOpen } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -370,8 +371,45 @@ const navItems = [
                 </Link>
               ))}
             </nav>
+            
+            <div className="absolute bottom-0 left-0 right-0 border-t" style={{ borderColor: 'var(--border-color)' }}>
+              <button
+                onClick={() => { setMobileMenuOpen(false); setSettingsOpen(true); }}
+                className="flex items-center gap-3 px-4 py-3 text-sm w-full transition"
+                style={{ color: 'var(--text-main)' }}
+              >
+                <i className="fas fa-cog w-5 text-center"></i>
+                Settings
+              </button>
+            </div>
           </div>
+
       </header>
+
+      {/* Mobile Settings Modal */}
+      {settingsOpen && (
+        <div 
+          className="md:hidden fixed inset-0 z-50"
+          style={{ background: 'rgba(0, 0, 0, 0.5)' }}
+          onClick={() => setSettingsOpen(false)}
+        >
+          <div 
+            className="absolute bottom-0 left-0 right-0 max-h-[80vh] overflow-y-auto rounded-t-2xl"
+            style={{ background: 'var(--bg-card)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+              <h3 className="font-semibold" style={{ color: 'var(--text-main)' }}>Settings</h3>
+              <button onClick={() => setSettingsOpen(false)} className="p-2 rounded-lg" style={{ color: 'var(--text-muted)' }}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <div className="p-4">
+              <Settings />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search Focus Modal - Big screens only */}
       {searchFocused && (

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../App';
 
 function Settings() {
-  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory, apiUsage, apiCalls, theme, setTheme } = useApp();
+  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory, apiUsage, apiCalls, theme, setTheme, setCurrentPlaylist } = useApp();
   
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [apiKeysExpanded, setApiKeysExpanded] = useState(false);
@@ -11,6 +11,7 @@ function Settings() {
   const [validating, setValidating] = useState(false);
   const [quotaResetTime, setQuotaResetTime] = useState({ pacific: '', philippines: '' });
   const [themeExpanded, setThemeExpanded] = useState(false);
+  const [clearPlaylistExpanded, setClearPlaylistExpanded] = useState(false);
   const btnRef = useRef(null);
 
   useEffect(() => {
@@ -272,6 +273,33 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(true);
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <button 
+            onClick={() => setClearPlaylistExpanded(!clearPlaylistExpanded)} 
+            className="flex items-center justify-between w-full text-xs font-medium mb-2 text-[var(--text-main)]"
+          >
+            <span><i className="fas fa-trash mr-2 text-red-500"></i>Clear Playlist</span>
+            <i className={`fas fa-chevron-${clearPlaylistExpanded ? 'up' : 'down'} text-xs`}></i>
+          </button>
+          
+          {clearPlaylistExpanded && (
+            <div className="space-y-2">
+              <button 
+                onClick={() => { if (confirm('Clear current playlist?')) { setCurrentPlaylist([]); }}}
+                className="w-full px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-medium transition"
+              >
+                <i className="fas fa-list mr-1"></i> Clear Current Playlist
+              </button>
+              <button 
+                onClick={() => { if (confirm('Clear all history?')) { clearHistory(); }}}
+                className="w-full px-3 py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-xs font-medium transition"
+              >
+                <i className="fas fa-history mr-1"></i> Clear History
+              </button>
             </div>
           )}
         </div>
