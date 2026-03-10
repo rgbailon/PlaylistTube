@@ -309,7 +309,7 @@ useEffect(() => {
     if (!playerRef.current) {
       playerRef.current = new window.YT.Player(playerContainerId, {
         height: '100%', width: '100%',
-        playerVars: { autoplay: 0, controls: 1, rel: 0, modestbranding: 1, playsinline: 1 },
+        playerVars: { autoplay: 0, controls: 1, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1 },
         events: { onStateChange: onPlayerStateChange, onReady: onPlayerReady }
       });
     }
@@ -551,17 +551,6 @@ const toggleFullscreen = () => {
                   </div>
                 )}
                 <div id={playerContainerId} className="absolute inset-0"></div>
-                <div 
-                  className="absolute z-10"
-                  onClick={togglePlay}
-                  onDoubleClick={toggleFullscreen}
-                  style={{ 
-                    width: '85%',
-                    height: '85%',
-                    top: '7.5%',
-                    left: '7.5%'
-                  }}
-                ></div>
                 {(isFullscreen || immersiveMode) && (
                   <>
                     <div 
