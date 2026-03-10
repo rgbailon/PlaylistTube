@@ -1129,7 +1129,7 @@ if (item.liveStreamingDetails) {
                   </div>
                   {searchType === 'video' && videoStats[item.id.videoId]?.viewCount && (
                     <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs">
-                      {formatViews(videoStats[item.id.videoId].viewCount)} views
+                      {formatViews(videoStats[item.id.videoId].viewCount)}
                     </div>
                   )}
                   {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.videoCount && (
