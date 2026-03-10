@@ -161,6 +161,13 @@ function SearchPage() {
   };
 
   const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      searchTriggeredRef.current = true;
+      setSuggestions([]);
+      setSelectedIndex(-1);
+      searchPlaylists();
+      return;
+    }
     if (suggestions.length === 0) return;
     
     if (e.key === 'ArrowDown') {

@@ -106,18 +106,24 @@ const navItems = [
   }, []);
 
   const handleSelectSuggestion = (suggestion) => {
-    headerSearchTriggeredRef.current = true;
     setVideoSearchQuery(suggestion);
     setSuggestions([]);
     setSelectedIndex(-1);
+    headerSearchTriggeredRef.current = true;
+    if (isActive('/search')) {
+      setForceSearch({ query: suggestion, type: searchType });
+    } else {
+      navigate(`/search?q=${encodeURIComponent(suggestion)}&type=${searchType}`);
+    }
   };
 
   const handleMobileSelectSuggestion = (suggestion) => {
-    headerSearchTriggeredRef.current = true;
     setVideoSearchQuery(suggestion);
     setMobileSuggestions([]);
     setMobileSelectedIndex(-1);
+    headerSearchTriggeredRef.current = true;
     setSearchModalOpen(false);
+    navigate(`/search?q=${encodeURIComponent(suggestion)}&type=video`);
   };
 
   useEffect(() => {
@@ -283,6 +289,11 @@ const navItems = [
                 setSuggestions([]);
                 setSelectedIndex(-1);
                 setSearchFocused(false);
+              }
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleVideoSearch(e);
+                return;
               }
               if (suggestions.length === 0) return;
               if (e.key === 'ArrowDown') {
