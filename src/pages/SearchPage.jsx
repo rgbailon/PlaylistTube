@@ -71,6 +71,15 @@ function SearchPage() {
     return num.toString();
   };
 
+  const isValidSuggestion = (text) => {
+    if (!text || text.includes('window.') || text.length < 2) return false;
+    const gibberishPattern = /^[^a-zA-Z0-9\s]*$/;
+    if (gibberishPattern.test(text)) return false;
+    const randomChars = text.replace(/[a-zA-Z0-9\s]/g, '').length;
+    if (randomChars > text.length * 0.3) return false;
+    return true;
+  };
+
   useEffect(() => {
     const fetchSuggestions = async (query) => {
       if (!query.trim() || query.length < 2 || searchTriggeredRef.current) {
@@ -93,7 +102,7 @@ function SearchPage() {
               let val = m.replace(/"/g, '');
               try { val = JSON.parse('"' + val + '"'); } catch(e) {}
               val = val.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-              if (val && !val.includes('window.') && val.length > 1) {
+              if (isValidSuggestion(val)) {
                 suggestions.push(val);
               }
             }
