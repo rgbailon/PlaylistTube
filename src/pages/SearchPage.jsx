@@ -880,7 +880,7 @@ if (item.liveStreamingDetails) {
           <div 
             className="fixed inset-0 z-[100]"
             style={{ 
-              background: 'rgba(0, 0, 0, 0.5)',
+              background: 'rgba(0, 0, 0, 0.85)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)'
             }}
@@ -890,11 +890,11 @@ if (item.liveStreamingDetails) {
               }
             }}
           >
-            <div className="w-full h-full flex items-start justify-center pt-32 pointer-events-none">
+            <div className="w-full h-full flex items-start justify-center pt-20 pointer-events-none">
               <div 
                 className="w-[60%] max-w-2xl rounded-[40px] pointer-events-auto"
                 style={{ 
-                  background: 'rgba(30, 30, 30, 0.95)',
+                  background: 'rgba(20, 20, 20, 0.98)',
                   boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
                 }}
               >

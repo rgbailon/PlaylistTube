@@ -376,9 +376,9 @@ const navItems = [
       {/* Search Focus Modal - Big screens only */}
       {searchFocused && (
         <div 
-          className="hidden md:fixed md:inset-0 md:z-[100] md:flex md:items-start md:justify-center md:pt-32"
+          className="hidden md:fixed md:inset-0 md:z-[100] md:flex md:items-start md:justify-center md:pt-20"
           style={{ 
-            background: 'rgba(0, 0, 0, 0.5)',
+            background: 'rgba(0, 0, 0, 0.85)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)'
           }}
@@ -391,7 +391,7 @@ const navItems = [
           <div 
             className="w-[60%] max-w-2xl rounded-[40px] pointer-events-auto"
             style={{ 
-              background: 'rgba(30, 30, 30, 0.95)',
+              background: 'rgba(20, 20, 20, 0.98)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
             }}
           >
