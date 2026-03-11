@@ -1151,8 +1151,8 @@ videoCount: allVideos.length,
           ) : (
             results.map((item) => (
               <div key={item.id.playlistId || item.id.videoId || item.id.videoId} className="group">
-                <div className="relative aspect-video rounded-xl overflow-hidden mb-3 cursor-pointer" onClick={() => {
-                  if (searchType === 'playlist') loadPlaylist(item.id.playlistId, item);
+<div className="relative aspect-video rounded-xl overflow-hidden mb-3 cursor-pointer" onClick={() => {
+                  if (searchType === 'playlist' || searchType === 'courses') loadPlaylist(item.id.playlistId, item);
                   else playVideo(item);
                 }}>
                   <img
