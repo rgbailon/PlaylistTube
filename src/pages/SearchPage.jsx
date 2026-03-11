@@ -17,6 +17,7 @@ function SearchPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingPlaylist, setLoadingPlaylist] = useState(null);
   const [addedMessage, setAddedMessage] = useState(null);
+  const [addedType, setAddedType] = useState(null);
   const [error, setError] = useState(null);
   const [playlistDetails, setPlaylistDetails] = useState({});
   const [liveDetails, setLiveDetails] = useState({});
@@ -797,7 +798,8 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
     addVideoToPlaylist(video, searchType);
     
     setAddedMessage(decodeHtml(item.snippet.title));
-    setTimeout(() => setAddedMessage(null), 3000);
+    setAddedType(searchType === 'courses' ? 'CRS' : searchType === 'video' ? 'VID' : searchType === 'live' ? 'LIV' : 'PLS');
+    setTimeout(() => { setAddedMessage(null); setAddedType(null); }, 3000);
   };
 
   const addToPlaylist = async (playlistId, playlist, e) => {
@@ -879,7 +881,8 @@ videoCount: allVideos.length,
         addToHistory(playlistData, searchType);
         
         setAddedMessage(decodeHtml(playlist.snippet.title));
-        setTimeout(() => setAddedMessage(null), 3000);
+        setAddedType(searchType === 'courses' ? 'CRS' : searchType === 'video' ? 'VID' : searchType === 'live' ? 'LIV' : 'PLS');
+        setTimeout(() => { setAddedMessage(null); setAddedType(null); }, 3000);
       }
     } catch (err) {
       console.error('Failed to add playlist:', err);
@@ -898,9 +901,10 @@ videoCount: allVideos.length,
 
   return (
     <div className="h-[calc(100vh-48px)] overflow-y-auto pb-16 md:pb-0" style={{ background: 'var(--bg-main)' }}>
-      {addedMessage && (
+{addedMessage && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-green-500 text-white rounded-lg shadow-lg flex items-center gap-2">
           <i className="fas fa-check-circle"></i>
+          {addedType && <span className="px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-bold">{addedType}</span>}
           Added "{addedMessage}" to playlist
         </div>
       )}
