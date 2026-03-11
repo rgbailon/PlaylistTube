@@ -71,15 +71,6 @@ function SearchPage() {
     return num.toString();
   };
 
-  const isValidSuggestion = (text) => {
-    if (!text || text.includes('window.') || text.length < 2) return false;
-    const gibberishPattern = /^[^a-zA-Z0-9\s]*$/;
-    if (gibberishPattern.test(text)) return false;
-    const randomChars = text.replace(/[a-zA-Z0-9\s]/g, '').length;
-    if (randomChars > text.length * 0.3) return false;
-    return true;
-  };
-
   useEffect(() => {
     const fetchSuggestions = async (query) => {
       if (!query.trim() || query.length < 2 || searchTriggeredRef.current) {
@@ -93,6 +84,12 @@ function SearchPage() {
           : `/api/suggest?q=${encodeURIComponent(query)}`;
         const res = await fetch(url);
         const text = await res.text();
+        
+        if (!text || text.includes('<!DOCTYPE') || text.includes('<html')) {
+          setSuggestions([]);
+          return;
+        }
+        
         const lines = text.split('\n');
         const suggestions = [];
         for (const line of lines) {
@@ -102,7 +99,7 @@ function SearchPage() {
               let val = m.replace(/"/g, '');
               try { val = JSON.parse('"' + val + '"'); } catch(e) {}
               val = val.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-              if (isValidSuggestion(val)) {
+              if (val && val.length >= 2 && !val.includes('window.') && /[a-zA-Z]/.test(val)) {
                 suggestions.push(val);
               }
             }
@@ -117,7 +114,7 @@ function SearchPage() {
 
     const timeoutId = setTimeout(() => {
       fetchSuggestions(searchQuery);
-    }, 10);
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
@@ -191,7 +188,7 @@ function SearchPage() {
     const list = params.get('list');
     const type = params.get('type');
     
-    const searchTypeFromUrl = (type && ['video', 'playlist', 'live', 'shorts_playlist'].includes(type)) ? type : 'video';
+    const searchTypeFromUrl = (type && ['video', 'playlist', 'live', 'shorts_playlist', 'courses'].includes(type)) ? type : 'video';
     setSearchType(searchTypeFromUrl);
     
     if (list) {
@@ -210,8 +207,10 @@ function SearchPage() {
         loadTrendingVideos();
       } else if (searchTypeFromUrl === 'live') {
         loadTrendingLive();
-      } else if (searchTypeFromUrl === 'shorts_playlist') {
+} else if (searchTypeFromUrl === 'shorts_playlist') {
         loadTrendingShortsPlaylists();
+      } else if (searchTypeFromUrl === 'courses') {
+        loadTrendingCourses();
       }
     }
   }, []);
@@ -236,6 +235,7 @@ function SearchPage() {
   const handleSearchInput = (value) => {
     setSearchQuery(value);
     setSelectedIndex(-1);
+    searchTriggeredRef.current = false;
     const videoId = extractVideoId(value);
     const playlistId = extractPlaylistId(value);
     if (videoId) {
@@ -400,7 +400,7 @@ function SearchPage() {
     }
   };
 
-  const loadTrendingShortsPlaylists = async () => {
+const loadTrendingShortsPlaylists = async () => {
     const apiKey = getCurrentApiKey();
     if (!apiKey) {
       setResults([]);
@@ -442,11 +442,53 @@ function SearchPage() {
     }
   };
 
+  const loadTrendingCourses = async () => {
+    const apiKey = getCurrentApiKey();
+    if (!apiKey) {
+      setResults([]);
+      setError('Please add a YouTube API key in Settings');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const relevanceLang = 'en';
+      const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
+      const resp = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=educational+course+tutorial+playlist&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
+      );
+      const data = await resp.json();
+      
+      if (data.error) {
+        setError(`API Error: ${data.error.message}`);
+        if (data.error.message?.includes('quota') || data.error.code === 403) {
+          updateQuota(10000);
+          if (switchToNextApiKey()) {
+            setError('Quota exceeded. Switched to next API key. Please try again.');
+            return;
+          }
+        }
+      } else if (data.items) {
+        setResults(data.items);
+        setNextPageToken(data.nextPageToken || '');
+        setHasMore(!!data.nextPageToken);
+        updateQuota(-1, 'playlists');
+        fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
+      }
+    } catch (err) {
+      console.error('Failed to load courses:', err);
+      setError('Failed to load courses. Check your internet connection.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const searchPlaylists = async (overrideType = null, overrideQuery = null) => {
     const activeType = overrideType || searchType;
     const activeQuery = overrideQuery !== null ? overrideQuery : searchQuery;
     
-    if (!activeQuery.trim()) {
+if (!activeQuery.trim()) {
       if (activeType === 'playlist') {
         loadTrendingPlaylists();
       } else if (activeType === 'video') {
@@ -455,6 +497,8 @@ function SearchPage() {
         loadTrendingLive();
       } else if (activeType === 'shorts') {
         loadTrendingShorts();
+      } else if (activeType === 'courses') {
+        loadTrendingCourses();
       }
       return;
     }
@@ -476,9 +520,13 @@ function SearchPage() {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=playlist&order=${playlistOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
       } else if (activeType === 'live') {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
-      } else if (activeType === 'shorts_playlist') {
+} else if (activeType === 'shorts_playlist') {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
+      } else if (activeType === 'courses') {
+        const courseQuery = activeQuery ? `${activeQuery}+course+tutorial` : 'educational+course+tutorial+playlist';
+        const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -500,7 +548,7 @@ function SearchPage() {
         updateQuota(-100, 'search');
         saveSearchResults(searchQuery, activeType, data.items);
         
-        if (activeType === 'playlist' || activeType === 'shorts_playlist') {
+if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType === 'courses') {
           fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
         } else if (activeType === 'video' || activeType === 'live') {
           const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
@@ -585,9 +633,13 @@ function SearchPage() {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'popular+playlists')}&type=playlist&order=${playlistOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
       } else if (searchType === 'live') {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'live+stream')}&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
-      } else if (searchType === 'shorts_playlist') {
+} else if (searchType === 'shorts_playlist') {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
+      } else if (searchType === 'courses') {
+        const courseQuery = searchQuery ? `${searchQuery}+course+tutorial` : 'educational+course+tutorial+playlist';
+        const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -598,7 +650,7 @@ function SearchPage() {
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         
-        if (searchType === 'playlist' || searchType === 'shorts_playlist') {
+if (searchType === 'playlist' || searchType === 'shorts_playlist' || searchType === 'courses') {
           updateQuota(-1, 'playlists');
           fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
         } else if (searchType === 'video' || searchType === 'live') {
@@ -614,7 +666,7 @@ function SearchPage() {
     }
   };
 
-  const handleSortChange = (order) => {
+const handleSortChange = (order) => {
     setSortOrder(order);
     setVideoStats({});
     if (!searchQuery.trim()) {
@@ -622,18 +674,20 @@ function SearchPage() {
       else if (searchType === 'video') loadTrendingVideos();
       else if (searchType === 'live') loadTrendingLive();
       else if (searchType === 'shorts_playlist') loadTrendingShortsPlaylists();
+      else if (searchType === 'courses') loadTrendingCourses();
     } else {
       searchPlaylists(searchType, searchQuery);
     }
   };
 
-  const handleTypeChange = (type) => {
+const handleTypeChange = (type) => {
     setSearchType(type);
     if (!searchQuery.trim()) {
       if (type === 'playlist') loadTrendingPlaylists();
       else if (type === 'video') loadTrendingVideos();
       else if (type === 'live') loadTrendingLive();
       else if (type === 'shorts_playlist') loadTrendingShortsPlaylists();
+      else if (type === 'courses') loadTrendingCourses();
     } else {
       searchPlaylists(type, searchQuery);
     }
@@ -889,9 +943,10 @@ if (item.liveStreamingDetails) {
               placeholder="Search or paste URL..."
               className="w-full rounded-xl pl-12 pr-4 py-4 text-sm md:text-base shadow-lg"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+              autoComplete="off"
             />
             <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
-            {suggestions.length > 0 && !searchFocused && !searchTriggeredRef.current && (
+            {searchFocused && searchQuery && suggestions.length > 0 && (
               <div
                 className="search-suggestions-container absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
                 style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
@@ -948,20 +1003,6 @@ if (item.liveStreamingDetails) {
                     onChange={(e) => handleSearchInput(e.target.value)}
                     onKeyDown={(e) => {
                       e.stopPropagation();
-                      if (suggestions.length > 0) {
-                        if (e.key === 'ArrowDown') {
-                          e.preventDefault();
-                          setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
-                        } else if (e.key === 'ArrowUp') {
-                          e.preventDefault();
-                          setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
-                        } else if (e.key === 'Enter' && selectedIndex >= 0) {
-                          e.preventDefault();
-                          handleSelectSuggestion(suggestions[selectedIndex]);
-                          setSearchFocused(false);
-                          return;
-                        }
-                      }
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         searchTriggeredRef.current = true;
@@ -974,6 +1015,7 @@ if (item.liveStreamingDetails) {
                       }
                     }}
                     style={{ color: '#ffffff' }}
+                    autoComplete="off"
                     autoFocus
                   />
                   <div className="flex items-center gap-2">
@@ -997,7 +1039,7 @@ if (item.liveStreamingDetails) {
                     >
                       Playlist
                     </button>
-                    <button
+<button
                       onClick={() => setSearchType('live')}
                       className="px-2 py-1 rounded-md text-xs"
                       style={{ 
@@ -1006,6 +1048,16 @@ if (item.liveStreamingDetails) {
                       }}
                     >
                       Live
+                    </button>
+                    <button
+                      onClick={() => setSearchType('courses')}
+                      className="px-2 py-1 rounded-md text-xs"
+                      style={{ 
+                        color: searchType === 'courses' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                        background: searchType === 'courses' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                      }}
+                    >
+                      Courses
                     </button>
                   </div>
                   <button
@@ -1019,31 +1071,6 @@ if (item.liveStreamingDetails) {
                     ESC
                   </button>
                 </div>
-                {suggestions.length > 0 && (
-                  <div
-                    className="mx-2 mb-2 rounded-xl overflow-hidden max-h-48 overflow-y-auto"
-                    style={{ background: 'rgba(20, 20, 20, 0.95)' }}
-                  >
-                    {suggestions.map((suggestion, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          handleSelectSuggestion(suggestion);
-                          setSearchFocused(false);
-                        }}
-                        className="px-5 py-3 cursor-pointer text-sm flex items-center gap-3"
-                      style={{ 
-                        color: '#ffffff', 
-                        background: index === selectedIndex ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                          borderBottom: index < suggestions.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none' 
-                        }}
-                      >
-                        <i className="fas fa-search text-xs" style={{ color: 'rgba(255, 255, 255, 0.5)' }}></i>
-                        {suggestion}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -1053,7 +1080,7 @@ if (item.liveStreamingDetails) {
           <div className="flex flex-wrap items-center gap-3 justify-center">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Type:</span>
-              <select
+<select
                 value={searchType}
                 onChange={(e) => handleTypeChange(e.target.value)}
                 className="text-sm rounded-lg px-3 py-2"
@@ -1063,6 +1090,7 @@ if (item.liveStreamingDetails) {
                 <option value="playlist">Playlists</option>
                 <option value="live">Live Videos</option>
                 <option value="shorts_playlist">Shorts Playlist</option>
+                <option value="courses">Courses</option>
               </select>
             </div>
             <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
@@ -1091,8 +1119,8 @@ if (item.liveStreamingDetails) {
 
       <div className="px-4 md:px-8 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
-            {searchType === 'playlist' ? 'Playlists' : searchType === 'video' ? 'Videos' : searchType === 'live' ? 'Live Videos' : 'Shorts Playlists'}
+<h2 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
+            {searchType === 'playlist' ? 'Playlists' : searchType === 'video' ? 'Videos' : searchType === 'live' ? 'Live Videos' : searchType === 'shorts_playlist' ? 'Shorts Playlists' : 'Courses'}
           </h2>
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
             {results.length} results
@@ -1110,9 +1138,9 @@ if (item.liveStreamingDetails) {
           ) : results.length === 0 ? (
             <div className="col-span-full text-center py-20">
               <i className="fab fa-youtube text-6xl mb-4" style={{ color: 'var(--text-muted)' }}></i>
-              <p style={{ color: 'var(--text-muted)' }} className="text-lg">
+<p style={{ color: 'var(--text-muted)' }} className="text-lg">
                 {getCurrentApiKey() 
-                  ? (searchType === 'playlist' ? 'No playlists found' : searchType === 'video' ? 'No videos found' : searchType === 'live' ? 'No live videos found' : 'No shorts playlists found')
+                  ? (searchType === 'playlist' ? 'No playlists found' : searchType === 'video' ? 'No videos found' : searchType === 'live' ? 'No live videos found' : searchType === 'shorts_playlist' ? 'No shorts playlists found' : 'No courses found')
                   : 'Add an API key to search'}
               </p>
             </div>
@@ -1162,9 +1190,14 @@ if (item.liveStreamingDetails) {
                       LIVE
                     </div>
                   )}
-                  {searchType === 'shorts_playlist' && (
+{searchType === 'shorts_playlist' && (
                     <div className="absolute top-2 right-2 px-2 py-1 rounded bg-red-600 text-white text-xs font-medium">
                       SHORTS
+                    </div>
+                  )}
+                  {searchType === 'courses' && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-blue-600 text-white text-xs font-medium">
+                      COURSE
                     </div>
                   )}
                 </div>
@@ -1193,15 +1226,18 @@ if (item.liveStreamingDetails) {
                       {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.publishedAt && (
                         <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
                       )}
-                      {searchType === 'shorts_playlist' && item.snippet.publishedAt && (
+{searchType === 'shorts_playlist' && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
+                      )}
+                      {searchType === 'courses' && playlistDetails[item.id.playlistId]?.publishedAt && (
+                        <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
                       )}
                     </p>
                   </div>
-                  {(searchType === 'playlist' || searchType === 'video' || searchType === 'shorts_playlist' || searchType === 'live') && (
+{(searchType === 'playlist' || searchType === 'video' || searchType === 'shorts_playlist' || searchType === 'live' || searchType === 'courses') && (
                     <button
                       onClick={(e) => {
-                        if (searchType === 'playlist') {
+                        if (searchType === 'playlist' || searchType === 'courses') {
                           addToPlaylist(item.id.playlistId, item, e);
                         } else {
                           addSingleVideo(item, e);

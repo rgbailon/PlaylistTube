@@ -310,7 +310,7 @@ const navItems = [
             placeholder="Search video or paste URL..."
             className="w-full rounded-full px-4 py-1.5 text-sm bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
           />
-          {suggestions.length > 0 && (
+            {searchFocused && videoSearchQuery && suggestions.length > 0 && (
             <div
               className="header-suggestions-container absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
@@ -527,7 +527,7 @@ const navItems = [
                 >
                   Playlist
                 </button>
-                <button
+<button
                   onClick={() => setSearchType('live')}
                   className="px-2 py-1 rounded-md text-xs"
                   style={{ 
@@ -536,6 +536,16 @@ const navItems = [
                   }}
                 >
                   Live
+                </button>
+                <button
+                  onClick={() => setSearchType('courses')}
+                  className="px-2 py-1 rounded-md text-xs"
+                  style={{ 
+                    color: searchType === 'courses' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                    background: searchType === 'courses' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                  }}
+                >
+                  Courses
                 </button>
                 <button
                   onClick={() => setSearchFocused(false)}
@@ -721,7 +731,7 @@ const navItems = [
               <i className="fas fa-times"></i>
             </button>
           </div>
-          {mobileSuggestions.length > 0 && (
+          {searchModalOpen && videoSearchQuery && mobileSuggestions.length > 0 && (
             <div
               className="mobile-suggestions-container mt-2 rounded-xl shadow-xl overflow-hidden"
               style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)' }}
