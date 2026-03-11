@@ -755,10 +755,10 @@ if (allVideos.length > 0) {
           channelTitle: playlist.snippet.channelTitle,
           thumbnail: playlist.snippet.thumbnails?.medium?.url,
           videos: allVideos,
-          videoCount: allVideos.length,
+videoCount: allVideos.length,
         };
 
-        addToHistory(playlistData);
+        addToHistory(playlistData, searchType);
         setCurrentPlaylist(allVideos);
         setCurrentVideoIndex(0);
         navigate('/');
@@ -791,10 +791,10 @@ if (allVideos.length > 0) {
       channelTitle: item.snippet.channelTitle,
       thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
       addedAt: new Date().toISOString(),
-      liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers 
+liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers 
         ? parseInt(liveDetails[item.id.videoId].concurrentViewers) : 0,
     };
-    addVideoToPlaylist(video);
+    addVideoToPlaylist(video, searchType);
     
     setAddedMessage(decodeHtml(item.snippet.title));
     setTimeout(() => setAddedMessage(null), 3000);
@@ -874,9 +874,9 @@ if (item.liveStreamingDetails) {
           channelTitle: playlist.snippet.channelTitle,
           thumbnail: playlist.snippet.thumbnails?.medium?.url,
           videos: allVideos,
-          videoCount: allVideos.length,
+videoCount: allVideos.length,
         };
-        addToHistory(playlistData);
+        addToHistory(playlistData, searchType);
         
         setAddedMessage(decodeHtml(playlist.snippet.title));
         setTimeout(() => setAddedMessage(null), 3000);

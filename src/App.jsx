@@ -255,28 +255,30 @@ function App() {
     setCookie('yt_quota', '0');
   };
 
-  const addToHistory = (playlist) => {
+const addToHistory = (playlist, type = 'playlist') => {
     const existingIndex = playlistHistory.findIndex(p => p.id === playlist.id);
     let newHistory;
+    const playlistWithType = { ...playlist, type };
     if (existingIndex !== -1) {
-      newHistory = [playlist, ...playlistHistory.filter((_, i) => i !== existingIndex)];
+      newHistory = [playlistWithType, ...playlistHistory.filter((_, i) => i !== existingIndex)];
     } else {
-      newHistory = [playlist, ...playlistHistory];
+      newHistory = [playlistWithType, ...playlistHistory];
     }
     setPlaylistHistory(newHistory);
     localStorage.setItem('yt_playlist_history', JSON.stringify(newHistory));
     setCookie('yt_playlist_history', JSON.stringify(newHistory));
   };
 
-  const addVideoToPlaylist = (video) => {
+  const addVideoToPlaylist = (video, type = 'video') => {
     const playlist = {
       id: `video_${video.id}_${Date.now()}`,
       title: video.title,
       videos: [video],
       thumbnail: video.thumbnail,
       addedAt: new Date().toISOString(),
+      type,
     };
-    addToHistory(playlist);
+    addToHistory(playlist, type);
     showNotification(`Added: ${video.title.substring(0, 30)}${video.title.length > 30 ? '...' : ''}`);
   };
 

@@ -8,6 +8,7 @@ function Sidebar() {
   const [historySearch, setHistorySearch] = useState('');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [showClearBtn, setShowClearBtn] = useState(false);
+  const [libraryTab, setLibraryTab] = useState('all');
   const navigate = useNavigate();
 
   // Handle closing animation
@@ -45,9 +46,16 @@ function Sidebar() {
     setIsAnimatingOut(true);
   };
 
-  const filteredHistory = playlistHistory.filter(item =>
-    item.title.toLowerCase().includes(historySearch.toLowerCase())
-  );
+const filteredHistory = playlistHistory.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(historySearch.toLowerCase());
+    const itemType = item.type || 'playlist';
+    const matchesTab = libraryTab === 'all' || 
+      (libraryTab === 'video' && itemType === 'video') ||
+      (libraryTab === 'playlist' && itemType === 'playlist') ||
+      (libraryTab === 'courses' && itemType === 'courses') ||
+      (libraryTab === 'live' && itemType === 'live');
+    return matchesSearch && matchesTab;
+  });
 
   const handlePlaylistClick = (playlist) => {
     setCurrentPlaylist(playlist.videos || []);
@@ -149,6 +157,22 @@ function Sidebar() {
                 className="w-full rounded-lg pl-9 pr-3 py-2 text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)] focus:outline-none focus:border-[var(--accent-color)] transition-colors"
               />
             </div>
+            <div className="flex items-center gap-1 mt-3">
+              {['all', 'video', 'playlist', 'courses', 'live'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setLibraryTab(tab)}
+                  className="px-2 py-1 rounded-md text-[10px] font-medium transition flex-1"
+                  style={{ 
+                    color: libraryTab === tab ? '#ffffff' : 'var(--text-muted)',
+                    background: libraryTab === tab ? 'var(--accent-color)' : 'var(--bg-main)',
+                    border: '1px solid ' + (libraryTab === tab ? 'var(--accent-color)' : 'var(--border-color)')
+                  }}
+                >
+                  {tab === 'all' ? 'All' : tab === 'courses' ? 'Courses' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-thin p-2">
@@ -158,13 +182,13 @@ function Sidebar() {
                   className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                   style={{ background: 'var(--bg-hover)' }}
                 >
-                  <i className="fas fa-list-ul text-lg" style={{ color: 'var(--text-muted)' }}></i>
+                  <i className={`fas ${libraryTab === 'all' ? 'fa-list-ul' : libraryTab === 'video' ? 'fa-video' : libraryTab === 'playlist' ? 'fa-list' : libraryTab === 'courses' ? 'fa-graduation-cap' : 'fa-broadcast-tower'}`} style={{ color: 'var(--text-muted)' }}></i>
                 </div>
                 <p style={{ color: 'var(--text-main)' }} className="text-xs font-medium">
-                  No playlists yet
+                  {libraryTab === 'all' ? 'No items yet' : libraryTab === 'video' ? 'No videos yet' : libraryTab === 'playlist' ? 'No playlists yet' : libraryTab === 'courses' ? 'No courses yet' : 'No live streams yet'}
                 </p>
                 <p style={{ color: 'var(--text-muted)' }} className="text-[10px] mt-1 text-center">
-                  Search and load playlists here
+                  {libraryTab === 'all' ? 'Search and load content here' : libraryTab === 'video' ? 'Search and add videos here' : libraryTab === 'playlist' ? 'Search and add playlists here' : libraryTab === 'courses' ? 'Search and add courses here' : 'Search and add live streams here'}
                 </p>
               </div>
             ) : (
@@ -201,6 +225,18 @@ function Sidebar() {
                               className="absolute bottom-0.5 right-0.5 text-[8px] px-1 rounded bg-black/80 text-white font-medium"
                             >
                               {playlist.videoCount}
+                            </span>
+                          )}
+                          {playlist.type && (
+                            <span 
+                              className={`absolute top-0.5 left-0.5 text-[8px] px-1 rounded font-medium ${
+                                playlist.type === 'video' ? 'bg-blue-600' : 
+                                playlist.type === 'playlist' ? 'bg-green-600' : 
+                                playlist.type === 'courses' ? 'bg-purple-600' : 
+                                'bg-red-600'
+                              } text-white`}
+                            >
+                              {playlist.type === 'courses' ? 'Course' : playlist.type}
                             </span>
                           )}
                         </div>
