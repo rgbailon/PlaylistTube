@@ -49,7 +49,7 @@ function Settings() {
 
   const totalUsed = Object.values(apiUsage).reduce((a, b) => a + b, 0);
 
-const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(true);
+const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
 
   const handleAddKey = async () => {
     if (!apiKeyInput.trim()) {

@@ -309,7 +309,17 @@ useEffect(() => {
     if (!playerRef.current) {
       playerRef.current = new window.YT.Player(playerContainerId, {
         height: '100%', width: '100%',
-        playerVars: { autoplay: 0, controls: 1, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1 },
+        playerVars: { 
+          autoplay: 0, 
+          controls: 1, 
+          rel: 0, 
+          modestbranding: 1, 
+          playsinline: 1, 
+          disablekb: 1,
+          iv_load_policy: 3,
+          enablejsapi: 1,
+          origin: window.location.origin,
+        },
         events: { onStateChange: onPlayerStateChange, onReady: onPlayerReady }
       });
     }
