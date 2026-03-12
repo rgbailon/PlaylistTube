@@ -867,8 +867,7 @@ if (item.liveStreamingDetails) {
           console.error('Failed to fetch view counts:', e);
         }
 
-        const newPlaylist = [...currentPlaylist, ...allVideos];
-        setCurrentPlaylist(newPlaylist);
+        setCurrentPlaylist(prevPlaylist => [...prevPlaylist, ...allVideos]);
         
         const playlistData = {
           id: playlistId,
