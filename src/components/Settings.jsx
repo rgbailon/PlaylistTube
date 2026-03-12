@@ -17,33 +17,41 @@ function Settings() {
   useEffect(() => {
     const updateResetTimes = () => {
       const now = new Date();
-      const utcHours = now.getUTCHours();
-      const utcMinutes = now.getUTCMinutes();
       
-      const totalMinutesUntilReset = (24 * 60) - (utcHours * 60 + utcMinutes);
-      const hoursUntilReset = Math.floor(totalMinutesUntilReset / 60);
-      const minutesUntilReset = totalMinutesUntilReset % 60;
+      // Get current time in Pacific Time (UTC-8)
+      // YouTube API quota resets at midnight Pacific Time
+      const pacificOffset = -8;
+      const nowPacific = new Date(now.getTime() + (pacificOffset * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
       
-      const pacificDate = new Date(now);
-      pacificDate.setHours(pacificDate.getHours() + hoursUntilReset);
-      const pacificHours = pacificDate.getHours();
+      // Calculate time until midnight Pacific
+      const midnightPacific = new Date(nowPacific);
+      midnightPacific.setHours(24, 0, 0, 0);
+      
+      const minutesUntilReset = Math.floor((midnightPacific - nowPacific) / (1000 * 60));
+      const secondsUntilReset = Math.floor(((midnightPacific - nowPacific) % (1000 * 60)) / 1000);
+      
+      // Format for Pacific Time
+      const pacificHours = midnightPacific.getHours();
       const ampm = pacificHours >= 12 ? 'PM' : 'AM';
       const pacific12 = pacificHours % 12 || 12;
       
-      const phDate = new Date(now);
-      phDate.setHours(phDate.getHours() + 8 + hoursUntilReset);
-      const phHours = phDate.getHours();
+      // Format for Philippines Time (UTC+8)
+      const phOffset = 8;
+      const nowPh = new Date(now.getTime() + (phOffset * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
+      const phMidnight = new Date(nowPh);
+      phMidnight.setHours(24, 0, 0, 0);
+      const phHours = phMidnight.getHours();
       const phampm = phHours >= 12 ? 'PM' : 'AM';
       const ph12 = phHours % 12 || 12;
       
       setQuotaResetTime({
-        pacific: `${pacific12}:${minutesUntilReset.toString().padStart(2, '0')} ${ampm} PT`,
-        philippines: `${ph12}:${minutesUntilReset.toString().padStart(2, '0')} ${phampm} PHT`
+        pacific: `${pacific12}:${minutesUntilReset.toString().padStart(2, '0')}:${secondsUntilReset.toString().padStart(2, '0')} ${ampm} PT`,
+        philippines: `${ph12}:${minutesUntilReset.toString().padStart(2, '0')}:${secondsUntilReset.toString().padStart(2, '0')} ${phampm} PHT`
       });
     };
     
     updateResetTimes();
-    const interval = setInterval(updateResetTimes, 60000);
+    const interval = setInterval(updateResetTimes, 1000); // Update every second for real-time
     return () => clearInterval(interval);
   }, []);
 
