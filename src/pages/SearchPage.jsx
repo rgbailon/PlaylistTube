@@ -701,17 +701,37 @@ const handleTypeChange = (type) => {
       return;
     }
 
+    setLoading(true);
+    setError(null);
+
     try {
       let allVideos = [];
       let nextPageToken = '';
+      let hasError = false;
       
       do {
         const url = nextPageToken 
           ? `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&pageToken=${nextPageToken}&key=${apiKey}`
           : `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${apiKey}`;
         
-const resp = await fetch(url);
+        const resp = await fetch(url);
         const data = await resp.json();
+        
+        if (data.error) {
+          console.error('API Error:', data.error);
+          hasError = true;
+          if (data.error.message?.includes('quota') || data.error.code === 403) {
+            updateQuota(10000);
+            if (switchToNextApiKey()) {
+              setError('Quota exceeded. Switched to next API key. Please try again.');
+              setLoading(false);
+              return;
+            }
+          }
+          setError(`API Error: ${data.error.message || 'Failed to fetch playlist'}`);
+          setLoading(false);
+          return;
+        }
         
         if (data.items) {
           const videos = data.items
@@ -730,14 +750,13 @@ const resp = await fetch(url);
         }
         
         nextPageToken = data.nextPageToken || '';
-      } while (nextPageToken);
+      } while (nextPageToken && !hasError);
 
-if (allVideos.length > 0) {
+      if (allVideos.length > 0) {
         const videoIds = allVideos.map(v => v.id).join(',');
         try {
           const statsResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds}&key=${apiKey}`);
           const statsData = await statsResp.json();
-          console.log('View count response:', statsData);
           if (statsData.items) {
             statsData.items.forEach(item => {
               const video = allVideos.find(v => v.id === item.id);
@@ -756,17 +775,25 @@ if (allVideos.length > 0) {
           channelTitle: playlist.snippet.channelTitle,
           thumbnail: playlist.snippet.thumbnails?.medium?.url,
           videos: allVideos,
-videoCount: allVideos.length,
+          videoCount: allVideos.length,
         };
 
         addToHistory(playlistData, searchType);
+        
         setCurrentPlaylist(allVideos);
         setCurrentVideoIndex(0);
-        navigate('/');
+        
+        setTimeout(() => {
+          navigate('/');
+        }, 100);
+      } else {
+        setError('No videos found in this playlist');
       }
     } catch (err) {
       console.error('Failed to load playlist:', err);
-      alert('Failed to load playlist. Please try again.');
+      setError('Failed to load playlist. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -816,6 +843,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
     try {
       let allVideos = [];
       let nextPageToken = '';
+      let hasError = false;
       
       do {
         const url = nextPageToken 
@@ -825,7 +853,22 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
         const resp = await fetch(url);
         const data = await resp.json();
         
-if (data.items) {
+        if (data.error) {
+          console.error('API Error:', data.error);
+          hasError = true;
+          if (data.error.message?.includes('quota') || data.error.code === 403) {
+            updateQuota(10000);
+            if (switchToNextApiKey()) {
+              alert('Quota exceeded. Switched to next API key. Please try again.');
+              setLoadingPlaylist(null);
+              return;
+            }
+          }
+          setError(`API Error: ${data.error.message || 'Failed to fetch playlist'}`);
+          break;
+        }
+        
+        if (data.items) {
           const videos = data.items
             .filter(item => item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId)
             .map(item => ({
@@ -842,14 +885,18 @@ if (data.items) {
         }
         
         nextPageToken = data.nextPageToken || '';
-      } while (nextPageToken);
+      } while (nextPageToken && !hasError);
 
-if (allVideos.length > 0) {
+      if (hasError) {
+        setLoadingPlaylist(null);
+        return;
+      }
+
+      if (allVideos.length > 0) {
         const videoIds = allVideos.map(v => v.id).join(',');
         try {
           const statsResp = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics,liveStreamingDetails&id=${videoIds}&key=${apiKey}`);
           const statsData = await statsResp.json();
-          console.log('View count response:', statsData);
           if (statsData.items) {
             statsData.items.forEach(item => {
               const video = allVideos.find(v => v.id === item.id);
@@ -857,7 +904,7 @@ if (allVideos.length > 0) {
                 if (item.statistics) {
                   video.viewCount = parseInt(item.statistics.viewCount) || 0;
                 }
-if (item.liveStreamingDetails) {
+                if (item.liveStreamingDetails) {
                   video.liveViewers = parseInt(item.liveStreamingDetails.concurrentViewers) || 0;
                 }
               }
@@ -867,25 +914,39 @@ if (item.liveStreamingDetails) {
           console.error('Failed to fetch view counts:', e);
         }
 
-        setCurrentPlaylist(prevPlaylist => [...prevPlaylist, ...allVideos]);
+        const existingVideoIds = new Set(currentPlaylist.map(v => v.id));
+        const newVideos = allVideos.filter(v => !existingVideoIds.has(v.id));
+        
+        if (newVideos.length === 0) {
+          setAddedMessage('All videos already in playlist');
+          setAddedType('DUP');
+          setTimeout(() => { setAddedMessage(null); setAddedType(null); }, 3000);
+          setLoadingPlaylist(null);
+          return;
+        }
+
+        setCurrentPlaylist(prevPlaylist => [...prevPlaylist, ...newVideos]);
         
         const playlistData = {
           id: playlistId,
           title: playlist.snippet.title,
           channelTitle: playlist.snippet.channelTitle,
           thumbnail: playlist.snippet.thumbnails?.medium?.url,
-          videos: allVideos,
-videoCount: allVideos.length,
+          videos: newVideos,
+          videoCount: newVideos.length,
         };
         addToHistory(playlistData, searchType);
         
-        setAddedMessage(decodeHtml(playlist.snippet.title));
+        const addedCountMsg = newVideos.length !== allVideos.length ? ` (+${newVideos.length} new)` : '';
+        setAddedMessage(decodeHtml(playlist.snippet.title) + addedCountMsg);
         setAddedType(searchType === 'courses' ? 'CRS' : searchType === 'video' ? 'VID' : searchType === 'live' ? 'LIV' : 'PLS');
         setTimeout(() => { setAddedMessage(null); setAddedType(null); }, 3000);
+      } else {
+        setError('No videos found in this playlist');
       }
     } catch (err) {
       console.error('Failed to add playlist:', err);
-      alert('Failed to add playlist. Please try again.');
+      setError('Failed to add playlist. Please try again.');
     } finally {
       setLoadingPlaylist(null);
     }

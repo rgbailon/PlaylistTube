@@ -120,6 +120,7 @@ function PlayerPage() {
   const [mobileTab, setMobileTab] = useState('player');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [immersiveMode, setImmersiveMode] = useState(false);
+  const [lastPlaylistUpdate, setLastPlaylistUpdate] = useState(0);
   const [showFullscreenPlaylist, setShowFullscreenPlaylist] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const playerContainerId = 'youtube-player';
@@ -188,12 +189,64 @@ function PlayerPage() {
   }, []);
 
   useEffect(() => {
-    if (playerReady && currentPlaylist.length > 0) loadVideo(currentVideoIndex);
+    if (playerReady && currentPlaylist.length > 0) {
+      loadVideo(currentVideoIndex);
+    }
   }, [playerReady]);
 
-useEffect(() => {
-    if (playerReady && playerRef.current && currentPlaylist.length > 0) loadVideo(currentVideoIndex);
+  useEffect(() => {
+    const loadVideoSafely = () => {
+      if (!playerReady) return;
+      if (!playerRef.current) return;
+      if (!currentPlaylist[currentVideoIndex]) return;
+      
+      const currentVideo = currentPlaylist[currentVideoIndex];
+      if (!currentVideo || !currentVideo.id) return;
+      
+      try {
+        playerRef.current.loadVideoById(currentVideo.id);
+        setVideoTitle(currentVideo.title);
+        setVideoChannel(currentVideo.channelTitle || 'Unknown');
+      } catch (err) {
+        console.error('Error loading video:', err);
+        setTimeout(() => {
+          if (playerRef.current && currentPlaylist[currentVideoIndex]) {
+            try {
+              playerRef.current.loadVideoById(currentPlaylist[currentVideoIndex].id);
+            } catch (e) {
+              console.error('Retry failed:', e);
+            }
+          }
+        }, 500);
+      }
+    };
+
+    if (playerReady && playerRef.current && currentPlaylist.length > 0 && currentPlaylist[currentVideoIndex]) {
+      loadVideoSafely();
+    }
   }, [currentVideoIndex, currentPlaylist, playerReady]);
+
+  useEffect(() => {
+    if (playerReady && playerRef.current && currentPlaylist.length > 0 && !isPlaying) {
+      const currentVideo = currentPlaylist[currentVideoIndex];
+      if (currentVideo && currentVideo.id) {
+        try {
+          const playerState = playerRef.current.getPlayerState();
+          if (playerState === -1 || playerState === window.YT.PlayerState.ENDED || playerState === window.YT.PlayerState.PAUSED) {
+            playerRef.current.loadVideoById(currentVideo.id);
+          }
+        } catch (err) {
+          console.error('Auto-play error:', err);
+        }
+      }
+    }
+  }, [playerReady, currentPlaylist.length, lastPlaylistUpdate]);
+
+  useEffect(() => {
+    if (currentPlaylist.length > 0) {
+      setLastPlaylistUpdate(Date.now());
+    }
+  }, [currentPlaylist]);
 
   useEffect(() => {
     const fetchVideoStats = async () => {
@@ -325,7 +378,11 @@ useEffect(() => {
     }
   };
 
-  const onPlayerReady = (event) => { setPlayer(event.target); setPlayerReady(true); };
+  const onPlayerReady = (event) => { 
+    setPlayer(event.target); 
+    setPlayerReady(true); 
+  };
+  
   const onPlayerStateChange = (event) => {
     setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
     if (event.data === window.YT.PlayerState.ENDED) {
@@ -335,6 +392,11 @@ useEffect(() => {
         }
         return prev;
       });
+    }
+    if (event.data === window.YT.PlayerState.BUFFERING || event.data === window.YT.PlayerState.LOADING) {
+      if (playerRef.current && currentPlaylist[currentVideoIndex]) {
+        playerRef.current.setOption('webdriver', 'test', true);
+      }
     }
   };
 
