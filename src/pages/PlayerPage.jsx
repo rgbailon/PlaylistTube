@@ -221,8 +221,11 @@ function PlayerPage() {
       }
     };
 
-    if (playerReady && playerRef.current && currentPlaylist.length > 0 && currentPlaylist[currentVideoIndex]) {
-      loadVideoSafely();
+    if (playerReady && playerRef.current && currentPlaylist.length > 0) {
+      const video = currentPlaylist[currentVideoIndex];
+      if (video && video.id) {
+        loadVideoSafely();
+      }
     }
   }, [currentVideoIndex, currentPlaylist, playerReady]);
 
@@ -245,6 +248,37 @@ function PlayerPage() {
   useEffect(() => {
     if (currentPlaylist.length > 0) {
       setLastPlaylistUpdate(Date.now());
+    }
+  }, [currentPlaylist]);
+
+  // Handle playlist changes - reset index if needed and load video
+  useEffect(() => {
+    if (!playerReady || !playerRef.current || currentPlaylist.length === 0) return;
+    
+    // Reset index if it's out of bounds
+    if (currentVideoIndex >= currentPlaylist.length) {
+      setCurrentVideoIndex(0);
+      return;
+    }
+    
+    // Get the current video
+    const currentVideo = currentPlaylist[currentVideoIndex];
+    if (!currentVideo || !currentVideo.id) {
+      // Try to find a valid video in the playlist
+      const validIndex = currentPlaylist.findIndex(v => v && v.id);
+      if (validIndex !== -1) {
+        setCurrentVideoIndex(validIndex);
+      }
+      return;
+    }
+    
+    // Load the video
+    try {
+      playerRef.current.loadVideoById(currentVideo.id);
+      setVideoTitle(currentVideo.title);
+      setVideoChannel(currentVideo.channelTitle || 'Unknown');
+    } catch (err) {
+      console.error('Error loading video on playlist change:', err);
     }
   }, [currentPlaylist]);
 
@@ -403,6 +437,7 @@ function PlayerPage() {
   const loadVideo = (index) => {
     if (!playerRef.current || !currentPlaylist[index]) return;
     const video = currentPlaylist[index];
+    if (!video || !video.id) return;
     playerRef.current.loadVideoById(video.id);
     setVideoTitle(video.title);
     setVideoChannel(video.channelTitle || 'Unknown');

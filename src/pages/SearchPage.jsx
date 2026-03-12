@@ -798,6 +798,7 @@ const handleTypeChange = (type) => {
   };
 
   const playVideo = (item) => {
+    if (!item.id.videoId) return;
     const video = {
       id: item.id.videoId,
       title: item.snippet.title,

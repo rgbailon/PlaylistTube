@@ -58,7 +58,13 @@ const filteredHistory = playlistHistory.filter(item => {
   });
 
   const handlePlaylistClick = (playlist) => {
-    setCurrentPlaylist(playlist.videos || []);
+    // Filter out videos without valid IDs
+    const validVideos = (playlist.videos || []).filter(v => v && v.id);
+    if (validVideos.length === 0) {
+      alert('This playlist has no valid videos');
+      return;
+    }
+    setCurrentPlaylist(validVideos);
     setCurrentVideoIndex(0);
     navigate('/');
   };

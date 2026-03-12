@@ -283,6 +283,7 @@ function VideoPage() {
   };
 
   const playVideo = (video) => {
+    if (!video || !video.id) return;
     setCurrentPlaylist([video]);
     setCurrentVideoIndex(0);
     navigate('/');
@@ -290,6 +291,7 @@ function VideoPage() {
 
   const addToPlaylist = (video, e) => {
     e.stopPropagation();
+    if (!video || !video.id) return;
     const newPlaylist = [...currentPlaylist, video];
     setCurrentPlaylist(newPlaylist);
   };
