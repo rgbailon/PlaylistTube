@@ -53,6 +53,14 @@ function VideoPage() {
     return num.toString();
   };
 
+  const formatViewers = (count) => {
+    if (!count) return '';
+    const num = parseInt(count);
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+  };
+
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -172,11 +180,12 @@ function VideoPage() {
           thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
           description: item.snippet.description,
           publishedAt: item.snippet.publishedAt,
+          liveViewers: item.liveStreamingDetails?.concurrentViewers ? parseInt(item.liveStreamingDetails.concurrentViewers) : 0,
         }));
 
         try {
           const statsResp = await fetch(
-            `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}&key=${apiKey}`
+            `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet,liveStreamingDetails&id=${videoIds}&key=${apiKey}`
           );
           const statsData = await statsResp.json();
           
@@ -186,12 +195,14 @@ function VideoPage() {
               statsMap[item.id] = {
                 viewCount: item.statistics?.viewCount,
                 publishedAt: item.snippet?.publishedAt,
+                liveViewers: item.liveStreamingDetails?.concurrentViewers ? parseInt(item.liveStreamingDetails.concurrentViewers) : 0,
               };
             });
             
             videos = videos.map(video => ({
               ...video,
               viewCount: statsMap[video.id]?.viewCount,
+              liveViewers: statsMap[video.id]?.liveViewers || video.liveViewers,
               publishedAt: statsMap[video.id]?.publishedAt || video.publishedAt,
             }));
             updateQuota(-1, 'videos');
@@ -393,6 +404,18 @@ function VideoPage() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => { e.target.src = 'https://via.placeholder.com/320x180?text=Video'; }}
                   />
+                  {video.liveViewers > 0 && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
+                      <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                      LIVE
+                    </div>
+                  )}
+                  {video.liveViewers > 0 && (
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                      <i className="fas fa-eye"></i>
+                      {formatViewers(video.liveViewers)}
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                     <div className="w-14 h-14 rounded-full bg-black/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <i className="fas fa-play text-white text-xl ml-1"></i>
@@ -406,7 +429,8 @@ function VideoPage() {
                     </h3>
                     <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
                       {video.channelTitle}
-                      {video.viewCount && <span> • {formatViews(video.viewCount)} views</span>}
+                      {video.liveViewers > 0 && <span> • {formatViewers(video.liveViewers)} watching</span>}
+                      {video.liveViewers === 0 && video.viewCount && <span> • {formatViews(video.viewCount)} views</span>}
                       {video.publishedAt && <span> • {formatTimeAgo(video.publishedAt)}</span>}
                     </p>
                   </div>
