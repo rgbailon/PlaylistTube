@@ -18,40 +18,42 @@ function Settings() {
     const updateResetTimes = () => {
       const now = new Date();
       
-      // Get current time in Pacific Time (UTC-8)
-      // YouTube API quota resets at midnight Pacific Time
+      // Calculate time until midnight Pacific Time (PT)
+      // PT is UTC-8, PHT is UTC+8 (16 hours apart)
       const pacificOffset = -8;
-      const nowPacific = new Date(now.getTime() + (pacificOffset * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
       
-      // Calculate time until midnight Pacific
-      const midnightPacific = new Date(nowPacific);
-      midnightPacific.setHours(24, 0, 0, 0);
+      // Get current time in Pacific
+      const nowPacificMs = now.getTime() + (pacificOffset * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000);
+      const midnightPacificMs = new Date(nowPacificMs);
+      midnightPacificMs.setHours(24, 0, 0, 0); // Next midnight PT
       
-      const minutesUntilReset = Math.floor((midnightPacific - nowPacific) / (1000 * 60));
-      const secondsUntilReset = Math.floor(((midnightPacific - nowPacific) % (1000 * 60)) / 1000);
+      // Time until reset (in milliseconds)
+      const timeUntilReset = midnightPacificMs - nowPacificMs;
       
-      // Format for Pacific Time
-      const pacificHours = midnightPacific.getHours();
-      const ampm = pacificHours >= 12 ? 'PM' : 'AM';
-      const pacific12 = pacificHours % 12 || 12;
+      // Calculate PT actual time when it resets
+      const resetTimePT = new Date(midnightPacificMs);
+      const ptHours = resetTimePT.getUTCHours();
+      const ptMins = resetTimePT.getUTCMinutes();
+      const ptSecs = resetTimePT.getUTCSeconds();
+      const ptAmpm = ptHours >= 12 ? 'PM' : 'AM';
+      const pt12 = ptHours % 12 || 12;
       
-      // Format for Philippines Time (UTC+8)
-      const phOffset = 8;
-      const nowPh = new Date(now.getTime() + (phOffset * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000));
-      const phMidnight = new Date(nowPh);
-      phMidnight.setHours(24, 0, 0, 0);
-      const phHours = phMidnight.getHours();
-      const phampm = phHours >= 12 ? 'PM' : 'AM';
+      // Convert midnight PT to PHT (add 16 hours)
+      const resetTimePHT = new Date(midnightPacificMs + (16 * 60 * 60 * 1000));
+      const phHours = resetTimePHT.getUTCHours();
+      const phMins = resetTimePHT.getUTCMinutes();
+      const phSecs = resetTimePHT.getUTCSeconds();
+      const phAmpm = phHours >= 12 ? 'PM' : 'AM';
       const ph12 = phHours % 12 || 12;
       
       setQuotaResetTime({
-        pacific: `${pacific12}:${minutesUntilReset.toString().padStart(2, '0')}:${secondsUntilReset.toString().padStart(2, '0')} ${ampm} PT`,
-        philippines: `${ph12}:${minutesUntilReset.toString().padStart(2, '0')}:${secondsUntilReset.toString().padStart(2, '0')} ${phampm} PHT`
+        pacific: `${pt12}:${ptMins.toString().padStart(2, '0')}:${ptSecs.toString().padStart(2, '0')} ${ptAmpm} PT`,
+        philippines: `${ph12}:${phMins.toString().padStart(2, '0')}:${phSecs.toString().padStart(2, '0')} ${phAmpm} PHT`
       });
     };
     
     updateResetTimes();
-    const interval = setInterval(updateResetTimes, 1000); // Update every second for real-time
+    const interval = setInterval(updateResetTimes, 1000);
     return () => clearInterval(interval);
   }, []);
 
