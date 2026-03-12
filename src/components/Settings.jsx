@@ -18,39 +18,34 @@ function Settings() {
     const updateResetTimes = () => {
       const now = new Date();
       
-      // Get current UTC time
-      const utcNow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
+      // Current UTC time in ms
+      const utcNow = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
       
-      // Find next midnight in Pacific Time (UTC-8)
-      const pacificOffset = -8;
-      let nextMidnightPT = new Date(utcNow);
-      nextMidnightPT.setUTCHours(24 - 8, 0, 0, 0); // Next midnight UTC-8
-      
-      // Calculate time until reset
-      const msUntilReset = nextMidnightPT - utcNow;
-      if (msUntilReset < 0) {
-        nextMidnightPT.setUTCDate(nextMidnightPT.getUTCDate() + 1);
+      // Next midnight in Pacific Time (PT = UTC-8 = 8 AM UTC)
+      const utcHour = now.getUTCHours();
+      let nextMidnightPT_UTC;
+      if (utcHour < 8) {
+        nextMidnightPT_UTC = new Date(now);
+        nextMidnightPT_UTC.setUTCHours(8, 0, 0, 0);
+      } else {
+        nextMidnightPT_UTC = new Date(now);
+        nextMidnightPT_UTC.setUTCDate(nextMidnightPT_UTC.getUTCDate() + 1);
+        nextMidnightPT_UTC.setUTCHours(8, 0, 0, 0);
       }
       
-      // Reset time in PT (midnight = 0:00)
-      const ptReset = new Date(nextMidnightPT.getTime() - (pacificOffset * 60 * 60 * 1000));
-      const ptHours = ptReset.getUTCHours();
-      const ptMins = ptReset.getUTCMinutes();
-      const ptSecs = ptReset.getUTCSeconds();
-      const ptAmpm = ptHours >= 12 ? 'PM' : 'AM';
-      const pt12 = ptHours % 12 || 12;
+      // Calculate countdown
+      const msUntilReset = nextMidnightPT_UTC - utcNow;
+      const hours = Math.floor(msUntilReset / (1000 * 60 * 60));
+      const minutes = Math.floor((msUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((msUntilReset % (1000 * 60)) / 1000);
       
-      // Reset time in PHT (PT + 16 hours)
-      const phReset = new Date(nextMidnightPT.getTime() + (16 * 60 * 60 * 1000));
-      const phHours = phReset.getUTCHours();
-      const phMins = phReset.getUTCMinutes();
-      const phSecs = phReset.getUTCSeconds();
-      const phAmpm = phHours >= 12 ? 'PM' : 'AM';
-      const ph12 = phHours % 12 || 12;
+      // PT resets at midnight = 12:00:00 AM
+      // PHT is UTC+8, so midnight PT = 8 AM UTC = 4:00:00 PM PHT same day
+      // (16 hours ahead)
       
       setQuotaResetTime({
-        pacific: `${pt12}:${ptMins.toString().padStart(2, '0')}:${ptSecs.toString().padStart(2, '0')} ${ptAmpm} PT`,
-        philippines: `${ph12}:${phMins.toString().padStart(2, '0')}:${phSecs.toString().padStart(2, '0')} ${phAmpm} PHT`
+        pacific: `12:00:00 AM PT (${hours}h ${minutes}m ${seconds}s)`,
+        philippines: `4:00:00 PM PHT (${hours}h ${minutes}m ${seconds}s)`
       });
     };
     
