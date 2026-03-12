@@ -47,17 +47,27 @@ function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('yt_current_playlist', JSON.stringify(currentPlaylist));
-    localStorage.setItem('yt_current_video_index', currentVideoIndex.toString());
+    try {
+      localStorage.setItem('yt_current_playlist', JSON.stringify(currentPlaylist));
+      localStorage.setItem('yt_current_video_index', currentVideoIndex.toString());
+    } catch (e) {
+      if (typeof showNotification === 'function') {
+        showNotification('Storage full! Cannot save current playlist.');
+      }
+    }
   }, [currentPlaylist, currentVideoIndex]);
 
   const saveSearchResults = (query, type, results) => {
     setLastSearchQuery(query);
     setLastSearchType(type);
     setLastSearchResults(results);
-    localStorage.setItem('yt_last_search_query', query);
-    localStorage.setItem('yt_last_search_type', type);
-    localStorage.setItem('yt_last_search_results', JSON.stringify(results));
+    try {
+      localStorage.setItem('yt_last_search_query', query);
+      localStorage.setItem('yt_last_search_type', type);
+      localStorage.setItem('yt_last_search_results', JSON.stringify(results));
+    } catch (e) {
+      // Silently fail - search results are not critical
+    }
   };
 
   const loadTheme = () => {
@@ -159,6 +169,33 @@ function App() {
   const getCookie = (name) => {
     const value = document.cookie.split('; ').find(row => row.startsWith(name + '='));
     return value ? decodeURIComponent(value.split('=')[1]) : null;
+  };
+
+  const showNotification = (message) => {
+    setNotification(message);
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  const safeSaveToStorage = (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+      try {
+        setCookie(key, value);
+      } catch (cookieError) {}
+      return true;
+    } catch (error) {
+      if (typeof showNotification === 'function') {
+        if (error.name === 'QuotaExceededError' || 
+            error.code === 22 || 
+            error.message?.includes('Quota exceeded') ||
+            error.message?.includes('quota')) {
+          showNotification('Storage full! Please clear some playlists to add more videos.');
+        } else {
+          showNotification('Error saving data. Storage may be full.');
+        }
+      }
+      return false;
+    }
   };
 
   const setNewTheme = (newTheme) => {
@@ -265,8 +302,7 @@ const addToHistory = (playlist, type = 'playlist') => {
       newHistory = [playlistWithType, ...playlistHistory];
     }
     setPlaylistHistory(newHistory);
-    localStorage.setItem('yt_playlist_history', JSON.stringify(newHistory));
-    setCookie('yt_playlist_history', JSON.stringify(newHistory));
+    return safeSaveToStorage('yt_playlist_history', JSON.stringify(newHistory));
   };
 
   const addVideoToPlaylist = (video, type = 'video') => {
@@ -278,13 +314,11 @@ const addToHistory = (playlist, type = 'playlist') => {
       addedAt: new Date().toISOString(),
       type,
     };
-    addToHistory(playlist, type);
-    showNotification(`Added: ${video.title.substring(0, 30)}${video.title.length > 30 ? '...' : ''}`);
-  };
-
-  const showNotification = (message) => {
-    setNotification(message);
-    setTimeout(() => setNotification(null), 3000);
+    const success = addToHistory(playlist, type);
+    if (success) {
+      const totalVideos = playlistHistory.reduce((acc, p) => acc + (p.videos?.length || 0), 0) + 1;
+      showNotification(`Added: ${video.title.substring(0, 20)}${video.title.length > 20 ? '...' : ''} (${totalVideos} videos)`);
+    }
   };
 
   const clearHistory = () => {
@@ -296,8 +330,7 @@ const addToHistory = (playlist, type = 'playlist') => {
   const removeFromHistory = (id) => {
     const newHistory = playlistHistory.filter(p => p.id !== id);
     setPlaylistHistory(newHistory);
-    localStorage.setItem('yt_playlist_history', JSON.stringify(newHistory));
-    setCookie('yt_playlist_history', JSON.stringify(newHistory));
+    safeSaveToStorage('yt_playlist_history', JSON.stringify(newHistory));
   };
 
   const deleteCookie = (name) => {
