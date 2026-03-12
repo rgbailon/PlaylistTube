@@ -270,6 +270,7 @@ const filteredHistory = playlistHistory.filter(item => {
                     <Tooltip.Portal>
                       <Tooltip.Content 
                         className="max-w-xs px-3 py-2 rounded-lg shadow-lg z-50"
+                        side="right"
                         sideOffset={5}
                         style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
                       >
