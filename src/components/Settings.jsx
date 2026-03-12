@@ -18,31 +18,33 @@ function Settings() {
     const updateResetTimes = () => {
       const now = new Date();
       
-      // Calculate time until midnight Pacific Time (PT)
-      // PT is UTC-8, PHT is UTC+8 (16 hours apart)
+      // Get current UTC time
+      const utcNow = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
+      
+      // Find next midnight in Pacific Time (UTC-8)
       const pacificOffset = -8;
+      let nextMidnightPT = new Date(utcNow);
+      nextMidnightPT.setUTCHours(24 - 8, 0, 0, 0); // Next midnight UTC-8
       
-      // Get current time in Pacific
-      const nowPacificMs = now.getTime() + (pacificOffset * 60 * 60 * 1000) - (now.getTimezoneOffset() * 60 * 1000);
-      const midnightPacificMs = new Date(nowPacificMs);
-      midnightPacificMs.setHours(24, 0, 0, 0); // Next midnight PT
+      // Calculate time until reset
+      const msUntilReset = nextMidnightPT - utcNow;
+      if (msUntilReset < 0) {
+        nextMidnightPT.setUTCDate(nextMidnightPT.getUTCDate() + 1);
+      }
       
-      // Time until reset (in milliseconds)
-      const timeUntilReset = midnightPacificMs - nowPacificMs;
-      
-      // Calculate PT actual time when it resets
-      const resetTimePT = new Date(midnightPacificMs);
-      const ptHours = resetTimePT.getUTCHours();
-      const ptMins = resetTimePT.getUTCMinutes();
-      const ptSecs = resetTimePT.getUTCSeconds();
+      // Reset time in PT (midnight = 0:00)
+      const ptReset = new Date(nextMidnightPT.getTime() - (pacificOffset * 60 * 60 * 1000));
+      const ptHours = ptReset.getUTCHours();
+      const ptMins = ptReset.getUTCMinutes();
+      const ptSecs = ptReset.getUTCSeconds();
       const ptAmpm = ptHours >= 12 ? 'PM' : 'AM';
       const pt12 = ptHours % 12 || 12;
       
-      // Convert midnight PT to PHT (add 16 hours)
-      const resetTimePHT = new Date(midnightPacificMs + (16 * 60 * 60 * 1000));
-      const phHours = resetTimePHT.getUTCHours();
-      const phMins = resetTimePHT.getUTCMinutes();
-      const phSecs = resetTimePHT.getUTCSeconds();
+      // Reset time in PHT (PT + 16 hours)
+      const phReset = new Date(nextMidnightPT.getTime() + (16 * 60 * 60 * 1000));
+      const phHours = phReset.getUTCHours();
+      const phMins = phReset.getUTCMinutes();
+      const phSecs = phReset.getUTCSeconds();
       const phAmpm = phHours >= 12 ? 'PM' : 'AM';
       const ph12 = phHours % 12 || 12;
       
