@@ -272,6 +272,13 @@ function App() {
       setApiCalls(newApiCalls);
       localStorage.setItem('yt_api_usage', JSON.stringify(newApiUsage));
       localStorage.setItem('yt_api_calls', JSON.stringify(newApiCalls));
+    } else if (amount > 0 && amount !== 10000) {
+      const newApiUsage = { ...apiUsage, [type]: apiUsage[type] + cost };
+      const newApiCalls = { ...apiCalls, [type]: apiCalls[type] + 1 };
+      setApiUsage(newApiUsage);
+      setApiCalls(newApiCalls);
+      localStorage.setItem('yt_api_usage', JSON.stringify(newApiUsage));
+      localStorage.setItem('yt_api_calls', JSON.stringify(newApiCalls));
     }
   };
 

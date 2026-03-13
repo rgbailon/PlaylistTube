@@ -50,7 +50,7 @@ function LivePage() {
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000);
+          updateQuota(10000, 'search');
           if (switchToNextApiKey()) {
             setError('Quota exceeded. Switched to next API key. Please try again.');
             return;
@@ -98,7 +98,7 @@ function LivePage() {
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000);
+          updateQuota(10000, 'search');
           if (switchToNextApiKey()) {
             setError('Quota exceeded. Switched to next API key. Please try again.');
             return;

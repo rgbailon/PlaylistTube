@@ -321,7 +321,7 @@ function SearchPage() {
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000);
+          updateQuota(10000, 'playlists');
           if (switchToNextApiKey()) {
             setError('Quota exceeded. Switched to next API key. Please try again.');
             return;
@@ -366,49 +366,7 @@ function SearchPage() {
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000);
-          if (switchToNextApiKey()) {
-            setError('Quota exceeded. Switched to next API key. Please try again.');
-            return;
-          }
-        }
-      } else if (data.items) {
-        setResults(data.items);
-        setNextPageToken(data.nextPageToken || '');
-        setHasMore(!!data.nextPageToken);
-        updateQuota(-100, 'search');
-        const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
-        if (videoIds.length > 0) fetchVideoStats(videoIds);
-      }
-    } catch (err) {
-      console.error('Failed to load trending videos:', err);
-      setError('Failed to load videos. Check your internet connection.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadTrendingLive = async () => {
-    const apiKey = getCurrentApiKey();
-    if (!apiKey) {
-      setResults([]);
-      setError('Please add a YouTube API key in Settings');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const relevanceLang = 'en';
-      const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=live+stream&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`
-      );
-      const data = await resp.json();
-      
-      if (data.error) {
-        setError(`API Error: ${data.error.message}`);
-        if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000);
+          updateQuota(10000, 'search');
           if (switchToNextApiKey()) {
             setError('Quota exceeded. Switched to next API key. Please try again.');
             return;
@@ -479,7 +437,7 @@ const loadTrendingShortsPlaylists = async () => {
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000);
+          updateQuota(10000, 'playlists');
           if (switchToNextApiKey()) {
             setError('Quota exceeded. Switched to next API key. Please try again.');
             return;
@@ -521,7 +479,7 @@ const loadTrendingShortsPlaylists = async () => {
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000);
+          updateQuota(10000, 'playlists');
           if (switchToNextApiKey()) {
             setError('Quota exceeded. Switched to next API key. Please try again.');
             return;
@@ -598,7 +556,7 @@ if (!activeQuery.trim()) {
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000);
+          updateQuota(10000, 'search');
           if (switchToNextApiKey()) {
             setError('Quota exceeded. Switched to next API key. Please try again.');
             return;
@@ -783,7 +741,7 @@ const handleTypeChange = (type) => {
           console.error('API Error:', data.error);
           hasError = true;
           if (data.error.message?.includes('quota') || data.error.code === 403) {
-            updateQuota(10000);
+            updateQuota(10000, 'playlists');
             if (switchToNextApiKey()) {
               setError('Quota exceeded. Switched to next API key. Please try again.');
               setLoading(false);
@@ -920,7 +878,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
           console.error('API Error:', data.error);
           hasError = true;
           if (data.error.message?.includes('quota') || data.error.code === 403) {
-            updateQuota(10000);
+            updateQuota(10000, 'playlists');
             if (switchToNextApiKey()) {
               alert('Quota exceeded. Switched to next API key. Please try again.');
               setLoadingPlaylist(null);

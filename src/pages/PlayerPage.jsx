@@ -19,6 +19,152 @@ function PlayerPage() {
   const [recordingTime, setRecordingTime] = useState(0);
   const recordedChunksRef = useRef([]);
 
+  // Cast states
+  const [isCasting, setIsCasting] = useState(false);
+  const [showCastButton, setShowCastButton] = useState(false);
+  const castButtonTimeout = useRef(null);
+  const castSessionRef = useRef(null);
+  const castContextRef = useRef(null);
+  const mirroringStreamRef = useRef(null);
+
+  // Check for Miracast/Windows Connect support
+  const isWindows = navigator.userAgent.includes('Windows');
+  const supportsMiracast = isWindows;
+
+  // Initialize Cast API
+  useEffect(() => {
+    const initCastAPI = () => {
+      if (!window.cast || !window.cast.framework) return;
+      
+      const context = window.cast.framework.CastContext.getInstance();
+      castContextRef.current = context;
+      
+      // Set receiver app ID for YouTube if needed
+      context.setOptions({
+        receiverApplicationId: window.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+        autoJoinPolicy: window.cast.framework.AutoJoinPolicy.ORIGIN_SCOPED,
+      });
+      
+      context.addEventListener(window.cast.framework.CastContextEventType.CAST_STATE_CHANGED, (e) => {
+        setIsCasting(e.castState === window.cast.framework.CastState.CONNECTED);
+      });
+    };
+
+    // Load Cast SDK
+    if (!window.cast) {
+      const script = document.createElement('script');
+      script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadOnFrameworkReady=1';
+      script.onload = initCastAPI;
+      document.head.appendChild(script);
+    } else {
+      initCastAPI();
+    }
+  }, []);
+
+  const startCasting = useCallback(async () => {
+    try {
+      // First try: Chromecast
+      if (window.cast && window.cast.framework && castContextRef.current) {
+        try {
+          const context = castContextRef.current;
+          const session = await context.requestSession();
+          castSessionRef.current = session;
+
+          const videoId = currentPlaylist[currentVideoIndex]?.id;
+          if (!videoId) {
+            alert('No video selected');
+            return;
+          }
+
+          const mediaInfo = new window.cast.media.MediaInfo(
+            `https://www.youtube.com/watch?v=${videoId}`,
+            'video/youtube'
+          );
+          mediaInfo.metadata = new window.cast.media.MovieMetadata({
+            title: currentPlaylist[currentVideoIndex]?.title || 'YouTube Video',
+          });
+
+          const request = new window.cast.media.LoadRequest(mediaInfo);
+          await session.getMediaSession().load(request);
+          setIsCasting(true);
+          return;
+        } catch (castErr) {
+          console.log('Chromecast not available:', castErr);
+        }
+      }
+
+      // Second try: Miracast (Windows Connect)
+      if (supportsMiracast) {
+        // Open Windows Connect panel
+        // This launches the Connect app in Windows 10/11
+        const useMiracast = confirm(
+          'No Chromecast found.\n\n' +
+          'Your system supports Miracast.\n\n' +
+          'Click OK to start screen mirroring.\n\n' +
+          'Or press Win+K on your keyboard to open Windows Connect and select your projector/TV.'
+        );
+        
+        if (useMiracast) {
+          // Start screen mirroring
+          mirroringStreamRef.current = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              displaySurface: 'monitor',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
+            audio: true,
+            systemAudio: 'include',
+            selfBrowserSurface: 'include',
+            surfaceSwitching: 'include',
+          });
+          
+          // Handle when user stops sharing via browser UI
+          mirroringStreamRef.current.getVideoTracks()[0].onended = () => {
+            setIsCasting(false);
+            mirroringStreamRef.current = null;
+          };
+          
+          setIsCasting(true);
+          return;
+        }
+      }
+
+      // Final fallback: regular screen share
+      mirroringStreamRef.current = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: 'monitor' },
+        audio: true,
+      });
+      
+      mirroringStreamRef.current.getVideoTracks()[0].onended = () => {
+        setIsCasting(false);
+        mirroringStreamRef.current = null;
+      };
+      
+      setIsCasting(true);
+    } catch (err) {
+      console.error('Casting error:', err);
+      if (err.name === 'not_allowed') {
+        alert('Permission denied. Please allow screen sharing.');
+      } else {
+        alert('Could not start casting: ' + err.message);
+      }
+    }
+  }, [currentPlaylist, currentVideoIndex, supportsMiracast]);
+
+  const stopCasting = useCallback(() => {
+    // Stop Chromecast session
+    if (castSessionRef.current) {
+      castSessionRef.current.endSession(true);
+      castSessionRef.current = null;
+    }
+    // Stop Miracast/Screen mirroring
+    if (mirroringStreamRef.current) {
+      mirroringStreamRef.current.getTracks().forEach(track => track.stop());
+      mirroringStreamRef.current = null;
+    }
+    setIsCasting(false);
+  }, []);
+
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -530,13 +676,24 @@ const toggleFullscreen = () => {
           clearTimeout(recordButtonTimeout.current);
           recordButtonTimeout.current = null;
         }
+        if (castButtonTimeout.current) {
+          clearTimeout(castButtonTimeout.current);
+          castButtonTimeout.current = null;
+        }
         setShowRecordButton(true);
+        setShowCastButton(true);
       } else if (e.clientX > edgeThreshold && e.clientX < screenWidth - edgeThreshold) {
         // Mouse is in middle - hide record button after delay
         if (!recordButtonTimeout.current) {
           recordButtonTimeout.current = setTimeout(() => {
             setShowRecordButton(false);
             recordButtonTimeout.current = null;
+          }, 300);
+        }
+        if (!castButtonTimeout.current) {
+          castButtonTimeout.current = setTimeout(() => {
+            setShowCastButton(false);
+            castButtonTimeout.current = null;
           }, 300);
         }
       }
@@ -592,12 +749,21 @@ const toggleFullscreen = () => {
                 clearTimeout(recordButtonTimeout.current);
                 recordButtonTimeout.current = null;
               }
+              if (castButtonTimeout.current) {
+                clearTimeout(castButtonTimeout.current);
+                castButtonTimeout.current = null;
+              }
               setShowRecordButton(true);
+              setShowCastButton(true);
             }}
             onMouseLeave={() => {
               recordButtonTimeout.current = setTimeout(() => {
                 setShowRecordButton(false);
                 recordButtonTimeout.current = null;
+              }, 300);
+              castButtonTimeout.current = setTimeout(() => {
+                setShowCastButton(false);
+                castButtonTimeout.current = null;
               }, 300);
             }}
           />
@@ -636,6 +802,58 @@ const toggleFullscreen = () => {
               </>
             )}
           </button>
+        </div>
+        {/* Cast Button - Below Record Button */}
+        <div 
+          className="fixed left-0 z-[9999]"
+          style={{ top: 'calc(50% + 90px)' }}
+          onMouseEnter={() => {
+            if (castButtonTimeout.current) {
+              clearTimeout(castButtonTimeout.current);
+              castButtonTimeout.current = null;
+            }
+            setShowCastButton(true);
+          }}
+          onMouseLeave={() => {
+            castButtonTimeout.current = setTimeout(() => {
+              setShowCastButton(false);
+              castButtonTimeout.current = null;
+            }, 300);
+          }}
+        >
+          <div 
+            className={`fixed left-0 top-1/2 -translate-y-1/2 z-[10000] transition-transform duration-300 ease-out ${showCastButton ? 'translate-x-0' : '-translate-x-full'}`}
+            style={{ marginTop: '90px' }}
+          >
+            <button
+              onClick={isCasting ? stopCasting : startCasting}
+              className={`flex flex-col items-center gap-1 px-2 py-2 rounded-r-xl shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+                isCasting 
+                  ? 'bg-blue-600 hover:bg-blue-500 animate-pulse' 
+                  : 'bg-gray-900/90 hover:bg-blue-600'
+              }`}
+            style={{ 
+              color: 'white',
+              backdropFilter: 'blur(10px)',
+              border: isCasting ? '2px solid #3b82f6' : '2px solid rgba(255,255,255,0.2)'
+            }}
+            >
+              {isCasting ? (
+                <>
+                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-[8px] font-bold">MIRROR</span>
+                    <span className="text-[8px] opacity-80">ON</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-desktop text-sm"></i>
+                  <span className="text-[10px] font-medium">Mirror</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
         </>
       )}

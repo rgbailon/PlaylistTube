@@ -11,6 +11,7 @@ const getProviderFromUrl = (url) => {
   if (url.includes('x.ai')) return 'xai';
   if (url.includes('mistral.ai')) return 'mistral';
   if (url.includes('perplexity.ai')) return 'perplexity';
+  if (url.includes('groq.com')) return 'groq';
   if (url.includes('localhost:11434')) return 'ollama';
   return 'default';
 };
@@ -23,6 +24,9 @@ const buildHeaders = (provider, key) => {
   if (!key) return headers;
 
   switch (provider) {
+    case 'openai':
+      headers['Authorization'] = `Bearer ${key}`;
+      break;
     case 'anthropic':
       headers['x-api-key'] = key;
       headers['anthropic-version'] = '2023-06-01';
@@ -36,11 +40,13 @@ const buildHeaders = (provider, key) => {
     case 'xai':
     case 'mistral':
     case 'perplexity':
-    case 'ollama':
-    case 'default':
-    default:
+    case 'groq':
       headers['Authorization'] = `Bearer ${key}`;
       break;
+    case 'ollama':
+      break;
+    default:
+      headers['Authorization'] = `Bearer ${key}`;
   }
 
   return headers;
