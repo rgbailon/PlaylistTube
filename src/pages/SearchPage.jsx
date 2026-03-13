@@ -1038,173 +1038,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
             {error}
           </div>
         )}
-        <div className="px-4 md:px-8 py-6">
-          <div className="relative max-w-2xl mx-auto">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearchInput(e.target.value)}
-              onFocus={() => { setSearchFocused(true); searchTriggeredRef.current = false; }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && selectedIndex >= 0) {
-                  e.preventDefault();
-                  handleSelectSuggestion(suggestions[selectedIndex]);
-                } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-                  e.preventDefault();
-                  if (suggestions.length > 0) {
-                    setSelectedIndex(prev => e.key === 'ArrowDown' 
-                      ? (prev < suggestions.length - 1 ? prev + 1 : 0)
-                      : (prev > 0 ? prev - 1 : suggestions.length - 1));
-                  }
-                } else if (e.key === 'Escape') {
-                  setSuggestions([]);
-                  setSelectedIndex(-1);
-                } else if (e.key === 'Enter') {
-                  searchTriggeredRef.current = true;
-                  setSuggestions([]);
-                  setSelectedIndex(-1);
-                  searchPlaylists();
-                }
-              }}
-              placeholder="Search or paste URL..."
-              className="w-full rounded-xl pl-12 pr-4 py-4 text-sm md:text-base shadow-lg"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
-              autoComplete="off"
-            />
-            <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-lg" style={{ color: 'var(--text-muted)' }}></i>
-            {searchFocused && searchQuery && suggestions.length > 0 && (
-              <div
-                className="search-suggestions-container absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-              >
-                {suggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleSelectSuggestion(suggestion)}
-                    className="px-4 py-2.5 cursor-pointer text-sm"
-                    style={{ 
-                      color: 'var(--text-main)', 
-                      background: index === selectedIndex ? 'var(--bg-hover)' : 'transparent',
-                      borderBottom: index < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none' 
-                    }}
-                  >
-                    {suggestion}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Search Focus Modal */}
-        {searchFocused && (
-          <div 
-            className="fixed inset-0 z-[100]"
-            style={{ 
-              background: 'rgba(0, 0, 0, 0.3)',
-              backdropFilter: 'blur(8px) saturate(150%)',
-              WebkitBackdropFilter: 'blur(8px) saturate(150%)',
-              animation: 'fadeIn 150ms ease-out'
-            }}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) {
-                setSearchFocused(false);
-              }
-            }}
-          >
-            <div className="w-full h-full flex items-start justify-center p-4 pt-10 md:pt-16 pointer-events-none overflow-hidden">
-              <div 
-                className="w-full max-w-2xl rounded-[20px] md:rounded-[40px] pointer-events-auto overflow-hidden"
-                style={{ 
-                  background: 'rgba(30, 30, 30, 0.95)',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                  animation: 'scaleIn 150ms ease-out'
-                }}
-              >
-                <div className="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4">
-                  <i className="fas fa-search text-base md:text-lg" style={{ color: 'rgba(255, 255, 255, 0.5)' }}></i>
-                  <input
-                    placeholder="Search video or paste URL..."
-                    className="flex-1 bg-transparent border-none outline-none text-base md:text-lg text-center min-w-0"
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleSearchInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      e.stopPropagation();
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        searchTriggeredRef.current = true;
-                        setSuggestions([]);
-                        setSelectedIndex(-1);
-                        searchPlaylists();
-                        setSearchFocused(false);
-                      } else if (e.key === 'Escape') {
-                        setSearchFocused(false);
-                      }
-                    }}
-                    style={{ color: '#ffffff' }}
-                    autoComplete="off"
-                    autoFocus
-                  />
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setSearchType('video')}
-                      className="px-2 py-1 rounded-md text-xs"
-                      style={{ 
-                        color: searchType === 'video' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                        background: searchType === 'video' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
-                      }}
-                    >
-                      Video
-                    </button>
-                    <button
-                      onClick={() => setSearchType('playlist')}
-                      className="px-2 py-1 rounded-md text-xs"
-                      style={{ 
-                        color: searchType === 'playlist' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                        background: searchType === 'playlist' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
-                      }}
-                    >
-                      Playlist
-                    </button>
-<button
-                      onClick={() => setSearchType('live')}
-                      className="px-2 py-1 rounded-md text-xs"
-                      style={{ 
-                        color: searchType === 'live' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                        background: searchType === 'live' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
-                      }}
-                    >
-                      Live
-                    </button>
-                    <button
-                      onClick={() => setSearchType('courses')}
-                      className="px-2 py-1 rounded-md text-xs"
-                      style={{ 
-                        color: searchType === 'courses' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                        background: searchType === 'courses' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
-                      }}
-                    >
-                      Courses
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => setSearchFocused(false)}
-                    className="px-2 py-1 rounded-md text-xs"
-                    style={{ 
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      background: 'rgba(255, 255, 255, 0.1)'
-                    }}
-                  >
-                    ESC
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="px-4 md:px-8 pb-4">
+        <div className="px-4 md:px-8 py-4">
           <div className="flex flex-wrap items-center gap-2 justify-center">
             <div className="relative">
               <select
@@ -1263,12 +1097,161 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => setSearchFocused(true)}
+              className="flex items-center justify-center w-9 h-9 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-hover)] transition-all duration-200"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <i className="fas fa-search text-sm"></i>
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="px-4 md:px-8 py-6">
-        <div className="flex items-center justify-between mb-4">
+        {/* Search Focus Modal */}
+        {searchFocused && (
+          <div 
+            className="fixed inset-0 z-[100]"
+            style={{ 
+              background: 'rgba(0, 0, 0, 0.3)',
+              backdropFilter: 'blur(8px) saturate(150%)',
+              WebkitBackdropFilter: 'blur(8px) saturate(150%)',
+              animation: 'fadeIn 150ms ease-out'
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setSearchFocused(false);
+              }
+            }}
+          >
+            <div className="w-full h-full flex items-start justify-center p-4 pt-16 pointer-events-none overflow-hidden">
+              <div 
+                className="w-full max-w-2xl rounded-[20px] md:rounded-[40px] pointer-events-auto relative"
+                style={{ 
+                  background: 'rgba(30, 30, 30, 0.95)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                  animation: 'scaleIn 150ms ease-out'
+                }}
+              >
+                <div className="flex flex-row items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4">
+                  <i className="fas fa-search text-base md:text-lg" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
+                  <input
+                    placeholder="Search video or paste URL..."
+                    className="flex-1 bg-transparent border-none outline-none text-base md:text-lg text-center w-full"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (suggestions.length > 0) {
+                        if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
+                        } else if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
+                        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                          e.preventDefault();
+                          handleSelectSuggestion(suggestions[selectedIndex]);
+                          setSearchFocused(false);
+                          return;
+                        }
+                      }
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchTriggeredRef.current = true;
+                        setSuggestions([]);
+                        setSelectedIndex(-1);
+                        searchPlaylists();
+                        setSearchFocused(false);
+                      } else if (e.key === 'Escape') {
+                        setSearchFocused(false);
+                      }
+                    }}
+                    style={{ color: '#ffffff' }}
+                    autoComplete="off"
+                    autoFocus
+                  />
+                  {searchFocused && searchQuery && suggestions.length > 0 && (
+                    <div
+                      className="search-suggestions-container absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 overflow-hidden max-h-60 overflow-y-auto"
+                      style={{ background: 'rgba(30, 30, 30, 0.98)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+                    >
+                      {suggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          onClick={() => { handleSelectSuggestion(suggestion); setSearchFocused(false); }}
+                          className="px-4 py-2.5 cursor-pointer text-sm"
+                          style={{ 
+                            color: index === selectedIndex ? '#ffffff' : 'rgba(255, 255, 255, 0.8)', 
+                            background: index === selectedIndex ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                            borderBottom: index < suggestions.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none' 
+                          }}
+                        >
+                          {suggestion}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap items-center justify-center gap-1 md:gap-2">
+                    <button
+                      onClick={() => setSearchType('video')}
+                      className="px-2 py-1 rounded-md text-xs"
+                      style={{ 
+                        color: searchType === 'video' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                        background: searchType === 'video' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                      }}
+                    >
+                      Video
+                    </button>
+                    <button
+                      onClick={() => setSearchType('playlist')}
+                      className="px-2 py-1 rounded-md text-xs"
+                      style={{ 
+                        color: searchType === 'playlist' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                        background: searchType === 'playlist' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                      }}
+                    >
+                      Playlist
+                    </button>
+                    <button
+                      onClick={() => setSearchType('live')}
+                      className="px-2 py-1 rounded-md text-xs"
+                      style={{ 
+                        color: searchType === 'live' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                        background: searchType === 'live' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                      }}
+                    >
+                      Live
+                    </button>
+                    <button
+                      onClick={() => setSearchType('courses')}
+                      className="px-2 py-1 rounded-md text-xs"
+                      style={{ 
+                        color: searchType === 'courses' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
+                        background: searchType === 'courses' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                      }}
+                    >
+                      Courses
+                    </button>
+                    <button
+                      onClick={() => setSearchFocused(false)}
+                      className="px-2 py-1 rounded-md text-xs"
+                      style={{ 
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        background: 'rgba(255, 255, 255, 0.1)'
+                      }}
+                    >
+                      ESC
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="px-4 md:px-8 py-6">
+          <div className="flex items-center justify-between mb-4">
 <h2 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--text-main)' }}>
             {searchType === 'playlist' ? 'Playlists' : searchType === 'video' ? 'Videos' : searchType === 'live' ? 'Live Videos' : searchType === 'shorts_playlist' ? 'Shorts Playlists' : 'Courses'}
           </h2>
@@ -1422,17 +1405,18 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
         </div>
 
         {hasMore && (
-          <div className="px-4 md:px-8 pb-8 text-center">
+          <div className="flex justify-center pt-6">
             <button
               onClick={loadMore}
               disabled={loading}
-              className="px-8 py-3 rounded-xl font-medium disabled:opacity-50 hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] transition"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+              className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50"
+              style={{ background: 'var(--accent-color)', color: 'white' }}
             >
-              {loading ? 'Loading...' : 'Load More Results'}
+              {loading ? <><i className="fas fa-circle-notch fa-spin mr-2"></i>Loading...</> : 'Load More'}
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
