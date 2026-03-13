@@ -13,6 +13,8 @@ function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState('relevance');
   const [searchType, setSearchType] = useState('video');
+  const [region, setRegion] = useState('US');
+  const [timeFilter, setTimeFilter] = useState('all');
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [loadingPlaylist, setLoadingPlaylist] = useState(null);
@@ -70,6 +72,42 @@ function SearchPage() {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
+  };
+
+  const regions = [
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'PH', name: 'Philippines' },
+    { code: 'IN', name: 'India' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'KR', name: 'South Korea' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'MX', name: 'Mexico' },
+  ];
+
+  const timeFilters = [
+    { value: 'all', label: 'All' },
+    { value: 'today', label: 'Today' },
+    { value: 'week', label: 'This Week' },
+    { value: 'month', label: 'This Month' },
+  ];
+
+  const getPublishedAfter = () => {
+    const now = new Date();
+    switch (timeFilter) {
+      case 'today':
+        return new Date(now.setDate(now.getDate() - 1)).toISOString();
+      case 'week':
+        return new Date(now.setDate(now.getDate() - 7)).toISOString();
+      case 'month':
+        return new Date(now.setMonth(now.getMonth() - 1)).toISOString();
+      default:
+        return null;
+    }
   };
 
   useEffect(() => {
@@ -216,6 +254,14 @@ function SearchPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (searchQuery && results.length > 0 && (searchType === 'video' || searchType === 'live')) {
+      if (searchType === 'video' || searchType === 'live') {
+        searchPlaylists();
+      }
+    }
+  }, [region, timeFilter]);
+
   const extractVideoId = (input) => {
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
@@ -301,9 +347,12 @@ function SearchPage() {
     setError(null);
     try {
       const relevanceLang = 'en';
-      const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=trending&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
-      );
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=trending&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+      const publishedAfter = getPublishedAfter();
+      if (publishedAfter) {
+        url += `&publishedAfter=${publishedAfter}`;
+      }
+      const resp = await fetch(url);
       const data = await resp.json();
       
       if (data.error) {
@@ -344,7 +393,7 @@ function SearchPage() {
     try {
       const relevanceLang = 'en';
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=live+stream&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=live+stream&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`
       );
       const data = await resp.json();
       
@@ -514,20 +563,25 @@ if (!activeQuery.trim()) {
     setError(null);
     try {
       const relevanceLang = 'en';
-      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
+      const publishedAfter = getPublishedAfter();
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+      
+      if (publishedAfter) {
+        url += `&publishedAfter=${publishedAfter}`;
+      }
       
       if (activeType === 'playlist') {
         const playlistOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=playlist&order=${playlistOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=playlist&order=${playlistOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
       } else if (activeType === 'live') {
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
 } else if (activeType === 'shorts_playlist') {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
       } else if (activeType === 'courses') {
         const courseQuery = activeQuery ? `${activeQuery}+course+tutorial` : 'educational+course+tutorial+playlist';
         const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -957,7 +1011,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
     { value: 'relevance', label: 'Relevance', icon: 'fa-star' },
     { value: 'date', label: 'Newest First', icon: 'fa-arrow-down' },
     { value: 'viewCount', label: 'Most Viewed', icon: 'fa-eye' },
-    { value: 'rating', label: 'Top Rated', icon: 'fa-thumbs-up' },
+    { value: 'rating', label: 'Most Likes', icon: 'fa-thumbs-up' },
   ];
 
   return (
@@ -1142,38 +1196,60 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
         )}
 
         <div className="px-4 md:px-8 pb-4">
-          <div className="flex flex-wrap items-center gap-3 justify-center">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Type:</span>
-<select
+          <div className="flex flex-wrap items-center gap-2 justify-center">
+            <div className="relative">
+              <select
                 value={searchType}
                 onChange={(e) => handleTypeChange(e.target.value)}
-                className="text-sm rounded-lg px-3 py-2"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+                className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-4 py-2 pr-8 text-xs font-medium cursor-pointer transition-all duration-200"
+                style={{ color: 'var(--text-main)' }}
               >
-                <option value="video">Videos</option>
-                <option value="playlist">Playlists</option>
-                <option value="live">Live Videos</option>
-                <option value="shorts_playlist">Shorts Playlist</option>
-                <option value="courses">Courses</option>
+                <option value="video" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Videos</option>
+                <option value="playlist" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Playlists</option>
+                <option value="live" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Live</option>
+                <option value="courses" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Courses</option>
               </select>
+              <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
             </div>
-            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
-              <i className="fas fa-sort mr-2"></i>Sort by:
-            </span>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-1">
               {sortOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => handleSortChange(option.value)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium transition"
+                  className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
                   style={{ 
-                    background: sortOrder === option.value ? 'var(--accent-color)' : 'var(--bg-card)', 
-                    color: sortOrder === option.value ? 'white' : 'var(--text-main)',
-                    border: '1px solid ' + (sortOrder === option.value ? 'var(--accent-color)' : 'var(--border-color)')
+                    background: sortOrder === option.value ? 'var(--accent-color)' : 'transparent', 
+                    color: sortOrder === option.value ? 'white' : 'var(--text-muted)',
                   }}
                 >
-                  <i className={`fas ${option.icon} mr-1.5`}></i>
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <div className="relative">
+              <select
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-4 py-2 pr-8 text-xs font-medium cursor-pointer transition-all duration-200"
+                style={{ color: 'var(--text-main)' }}
+              >
+                {regions.map(r => (
+                  <option key={r.code} value={r.code} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>{r.name}</option>
+                ))}
+              </select>
+              <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
+            </div>
+            <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-1">
+              {timeFilters.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => setTimeFilter(option.value)}
+                  className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
+                  style={{ 
+                    background: timeFilter === option.value ? 'var(--accent-color)' : 'transparent', 
+                    color: timeFilter === option.value ? 'white' : 'var(--text-muted)',
+                  }}
+                >
                   {option.label}
                 </button>
               ))}
@@ -1261,9 +1337,17 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                     </div>
                   )}
                   {searchType === 'courses' && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-blue-600 text-white text-xs font-medium">
-                      COURSE
-                    </div>
+                    <>
+                      {playlistDetails[item.id.playlistId]?.videoCount && (
+                        <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                          <i className="fas fa-video"></i>
+                          {playlistDetails[item.id.playlistId].videoCount}
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2 px-2 py-1 rounded bg-blue-600 text-white text-xs font-medium">
+                        COURSE
+                      </div>
+                    </>
                   )}
                 </div>
                 <div className="flex items-start justify-between gap-2">
@@ -1294,8 +1378,15 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
 {searchType === 'shorts_playlist' && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
-                      {searchType === 'courses' && playlistDetails[item.id.playlistId]?.publishedAt && (
-                        <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
+                      {searchType === 'courses' && (
+                        <>
+                          {playlistDetails[item.id.playlistId]?.videoCount > 0 && (
+                            <span> • {playlistDetails[item.id.playlistId].videoCount} videos</span>
+                          )}
+                          {playlistDetails[item.id.playlistId]?.publishedAt && (
+                            <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
+                          )}
+                        </>
                       )}
                     </p>
                   </div>

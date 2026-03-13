@@ -18,34 +18,59 @@ function Settings() {
     const updateResetTimes = () => {
       const now = new Date();
       
-      // Current UTC time in ms
+      const getPacificOffset = () => {
+        const ptDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+        const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+        return (ptDate - utcDate) / (1000 * 60 * 60);
+      };
+      
+      const getPhOffset = () => {
+        const phDate = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
+        const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+        return (phDate - utcDate) / (1000 * 60 * 60);
+      };
+      
+      const ptOffset = getPacificOffset();
+      const phOffset = getPhOffset();
+      
       const utcNow = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
       
-      // Next midnight in Pacific Time (PT = UTC-8 = 8 AM UTC)
-      const utcHour = now.getUTCHours();
       let nextMidnightPT_UTC;
-      if (utcHour < 8) {
-        nextMidnightPT_UTC = new Date(now);
-        nextMidnightPT_UTC.setUTCHours(8, 0, 0, 0);
+      if (ptOffset === -8) {
+        if (now.getUTCHours() < 8) {
+          nextMidnightPT_UTC = new Date(now);
+          nextMidnightPT_UTC.setUTCHours(8, 0, 0, 0);
+        } else {
+          nextMidnightPT_UTC = new Date(now);
+          nextMidnightPT_UTC.setUTCDate(nextMidnightPT_UTC.getUTCDate() + 1);
+          nextMidnightPT_UTC.setUTCHours(8, 0, 0, 0);
+        }
       } else {
-        nextMidnightPT_UTC = new Date(now);
-        nextMidnightPT_UTC.setUTCDate(nextMidnightPT_UTC.getUTCDate() + 1);
-        nextMidnightPT_UTC.setUTCHours(8, 0, 0, 0);
+        if (now.getUTCHours() < 7) {
+          nextMidnightPT_UTC = new Date(now);
+          nextMidnightPT_UTC.setUTCHours(7, 0, 0, 0);
+        } else {
+          nextMidnightPT_UTC = new Date(now);
+          nextMidnightPT_UTC.setUTCDate(nextMidnightPT_UTC.getUTCDate() + 1);
+          nextMidnightPT_UTC.setUTCHours(7, 0, 0, 0);
+        }
       }
       
-      // Calculate countdown
       const msUntilReset = nextMidnightPT_UTC - utcNow;
       const hours = Math.floor(msUntilReset / (1000 * 60 * 60));
       const minutes = Math.floor((msUntilReset % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((msUntilReset % (1000 * 60)) / 1000);
       
-      // PT resets at midnight = 12:00:00 AM
-      // PHT is UTC+8, so midnight PT = 8 AM UTC = 4:00:00 PM PHT same day
-      // (16 hours ahead)
+      const ptTime = new Date(nextMidnightPT_UTC.getTime() - ptOffset * 60 * 60 * 1000);
+      const phTime = new Date(nextMidnightPT_UTC.getTime() - phOffset * 60 * 60 * 1000);
+      
+      const formatTime = (date) => {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+      };
       
       setQuotaResetTime({
-        pacific: `12:00:00 AM PT (${hours}h ${minutes}m ${seconds}s)`,
-        philippines: `4:00:00 PM PHT (${hours}h ${minutes}m ${seconds}s)`
+        pacific: `${formatTime(ptTime)} PT (${hours}h ${minutes}m ${seconds}s)`,
+        philippines: `${formatTime(phTime)} PHT (${hours}h ${minutes}m ${seconds}s)`
       });
     };
     
@@ -221,7 +246,6 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
               </div>
               <div className="flex justify-between items-center mt-1">
                 <span className="text-[10px] text-[var(--text-muted)]">{quotaPercent.toFixed(1)}% used</span>
-                <button onClick={resetQuota} className="text-[10px] hover:text-blue-500 transition text-[var(--text-muted)]"><i className="fas fa-undo mr-0.5"></i>Reset</button>
               </div>
               <div className="mt-2 text-[10px] text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1.5 rounded">
                 <div className="flex items-center gap-2">
