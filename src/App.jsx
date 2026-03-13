@@ -9,6 +9,7 @@ import LivePage from './pages/LivePage';
 import ChatPage from './pages/ChatPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import PrivacyPage from './pages/PrivacyPage';
+import CastReceiver from './pages/CastReceiver';
 import './index.css';
 
 export const AppContext = createContext();
@@ -391,8 +392,9 @@ const addToHistory = (playlist, type = 'playlist') => {
                 <Route path="/video" element={<VideoPage />} />
                 <Route path="/live" element={<LivePage />} />
                 <Route path="/chat" element={<ChatPage />} />
-<Route path="/whiteboard" element={<WhiteboardPage />} />
+                <Route path="/whiteboard" element={<WhiteboardPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/cast" element={<CastReceiver />} />
               </Routes>
             </main>
           </div>

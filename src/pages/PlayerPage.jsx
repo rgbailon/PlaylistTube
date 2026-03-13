@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useApp } from '../App';
 import Settings from '../components/Settings';
 import LiveChat from '../components/LiveChat';
+import CastModal from '../components/CastModal';
 
 function PlayerPage() {
   const { currentPlaylist, setCurrentPlaylist, currentVideoIndex, setCurrentVideoIndex, setPlayer, updateQuota, settingsOpen, setSettingsOpen, sidebarCollapsed, playerPanelOpen, setPlayerPanelOpen, getCurrentApiKey } = useApp();
@@ -22,10 +23,12 @@ function PlayerPage() {
   // Cast states
   const [isCasting, setIsCasting] = useState(false);
   const [showCastButton, setShowCastButton] = useState(false);
+  const [castModalOpen, setCastModalOpen] = useState(false);
   const castButtonTimeout = useRef(null);
   const castSessionRef = useRef(null);
   const castContextRef = useRef(null);
   const mirroringStreamRef = useRef(null);
+  const castServerUrlRef = useRef(null);
 
   // Check for Miracast/Windows Connect support
   const isWindows = navigator.userAgent.includes('Windows');
@@ -164,6 +167,26 @@ function PlayerPage() {
     }
     setIsCasting(false);
   }, []);
+
+  const handleCastConnect = useCallback((serverUrl) => {
+    castServerUrlRef.current = serverUrl;
+    setIsCasting(true);
+    
+    // Send current video info to receiver
+    const currentVideo = currentPlaylist[currentVideoIndex];
+    if (currentVideo) {
+      fetch(`${serverUrl}/api/cast`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'play',
+          videoId: currentVideo.id,
+          title: currentVideo.title,
+          url: `https://www.youtube.com/watch?v=${currentVideo.id}`
+        })
+      }).catch(err => console.error('Failed to send to cast receiver:', err));
+    }
+  }, [currentPlaylist, currentVideoIndex]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -826,7 +849,7 @@ const toggleFullscreen = () => {
             style={{ marginTop: '90px' }}
           >
             <button
-              onClick={isCasting ? stopCasting : startCasting}
+              onClick={isCasting ? stopCasting : () => setCastModalOpen(true)}
               className={`flex flex-col items-center gap-1 px-2 py-2 rounded-r-xl shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 ${
                 isCasting 
                   ? 'bg-blue-600 hover:bg-blue-500 animate-pulse' 
@@ -1176,6 +1199,13 @@ const toggleFullscreen = () => {
         )}
       </aside>
       )}
+
+      <CastModal 
+        isOpen={castModalOpen}
+        onClose={() => setCastModalOpen(false)}
+        onConnect={handleCastConnect}
+        currentVideo={currentPlaylist[currentVideoIndex]}
+      />
     </div>
   );
 }
