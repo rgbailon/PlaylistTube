@@ -451,11 +451,12 @@ const navItems = [
       {/* Search Focus Modal - Big screens only */}
       {searchFocused && (
         <div 
-          className="hidden md:fixed md:inset-0 md:z-[100] md:flex md:items-start md:justify-center md:pt-20"
+          className="hidden md:fixed md:inset-0 md:z-[100] md:flex md:items-start md:justify-center md:pt-16"
           style={{ 
-            background: 'rgba(0, 0, 0, 0.4)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)'
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(8px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(8px) saturate(150%)',
+            animation: 'fadeIn 150ms ease-out'
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) {
@@ -466,8 +467,9 @@ const navItems = [
           <div 
             className="w-[60%] max-w-2xl rounded-[40px] pointer-events-auto"
             style={{ 
-              background: 'rgba(30, 30, 30, 0.85)',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1)'
+              background: 'rgba(30, 30, 30, 0.95)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+              animation: 'scaleIn 150ms ease-out'
             }}
           >
             <div className="flex items-center justify-center gap-3 px-6 py-4">

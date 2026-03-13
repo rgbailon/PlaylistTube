@@ -255,12 +255,20 @@ function SearchPage() {
   }, []);
 
   useEffect(() => {
-    if (searchQuery && results.length > 0 && (searchType === 'video' || searchType === 'live')) {
-      if (searchType === 'video' || searchType === 'live') {
-        searchPlaylists();
+    if (searchQuery.trim()) {
+      searchPlaylists();
+    } else {
+      if (searchType === 'video') {
+        loadTrendingVideos();
+      } else if (searchType === 'live') {
+        loadTrendingLive();
+      } else if (searchType === 'playlist') {
+        loadTrendingPlaylists();
+      } else if (searchType === 'courses') {
+        loadTrendingCourses();
       }
     }
-  }, [region, timeFilter]);
+  }, [region, timeFilter, sortOrder, searchType]);
 
   const extractVideoId = (input) => {
     const patterns = [
@@ -1009,9 +1017,8 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
 
   const sortOptions = [
     { value: 'relevance', label: 'Relevance', icon: 'fa-star' },
-    { value: 'date', label: 'Newest First', icon: 'fa-arrow-down' },
-    { value: 'viewCount', label: 'Most Viewed', icon: 'fa-eye' },
-    { value: 'rating', label: 'Most Likes', icon: 'fa-thumbs-up' },
+    { value: 'date', label: 'Newest', icon: 'fa-clock' },
+    { value: 'viewCount', label: 'Popular', icon: 'fa-fire' },
   ];
 
   return (
@@ -1094,9 +1101,10 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
           <div 
             className="fixed inset-0 z-[100]"
             style={{ 
-              background: 'rgba(0, 0, 0, 0.4)',
-              backdropFilter: 'blur(20px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(20px) saturate(180%)'
+              background: 'rgba(0, 0, 0, 0.3)',
+              backdropFilter: 'blur(8px) saturate(150%)',
+              WebkitBackdropFilter: 'blur(8px) saturate(150%)',
+              animation: 'fadeIn 150ms ease-out'
             }}
             onClick={(e) => {
               if (e.target === e.currentTarget) {
@@ -1104,12 +1112,13 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
               }
             }}
           >
-            <div className="w-full h-full flex items-start justify-center p-4 pt-10 md:pt-20 pointer-events-none overflow-hidden">
+            <div className="w-full h-full flex items-start justify-center p-4 pt-10 md:pt-16 pointer-events-none overflow-hidden">
               <div 
                 className="w-full max-w-2xl rounded-[20px] md:rounded-[40px] pointer-events-auto overflow-hidden"
                 style={{ 
-                  background: 'rgba(30, 30, 30, 0.85)',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                  background: 'rgba(30, 30, 30, 0.95)',
+                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                  animation: 'scaleIn 150ms ease-out'
                 }}
               >
                 <div className="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4">
