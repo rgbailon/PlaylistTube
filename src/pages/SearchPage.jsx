@@ -1328,16 +1328,16 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                       Playlist
                     </div>
                   )}
-                  {searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
-                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
-                      <i className="fas fa-eye"></i>
-                      {formatViewers(liveDetails[item.id.videoId].concurrentViewers)}
-                    </div>
-                  )}
                   {searchType === 'live' && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
+                    <div className="absolute top-2 left-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
                       <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                       LIVE
+                    </div>
+                  )}
+                  {searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                      <i className="fas fa-eye"></i>
+                      {formatViewers(liveDetails[item.id.videoId].concurrentViewers)}
                     </div>
                   )}
 {searchType === 'shorts_playlist' && (
