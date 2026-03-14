@@ -29,6 +29,7 @@ function SearchPage() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchTriggeredRef = useRef(false);
   const initialLoadRef = useRef(false);
+  const explicitSearchRef = useRef(false);
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -192,6 +193,7 @@ function SearchPage() {
 
   const handleSelectSuggestion = (suggestion) => {
     searchTriggeredRef.current = true;
+    explicitSearchRef.current = true;
     setSearchQuery(suggestion);
     setSuggestions([]);
     setSelectedIndex(-1);
@@ -201,6 +203,7 @@ function SearchPage() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       searchTriggeredRef.current = true;
+      explicitSearchRef.current = true;
       setSuggestions([]);
       setSelectedIndex(-1);
       searchPlaylists();
@@ -236,9 +239,11 @@ function SearchPage() {
     setSearchType(searchTypeFromUrl);
     
     if (list) {
+      explicitSearchRef.current = true;
       const playlist = { id: { playlistId: list }, snippet: { title: 'Playlist', channelTitle: '' } };
       loadPlaylist(list, playlist);
     } else if (q) {
+      explicitSearchRef.current = true;
       setSearchQuery(q);
       searchPlaylists(searchTypeFromUrl, q);
     } else if (lastSearchResults.length > 0) {
@@ -252,7 +257,7 @@ function SearchPage() {
   }, []);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
+    if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists();
     }
   }, [region, timeFilter, sortOrder, searchType]);
@@ -678,26 +683,14 @@ if (searchType === 'playlist' || searchType === 'shorts_playlist' || searchType 
 const handleSortChange = (order) => {
     setSortOrder(order);
     setVideoStats({});
-    if (!searchQuery.trim()) {
-      if (searchType === 'playlist') loadTrendingPlaylists();
-      else if (searchType === 'video') loadTrendingVideos();
-      else if (searchType === 'live') loadTrendingLive();
-      else if (searchType === 'shorts_playlist') loadTrendingShortsPlaylists();
-      else if (searchType === 'courses') loadTrendingCourses();
-    } else {
+    if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(searchType, searchQuery);
     }
   };
 
-const handleTypeChange = (type) => {
+  const handleTypeChange = (type) => {
     setSearchType(type);
-    if (!searchQuery.trim()) {
-      if (type === 'playlist') loadTrendingPlaylists();
-      else if (type === 'video') loadTrendingVideos();
-      else if (type === 'live') loadTrendingLive();
-      else if (type === 'shorts_playlist') loadTrendingShortsPlaylists();
-      else if (type === 'courses') loadTrendingCourses();
-    } else {
+    if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(type, searchQuery);
     }
   };
