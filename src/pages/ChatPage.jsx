@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../App';
 import ChatSettings from '../components/ChatSettings';
+import ReactMarkdown from 'react-markdown';
 
 const getProviderFromUrl = (url) => {
   if (!url) return null;
@@ -68,7 +69,7 @@ const buildBody = (provider, model, messages) => {
   };
 };
 
-const parseResponse = (provider, data) => {
+const parseResponse = (provider, data, isStreaming = false) => {
   if (provider === 'anthropic') {
     if (data.content && data.content[0]?.type === 'text') {
       return data.content[0].text;
@@ -79,14 +80,17 @@ const parseResponse = (provider, data) => {
   }
 
   if (data.choices && data.choices[0]) {
-    return data.choices[0].message.content;
+    if (isStreaming) {
+      return data.choices[0].delta?.content || '';
+    }
+    return data.choices[0].message?.content || '';
   }
 
   if (data.error) {
     throw new Error(data.error.message || data.error);
   }
 
-  throw new Error('Invalid response');
+  return '';
 };
 
 function ChatPage() {
@@ -123,7 +127,14 @@ const [messages, setMessages] = useState([
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const tempAssistantMessage = {
+      id: Date.now() + 1,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage, tempAssistantMessage]);
     setInput('');
     setLoading(true);
 
@@ -133,8 +144,9 @@ const [messages, setMessages] = useState([
         chatbotConfig = localStorage.getItem('yt_chatbot_config');
       }
       if (!chatbotConfig) {
+        setMessages(prev => prev.filter(m => m.id !== tempAssistantMessage.id));
         const errorMsg = {
-          id: Date.now() + 1,
+          id: Date.now() + 2,
           role: 'assistant',
           content: 'Please configure your AI API key by clicking the gear icon above.',
           timestamp: new Date(),
@@ -146,8 +158,9 @@ const [messages, setMessages] = useState([
 
       const config = JSON.parse(chatbotConfig);
       if (!config.url || !config.key) {
+        setMessages(prev => prev.filter(m => m.id !== tempAssistantMessage.id));
         const errorMsg = {
-          id: Date.now() + 1,
+          id: Date.now() + 2,
           role: 'assistant',
           content: 'Please configure your AI API key by clicking the gear icon above.',
           timestamp: new Date(),
@@ -167,26 +180,78 @@ const [messages, setMessages] = useState([
       const headers = buildHeaders(provider, config.key);
       const body = buildBody(provider, config.model, allMessages);
 
-      const response = await fetch(`${config.url}/chat/completions`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body),
-      });
+      try {
+        const response = await fetch(`${config.url}/chat/completions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ ...body, stream: true }),
+        });
 
-      const data = await response.json();
-      
-      const content = parseResponse(provider, data);
-      
-      const assistantMessage = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: content,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, assistantMessage]);
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error?.message || 'API Error');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let fullContent = '';
+
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          const chunkValue = decoder.decode(value);
+          const lines = chunkValue.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6);
+              if (dataStr === '[DONE]') {
+                done = true;
+                break;
+              }
+              try {
+                const data = JSON.parse(dataStr);
+                const content = parseResponse(provider, data, true);
+                if (content) {
+                  fullContent += content;
+                  setMessages(prev => prev.map(m => 
+                    m.id === tempAssistantMessage.id 
+                      ? { ...m, content: fullContent }
+                      : m
+                  ));
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+      } catch (streamErr) {
+        // Fallback to non-streaming
+        try {
+          const response = await fetch(`${config.url}/chat/completions`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(body),
+          });
+
+          const data = await response.json();
+          const content = parseResponse(provider, data);
+          
+          setMessages(prev => prev.map(m => 
+            m.id === tempAssistantMessage.id 
+              ? { ...m, content: content }
+              : m
+          ));
+        } catch (err) {
+          throw err;
+        }
+      }
     } catch (err) {
+      setMessages(prev => prev.filter(m => m.id !== tempAssistantMessage.id));
       const errorMsg = {
-        id: Date.now() + 1,
+        id: Date.now() + 2,
         role: 'assistant',
         content: 'Error: ' + err.message,
         timestamp: new Date(),
@@ -258,12 +323,11 @@ const [messages, setMessages] = useState([
               className="rounded-2xl p-3 sm:p-4 max-w-[75%] shadow-sm"
               style={{ 
                 background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)',
-                color: msg.role === 'user' ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-main)'
               }}
               >
-              <p style={{ color: msg.role === 'user' ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-main)', lineHeight: 1.6 }}>
-                {msg.content}
-              </p>
+              <div style={{ color: msg.role === 'user' ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-main)', lineHeight: 1.6 }}>
+                <ReactMarkdown>{msg.content}</ReactMarkdown>
+              </div>
               <p 
                 className="text-[10px] mt-2" 
                 style={{ color: msg.role === 'user' ? (theme === 'sun' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)') : 'var(--text-muted)' }}
