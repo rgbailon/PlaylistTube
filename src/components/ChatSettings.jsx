@@ -12,7 +12,10 @@ const [apiUrl, setApiUrl] = useState('');
   const [validationResult, setValidationResult] = useState(null);
 
   useEffect(() => {
-    const config = getCookie('yt_chatbot_config');
+    let config = getCookie('yt_chatbot_config');
+    if (!config) {
+      config = localStorage.getItem('yt_chatbot_config');
+    }
     if (config) {
       try {
         const parsed = JSON.parse(config);
@@ -23,13 +26,14 @@ const [apiUrl, setApiUrl] = useState('');
         console.error('Failed to parse chat config:', e);
       }
     }
-}, []);
+  }, []);
 
   const clearConfig = () => {
     setApiUrl('');
     setApiKey('');
     setModel('gpt-3.5-turbo');
     document.cookie = 'yt_chatbot_config=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax';
+    localStorage.removeItem('yt_chatbot_config');
     setSaved(false);
     setValidationResult(null);
   };
@@ -141,6 +145,7 @@ const [apiUrl, setApiUrl] = useState('');
       model: model.trim()
     };
     setCookie('yt_chatbot_config', JSON.stringify(config));
+    localStorage.setItem('yt_chatbot_config', JSON.stringify(config));
     setSaved(true);
     setValidationResult(null);
     setTimeout(() => setSaved(false), 3000);
@@ -172,43 +177,26 @@ const presets = [
       { name: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo', type: 'free', icon: 'fa-robot' },
     ],
     openrouter: [
-      { name: 'Claude 4 Opus', value: 'anthropic/claude-4-opus', type: 'pro', icon: 'fa-brain' },
-      { name: 'Claude 4 Sonnet', value: 'anthropic/claude-4-sonnet', type: 'pro', icon: 'fa-brain' },
-      { name: 'Claude 3.5 Sonnet', value: 'anthropic/claude-3.5-sonnet', type: 'pro', icon: 'fa-brain' },
-      { name: 'Claude 3 Opus', value: 'anthropic/claude-3-opus', type: 'pro', icon: 'fa-brain' },
-      { name: 'Claude 3 Sonnet', value: 'anthropic/claude-3-sonnet', type: 'free', icon: 'fa-brain' },
-      { name: 'Claude 3 Haiku', value: 'anthropic/claude-3-haiku', type: 'free', icon: 'fa-brain' },
-      { name: 'GPT-4.5', value: 'openai/gpt-4.5', type: 'pro', icon: 'fa-robot' },
-      { name: 'GPT-4o', value: 'openai/gpt-4o', type: 'pro', icon: 'fa-robot' },
-      { name: 'GPT-4o Mini', value: 'openai/gpt-4o-mini', type: 'free', icon: 'fa-robot' },
-      { name: 'GPT-4', value: 'openai/gpt-4', type: 'free', icon: 'fa-robot' },
-      { name: 'Gemini 2.5 Pro', value: 'google/gemini-2.5-pro', type: 'pro', icon: 'fa-gem' },
-      { name: 'Gemini 2.0 Flash', value: 'google/gemini-2.0-flash', type: 'pro', icon: 'fa-gem' },
-      { name: 'Gemini 1.5 Pro', value: 'google/gemini-pro-1.5', type: 'free', icon: 'fa-gem' },
-      { name: 'Gemini 1.5 Flash', value: 'google/gemini-flash-1.5', type: 'free', icon: 'fa-gem' },
-      { name: 'Llama 4 Scout', value: 'meta-llama/llama-4-scout', type: 'pro', icon: 'fa-paw' },
-      { name: 'Llama 4 Maestro', value: 'meta-llama/llama-4-maestro', type: 'pro', icon: 'fa-paw' },
-      { name: 'Llama 3.3 70B', value: 'meta-llama/llama-3.3-70b-instruct', type: 'pro', icon: 'fa-paw' },
-      { name: 'Llama 3.1 405B', value: 'meta-llama/llama-3.1-405b', type: 'pro', icon: 'fa-paw' },
-      { name: 'Llama 3.1 70B', value: 'meta-llama/llama-3.1-70b', type: 'free', icon: 'fa-paw' },
-      { name: 'Llama 3.1 8B', value: 'meta-llama/llama-3.1-8b', type: 'free', icon: 'fa-paw' },
-      { name: 'Mistral Large 3', value: 'mistralai/mistral-large-3', type: 'pro', icon: 'fa-wind' },
-      { name: 'Mistral Large', value: 'mistralai/mistral-large', type: 'pro', icon: 'fa-wind' },
-      { name: 'Mistral Nemo', value: 'mistralai/mistral-nemo', type: 'free', icon: 'fa-wind' },
-      { name: 'Qwen 3 600B', value: 'qwen/qwen3-600b-a14b', type: 'pro', icon: 'fa-wave-square' },
-      { name: 'Qwen 3 300B', value: 'qwen/qwen3-300b-a22b', type: 'pro', icon: 'fa-wave-square' },
-      { name: 'Qwen 2.5 72B', value: 'qwen/qwen-2.5-72b', type: 'free', icon: 'fa-wave-square' },
-      { name: 'Qwen 2.5 VL 235B', value: 'qwen/qwen2.5-vl-235b-a22b-instruct', type: 'free', icon: 'fa-wave-square' },
-      { name: 'Google: Gemma 3 27B', value: 'google/gemma-3-27b-it', type: 'free', icon: 'fa-gem' },
-      { name: 'Google: Gemma 3 12B', value: 'google/gemma-3-12b-it', type: 'free', icon: 'fa-gem' },
-      { name: 'NVIDIA: Nemotron 4', value: 'nvidia/nemotron-4-15b-instruct', type: 'pro', icon: 'fa-microchip' },
-      { name: 'NVIDIA: Nemotron 3 Nano', value: 'nvidia/nemotron-3-nano-4b-instruct', type: 'free', icon: 'fa-microchip' },
-      { name: 'DeepSeek V3', value: 'deepseek/deepseek-v3-base', type: 'pro', icon: 'fa-brain' },
-      { name: 'DeepSeek R1', value: 'deepseek/deepseek-r1', type: 'free', icon: 'fa-brain' },
-      { name: 'StepFun: Step 3.5', value: 'stepfun/step-3.5', type: 'free', icon: 'fa-football-ball' },
-      { name: 'Arcee AI: Trinity Large', value: 'arcee-ai/trinity-large', type: 'pro', icon: 'fa-cubes' },
+      { name: 'Google: Gemini 2.5 Pro', value: 'google/gemini-2.5-pro-preview-06-05', type: 'pro', icon: 'fa-gem' },
+      { name: 'Google: Gemini 2.5 Flash', value: 'google/gemini-2.5-flash-preview-05-20', type: 'free', icon: 'fa-gem' },
+      { name: 'Google: Gemini 3.0 Pro', value: 'google/gemini-3-pro', type: 'pro', icon: 'fa-gem' },
+      { name: 'Google: Gemini 3.0 Flash', value: 'google/gemini-3-flash', type: 'free', icon: 'fa-gem' },
+      { name: 'StepFun: Step 3.5 Flash', value: 'stepfun/step-3.5-flash', type: 'free', icon: 'fa-football-ball' },
+      { name: 'Arcee AI: Trinity Large Preview', value: 'arcee-ai/trinity-large-preview', type: 'free', icon: 'fa-cubes' },
+      { name: 'Hunter Alpha', value: 'hyperspace/hunter-alpha', type: 'free', icon: 'fa-bolt' },
+      { name: 'NVIDIA: Nemotron 3 Super', value: 'nvidia/nemotron-3-super-8b', type: 'free', icon: 'fa-microchip' },
+      { name: 'Healer Alpha', value: 'mlfoundations/healer-alpha', type: 'free', icon: 'fa-heart' },
+      { name: 'Z.ai: GLM 4.5 Air', value: 'zhipu/glm-4-9b-chat', type: 'free', icon: 'fa-bolt' },
+      { name: 'NVIDIA: Nemotron 3 Nano 30B', value: 'nvidia/nemotron-3-nano-30b-instruct', type: 'free', icon: 'fa-microchip' },
       { name: 'Arcee AI: Trinity Mini', value: 'arcee-ai/trinity-mini', type: 'free', icon: 'fa-cubes' },
-      { name: 'Z.ai: GLM 4.5', value: 'zhipu/glm-4-9b-chat', type: 'free', icon: 'fa-bolt' },
+      { name: 'NVIDIA: Nemotron Nano 9B V2', value: 'nvidia/nemotron-nano-9b-v2', type: 'free', icon: 'fa-microchip' },
+      { name: 'NVIDIA: Nemotron Nano 12B', value: 'nvidia/nemotron-nano-12b-v2', type: 'free', icon: 'fa-microchip' },
+      { name: 'Qwen: Qwen3 Coder 480B', value: 'qwen/qwen3-coder-480b-a35b', type: 'free', icon: 'fa-code' },
+      { name: 'Qwen: Qwen3 Next 80B', value: 'qwen/qwen3-next-80b-a3b', type: 'free', icon: 'fa-wave-square' },
+      { name: 'Meta: Llama 3.3 70B', value: 'meta-llama/llama-3.3-70b-instruct', type: 'free', icon: 'fa-paw' },
+      { name: 'OpenAI: gpt-oss-120b', value: 'openai/gpt-oss-120b', type: 'free', icon: 'fa-robot' },
+      { name: 'LiquidAI: LFM2.5-1.2B', value: 'liquid/lfm2.5-1.2b-thinking', type: 'free', icon: 'fa-brain' },
+      { name: 'Mistral: Mistral Small 3.1', value: 'mistralai/mistral-small-3.1-24b', type: 'free', icon: 'fa-wind' },
     ],
     anthropic: [
       { name: 'Claude 4 Opus', value: 'claude-opus-4-5-20250514', type: 'pro', icon: 'fa-brain' },
@@ -392,14 +380,7 @@ const presets = [
             className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 sm:py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[10px] sm:text-xs font-medium transition disabled:opacity-50 min-w-[60px]"
           >
             <i className={`fas ${validating ? 'fa-spinner fa-spin' : 'fa-save'} mr-1`}></i>
-            {validating ? '...' : 'Save'}
-          </button>
-          <button
-            onClick={validateApi}
-            disabled={validating}
-            className="px-2 sm:px-3 py-1.5 sm:py-2 border border-purple-200 text-purple-500 rounded-lg text-[10px] sm:text-xs hover:bg-purple-50 transition disabled:opacity-50"
-          >
-            <i className="fas fa-plug mr-1"></i>Test
+            {validating ? 'Validating...' : 'Save'}
           </button>
           <button
             onClick={clearConfig}

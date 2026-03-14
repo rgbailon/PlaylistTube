@@ -128,7 +128,10 @@ const [messages, setMessages] = useState([
     setLoading(true);
 
     try {
-const chatbotConfig = getCookie('yt_chatbot_config');
+      let chatbotConfig = getCookie('yt_chatbot_config');
+      if (!chatbotConfig) {
+        chatbotConfig = localStorage.getItem('yt_chatbot_config');
+      }
       if (!chatbotConfig) {
         const errorMsg = {
           id: Date.now() + 1,
@@ -255,16 +258,15 @@ const chatbotConfig = getCookie('yt_chatbot_config');
               className="rounded-2xl p-3 sm:p-4 max-w-[75%] shadow-sm"
               style={{ 
                 background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)',
-                border: '1px solid var(--border-color)',
-                color: msg.role === 'user' ? 'white' : 'var(--text-main)'
+                color: msg.role === 'user' ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-main)'
               }}
-            >
-              <p style={{ color: msg.role === 'user' ? 'white' : 'var(--text-main)', lineHeight: 1.6 }}>
+              >
+              <p style={{ color: msg.role === 'user' ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-main)', lineHeight: 1.6 }}>
                 {msg.content}
               </p>
               <p 
                 className="text-[10px] mt-2" 
-                style={{ color: msg.role === 'user' ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}
+                style={{ color: msg.role === 'user' ? (theme === 'sun' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)') : 'var(--text-muted)' }}
               >
                 {formatTime(msg.timestamp)}
               </p>
