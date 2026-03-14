@@ -27,6 +27,7 @@ function SearchPage() {
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const searchTriggeredRef = useRef(false);
+  const initialLoadRef = useRef(false);
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -222,6 +223,9 @@ function SearchPage() {
   };
 
   useEffect(() => {
+    if (initialLoadRef.current) return;
+    initialLoadRef.current = true;
+    
     const params = new URLSearchParams(location.search);
     const q = params.get('q');
     const list = params.get('list');
@@ -239,34 +243,12 @@ function SearchPage() {
     } else if (lastSearchResults.length > 0 && lastSearchType === searchType) {
       setResults(lastSearchResults);
       setSearchQuery(lastSearchQuery);
-    } else {
-      if (searchTypeFromUrl === 'playlist') {
-        loadTrendingPlaylists();
-      } else if (searchTypeFromUrl === 'video') {
-        loadTrendingVideos();
-      } else if (searchTypeFromUrl === 'live') {
-        loadTrendingLive();
-} else if (searchTypeFromUrl === 'shorts_playlist') {
-        loadTrendingShortsPlaylists();
-      } else if (searchTypeFromUrl === 'courses') {
-        loadTrendingCourses();
-      }
     }
   }, []);
 
   useEffect(() => {
     if (searchQuery.trim()) {
       searchPlaylists();
-    } else {
-      if (searchType === 'video') {
-        loadTrendingVideos();
-      } else if (searchType === 'live') {
-        loadTrendingLive();
-      } else if (searchType === 'playlist') {
-        loadTrendingPlaylists();
-      } else if (searchType === 'courses') {
-        loadTrendingCourses();
-      }
     }
   }, [region, timeFilter, sortOrder, searchType]);
 
@@ -1270,13 +1252,13 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                       Playlist
                     </div>
                   )}
-                  {searchType === 'live' && (
+                  {(searchType === 'live' || item.liveStreamingDetails?.concurrentViewers) && (
                     <div className="absolute top-2 left-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
                       <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                       LIVE
                     </div>
                   )}
-                  {searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
+                  {liveDetails[item.id.videoId]?.concurrentViewers && (
                     <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
                       <i className="fas fa-eye"></i>
                       {formatViewers(liveDetails[item.id.videoId].concurrentViewers)}
@@ -1320,7 +1302,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                       {searchType === 'video' && (videoStats[item.id.videoId]?.viewCount > 0 || videoStats[item.id.videoId]?.likeCount > 0) && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
-                      {searchType === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
+                      {liveDetails[item.id.videoId]?.concurrentViewers && (
                         <span> • {formatViewers(liveDetails[item.id.videoId].concurrentViewers)} watching</span>
                       )}
                       {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.publishedAt && (
