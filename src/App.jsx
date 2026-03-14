@@ -267,19 +267,27 @@ function App() {
     setCookie('yt_quota', newQuota.toString());
     
     if (amount < 0) {
-      const newApiUsage = { ...apiUsage, [type]: apiUsage[type] + cost };
-      const newApiCalls = { ...apiCalls, [type]: apiCalls[type] + 1 };
-      setApiUsage(newApiUsage);
-      setApiCalls(newApiCalls);
-      localStorage.setItem('yt_api_usage', JSON.stringify(newApiUsage));
-      localStorage.setItem('yt_api_calls', JSON.stringify(newApiCalls));
+      setApiUsage(prev => {
+        const newApiUsage = { ...prev, [type]: prev[type] + cost };
+        localStorage.setItem('yt_api_usage', JSON.stringify(newApiUsage));
+        return newApiUsage;
+      });
+      setApiCalls(prev => {
+        const newApiCalls = { ...prev, [type]: prev[type] + 1 };
+        localStorage.setItem('yt_api_calls', JSON.stringify(newApiCalls));
+        return newApiCalls;
+      });
     } else if (amount > 0 && amount !== 10000) {
-      const newApiUsage = { ...apiUsage, [type]: apiUsage[type] + cost };
-      const newApiCalls = { ...apiCalls, [type]: apiCalls[type] + 1 };
-      setApiUsage(newApiUsage);
-      setApiCalls(newApiCalls);
-      localStorage.setItem('yt_api_usage', JSON.stringify(newApiUsage));
-      localStorage.setItem('yt_api_calls', JSON.stringify(newApiCalls));
+      setApiUsage(prev => {
+        const newApiUsage = { ...prev, [type]: prev[type] + cost };
+        localStorage.setItem('yt_api_usage', JSON.stringify(newApiUsage));
+        return newApiUsage;
+      });
+      setApiCalls(prev => {
+        const newApiCalls = { ...prev, [type]: prev[type] + 1 };
+        localStorage.setItem('yt_api_calls', JSON.stringify(newApiCalls));
+        return newApiCalls;
+      });
     }
   };
 
