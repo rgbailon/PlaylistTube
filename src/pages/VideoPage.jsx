@@ -150,6 +150,7 @@ function VideoPage() {
 
     setLoading(true);
     setError(null);
+    setResults([]);
     try {
       let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&regionCode=${region}&key=${apiKey}`;
       

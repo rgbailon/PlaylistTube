@@ -527,6 +527,7 @@ if (!activeQuery.trim()) {
 
     setLoading(true);
     setError(null);
+    setResults([]);
     try {
       const relevanceLang = 'en';
       const publishedAfter = getPublishedAfter();

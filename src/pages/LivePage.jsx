@@ -30,6 +30,7 @@ function LivePage() {
     setCategory(cat);
     setLoading(true);
     setError(null);
+    setResults([]);
     
     const queries = {
       all: 'live stream',
