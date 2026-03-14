@@ -12,6 +12,7 @@
   "dependencies": {
     "@excalidraw/excalidraw": "^0.18.0",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@xyflow/react": "^12.10.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.1",

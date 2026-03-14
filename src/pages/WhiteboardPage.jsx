@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useApp } from '../App';
+import ExcalidrawBoard from '../components/ExcalidrawBoard';
 
 function WhiteboardPage() {
   const { theme } = useApp();
@@ -13,6 +14,7 @@ function WhiteboardPage() {
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 600 });
+  const [whiteboardMode, setWhiteboardMode] = useState('basic');
   const [showGrid, setShowGrid] = useState(false);
   const [gridSize, setGridSize] = useState(40);
   const [shapeStart, setShapeStart] = useState({ x: 0, y: 0 });
@@ -239,6 +241,75 @@ function WhiteboardPage() {
           ctx.font = '10px Arial';
           ctx.textAlign = 'center';
           ctx.fillText('Footer content', shapeStart.x + width/2, shapeStart.y + height/2);
+        } else if (wf.id === 'rectangle') {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(shapeStart.x, shapeStart.y, width, height);
+          ctx.fillStyle = '#e5e7eb';
+          ctx.fillRect(shapeStart.x + 2, shapeStart.y + 2, width - 4, height - 4);
+          ctx.fillStyle = '#1f2937';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Process', shapeStart.x + width/2, shapeStart.y + height/2 + 4);
+        } else if (wf.id === 'diamond') {
+          ctx.beginPath();
+          ctx.moveTo(shapeStart.x + width/2, shapeStart.y);
+          ctx.lineTo(shapeStart.x + width, shapeStart.y + height/2);
+          ctx.lineTo(shapeStart.x + width/2, shapeStart.y + height);
+          ctx.lineTo(shapeStart.x, shapeStart.y + height/2);
+          ctx.closePath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = '#fef3c7';
+          ctx.fill();
+          ctx.fillStyle = '#1f2937';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Decision', shapeStart.x + width/2, shapeStart.y + height/2 + 4);
+        } else if (wf.id === 'oval') {
+          ctx.beginPath();
+          ctx.ellipse(shapeStart.x + width/2, shapeStart.y + height/2, width/2, height/2, 0, 0, 2 * Math.PI);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = '#d1fae5';
+          ctx.fill();
+          ctx.fillStyle = '#1f2937';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Start/End', shapeStart.x + width/2, shapeStart.y + height/2 + 4);
+        } else if (wf.id === 'parallelogram') {
+          const offset = width * 0.15;
+          ctx.beginPath();
+          ctx.moveTo(shapeStart.x + offset, shapeStart.y);
+          ctx.lineTo(shapeStart.x + width, shapeStart.y);
+          ctx.lineTo(shapeStart.x + width - offset, shapeStart.y + height);
+          ctx.lineTo(shapeStart.x, shapeStart.y + height);
+          ctx.closePath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = '#dbeafe';
+          ctx.fill();
+          ctx.fillStyle = '#1f2937';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Input/Output', shapeStart.x + width/2, shapeStart.y + height/2 + 4);
+        } else if (wf.id === 'arrow-right') {
+          ctx.strokeStyle = color;
+          ctx.fillStyle = color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(shapeStart.x, shapeStart.y + height/2);
+          ctx.lineTo(shapeStart.x + width - 10, shapeStart.y + height/2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(shapeStart.x + width, shapeStart.y + height/2);
+          ctx.lineTo(shapeStart.x + width - 10, shapeStart.y);
+          ctx.lineTo(shapeStart.x + width - 10, shapeStart.y + height);
+          ctx.closePath();
+          ctx.fill();
         }
       }
     }
@@ -273,24 +344,42 @@ const tools = [
   ];
 
   const wireframes = [
+    { id: 'rectangle', label: 'Process', icon: 'fa-square', width: 150, height: 60 },
+    { id: 'diamond', label: 'Decision', icon: 'fa-play', width: 100, height: 80 },
+    { id: 'oval', label: 'Start/End', icon: 'fa-circle', width: 120, height: 50 },
+    { id: 'parallelogram', label: 'Input/Output', icon: 'fa-parallelogram', width: 150, height: 60 },
+    { id: 'arrow-right', label: 'Arrow', icon: 'fa-arrow-right', width: 100, height: 20 },
     { id: 'button', label: 'Button', icon: 'fa-stop', width: 120, height: 40 },
     { id: 'input', label: 'Input', icon: 'fa-square', width: 200, height: 36 },
     { id: 'header', label: 'Header', icon: 'fa-heading', width: 400, height: 60 },
     { id: 'navbar', label: 'Nav', icon: 'fa-bars', width: 300, height: 50 },
     { id: 'card', label: 'Card', icon: 'fa-id-card', width: 200, height: 150 },
-    { id: 'footer', icon: 'fa-footer', label: 'Footer', width: 400, height: 80 },
+    { id: 'footer', label: 'Footer', icon: 'fa-footer', width: 400, height: 80 },
   ];
 
   return (
     <div className="h-screen md:h-[calc(100vh-48px)] flex flex-col" style={{ background: 'var(--bg-main)' }}>
+      {whiteboardMode === 'excalidraw' ? (
+        <ExcalidrawBoard />
+      ) : (
+      <>
       <div 
         className="flex flex-col sm:flex-row sm:items-center justify-between px-2 sm:px-4 py-2 gap-2 overflow-x-auto"
         style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}
       >
-        <h2 className="text-sm font-semibold flex items-center gap-2 whitespace-nowrap" style={{ color: 'var(--text-main)' }}>
-          <i className="fas fa-pen" style={{ color: 'var(--accent-color)' }}></i>
-          Whiteboard
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold flex items-center gap-2 whitespace-nowrap" style={{ color: 'var(--text-main)' }}>
+            <i className="fas fa-pen" style={{ color: 'var(--accent-color)' }}></i>
+            Whiteboard
+          </h2>
+          <button
+            onClick={() => setWhiteboardMode(whiteboardMode === 'basic' ? 'excalidraw' : 'basic')}
+            className="px-2 py-1 rounded-lg text-xs font-medium transition"
+            style={{ background: 'var(--accent-color)', color: 'white' }}
+          >
+            {whiteboardMode === 'basic' ? 'Advanced' : 'Basic'}
+          </button>
+        </div>
         
         <div className="flex items-center gap-1 sm:gap-2">
           <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>Tool:</span>
@@ -482,6 +571,8 @@ const tools = [
           />
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
