@@ -17,6 +17,7 @@ function SearchPage() {
   const [timeFilter, setTimeFilter] = useState('all');
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
+  const [lastSearchNextPageToken, setLastSearchNextPageToken] = useState('');
   const [loadingPlaylist, setLoadingPlaylist] = useState(null);
   const [addedMessage, setAddedMessage] = useState(null);
   const [addedType, setAddedType] = useState(null);
@@ -246,6 +247,7 @@ function SearchPage() {
       if (lastSearchType) {
         setSearchType(lastSearchType);
       }
+      setHasMore(true);
     }
   }, []);
 
