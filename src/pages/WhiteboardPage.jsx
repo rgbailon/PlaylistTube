@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useApp } from '../App';
 
 function WhiteboardPage() {
+  const { theme } = useApp();
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -12,6 +14,7 @@ function WhiteboardPage() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 600 });
   const [showGrid, setShowGrid] = useState(false);
+  const [gridSize, setGridSize] = useState(40);
   const [shapeStart, setShapeStart] = useState({ x: 0, y: 0 });
   const [wireframeType, setWireframeType] = useState(null);
   const [showShapesDropdown, setShowShapesDropdown] = useState(false);
@@ -35,49 +38,20 @@ function WhiteboardPage() {
     saveState();
   }, []);
 
-  useEffect(() => {
-    initCanvas();
-    window.addEventListener('resize', initCanvas);
-    return () => window.removeEventListener('resize', initCanvas);
-  }, [initCanvas]);
+  const getGridBackground = () => {
+    if (!showGrid) return 'none';
+    const color = theme === 'light' || theme === 'sun' ? '#bbbbbb' : '#333333';
+    return `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`;
+  };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    if (showGrid) {
-      savedCanvasRef.current = canvas.toDataURL();
-      ctx.strokeStyle = '#e0e0e0';
-      ctx.lineWidth = 1;
-      const gridSize = 40;
-      
-      for (let x = 0; x <= canvas.width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-      }
-      
-      for (let y = 0; y <= canvas.height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-      }
-    } else if (savedCanvasRef.current) {
-      const img = new Image();
-      img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-      };
-      img.src = savedCanvasRef.current;
-    }
-  }, [showGrid]);
+  const getGridBackgroundSize = () => {
+    return showGrid ? `${gridSize}px ${gridSize}px` : 'auto';
+  };
 
   const saveState = () => {
     const canvas = canvasRef.current;
     const newState = canvas.toDataURL();
+    savedCanvasRef.current = newState;
     setHistory(prev => [...prev.slice(0, historyIndex + 1), newState]);
     setHistoryIndex(prev => prev + 1);
   };
@@ -320,27 +294,56 @@ const tools = [
         
         <div className="flex items-center gap-1 sm:gap-2">
           <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-muted)' }}>Tool:</span>
-          {tools.map((t) => (
+          {tools.filter(t => !t.isToggle).map((t) => (
             <button
               key={t.id}
               onClick={() => {
-                if (t.isToggle) {
-                  setShowGrid(!showGrid);
-                } else {
-                  setTool(t.id);
-                  setColor(t.id === 'eraser' ? '#ffffff' : color);
-                }
+                setTool(t.id);
+                setColor(t.id === 'eraser' ? '#ffffff' : color);
               }}
               className="p-2 rounded-lg transition"
               style={{ 
-                color: (t.isToggle ? showGrid : tool) === t.id ? '#3b82f6' : 'var(--text-muted)',
-                background: (t.isToggle ? showGrid : tool) === t.id ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
+                color: tool === t.id ? '#3b82f6' : 'var(--text-muted)',
+                background: tool === t.id ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
               }}
               title={t.label}
             >
               <i className={`fas ${t.icon} text-sm`}></i>
             </button>
           ))}
+          <div className="flex items-center gap-2 ml-2">
+            <button
+              onClick={() => setShowGrid(!showGrid)}
+              className="relative w-10 h-5 rounded-full transition-colors"
+              style={{ background: showGrid ? 'var(--accent-color)' : 'var(--bg-hover)' }}
+            >
+              <span
+                className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform"
+                style={{ 
+                  background: 'white',
+                  transform: showGrid ? 'translateX(20px)' : 'translateX(0)'
+                }}
+              />
+            </button>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Grid</span>
+          </div>
+          <select
+            value={gridSize}
+            onChange={(e) => setGridSize(Number(e.target.value))}
+            className="ml-2 px-2 py-1 rounded text-xs border"
+            style={{ 
+              background: 'var(--bg-card)', 
+              color: 'var(--text-main)', 
+              borderColor: 'var(--border-color)',
+              display: showGrid ? 'inline-block' : 'none'
+            }}
+          >
+            <option value={20}>20px</option>
+            <option value={40}>40px</option>
+            <option value={60}>60px</option>
+            <option value={80}>80px</option>
+            <option value={100}>100px</option>
+          </select>
         </div>
 
         <div className="flex items-center gap-1 overflow-x-auto py-1">
@@ -458,7 +461,7 @@ const tools = [
       </div>
 
       <div className="flex-1 overflow-auto p-2" ref={containerRef}>
-        <div className="bg-white rounded-lg shadow-lg mx-auto" style={{ width: 'fit-content', maxWidth: '100%' }}>
+        <div className="bg-white rounded-lg shadow-lg mx-auto relative" style={{ width: 'fit-content', maxWidth: '100%' }}>
           <canvas
             ref={canvasRef}
             width={1200}
@@ -471,6 +474,11 @@ const tools = [
             onTouchMove={draw}
             onTouchEnd={stopDrawing}
             className="cursor-crosshair touch-none"
+            style={{
+              backgroundImage: getGridBackground(),
+              backgroundSize: getGridBackgroundSize(),
+              backgroundPosition: '0 0'
+            }}
           />
         </div>
       </div>

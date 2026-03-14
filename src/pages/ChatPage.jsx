@@ -90,7 +90,7 @@ const parseResponse = (provider, data) => {
 };
 
 function ChatPage() {
-  const { getCookie, setCookie } = useApp();
+  const { getCookie, setCookie, theme } = useApp();
   
 const [messages, setMessages] = useState([
     {
@@ -276,7 +276,7 @@ const chatbotConfig = getCookie('yt_chatbot_config');
           <div className="flex items-start gap-3">
             <div
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--accent-color)', color: 'white' }}
+              style={{ background: 'var(--accent-color)', color: theme === 'sun' ? '#000000' : 'white' }}
             >
               <i className="fas fa-robot text-xs sm:text-sm"></i>
             </div>
@@ -355,7 +355,7 @@ const chatbotConfig = getCookie('yt_chatbot_config');
             onClick={sendMessage}
             disabled={loading || !input.trim()}
             className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl flex items-center justify-center transition hover:scale-110 shadow-md disabled:opacity-50 disabled:hover:scale-100"
-            style={{ background: 'var(--accent-color)', color: 'white' }}
+            style={{ background: 'var(--accent-color)', color: theme === 'sun' ? '#000000' : 'white' }}
           >
             <i className="fas fa-paper-plane text-xs"></i>
           </button>
