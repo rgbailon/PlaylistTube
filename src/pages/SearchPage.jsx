@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../App';
 
 function SearchPage() {
-  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, addToHistory, currentPlaylist, checkAndSwitchApiKey, switchToNextApiKey, apiKeys, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType, addVideoToPlaylist, forceSearch, setForceSearch } = useApp();
+  const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, addToHistory, currentPlaylist, checkAndSwitchApiKey, switchToNextApiKey, apiKeys, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType, addVideoToPlaylist, forceSearch, setForceSearch, theme } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -1017,10 +1017,10 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 <button
                   key={option.value}
                   onClick={() => handleSortChange(option.value)}
-                  className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
+                  className="sort-filter-btn px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
                   style={{ 
                     background: sortOrder === option.value ? 'var(--accent-color)' : 'transparent', 
-                    color: sortOrder === option.value ? 'white' : 'var(--text-muted)',
+                    color: sortOrder === option.value ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-muted)',
                   }}
                 >
                   {option.label}
@@ -1045,10 +1045,10 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 <button
                   key={option.value}
                   onClick={() => setTimeFilter(option.value)}
-                  className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
+                  className="sort-filter-btn px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
                   style={{ 
                     background: timeFilter === option.value ? 'var(--accent-color)' : 'transparent', 
-                    color: timeFilter === option.value ? 'white' : 'var(--text-muted)',
+                    color: timeFilter === option.value ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-muted)',
                   }}
                 >
                   {option.label}
@@ -1367,7 +1367,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
             <button
               onClick={loadMore}
               disabled={loading}
-              className="px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50"
+              className="load-more-btn px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50"
               style={{ background: 'var(--accent-color)', color: 'white' }}
             >
               {loading ? <><i className="fas fa-circle-notch fa-spin mr-2"></i>Loading...</> : 'Load More'}

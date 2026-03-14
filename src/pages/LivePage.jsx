@@ -387,7 +387,7 @@ function LivePage() {
             <button
               onClick={loadMore}
               disabled={loading}
-              className="px-8 py-3 rounded-xl hover:bg-red-50 hover:border-red-200 transition font-medium disabled:opacity-50"
+              className="load-more-btn px-8 py-3 rounded-xl hover:bg-red-50 hover:border-red-200 transition font-medium disabled:opacity-50"
               style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
             >
               {loading ? 'Loading...' : 'Load More Streams'}

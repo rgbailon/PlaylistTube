@@ -164,7 +164,7 @@ function VideoPage() {
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
-          updateQuota(10000, 'videos');
+          updateQuota(10000, 'search');
           if (switchToNextApiKey()) {
             setError('Quota exceeded. Switched to next API key. Please try again.');
             return;
@@ -205,7 +205,8 @@ function VideoPage() {
               liveViewers: statsMap[video.id]?.liveViewers || video.liveViewers,
               publishedAt: statsMap[video.id]?.publishedAt || video.publishedAt,
             }));
-            updateQuota(-1, 'videos');
+            updateQuota(-100, 'search');
+            updateQuota(-12, 'videos');
           }
         } catch (statsErr) {
           console.error('Failed to fetch stats:', statsErr);
@@ -244,7 +245,16 @@ function VideoPage() {
       const resp = await fetch(url);
       const data = await resp.json();
       
-      if (data.items) {
+      if (data.error) {
+        setError(`API Error: ${data.error.message}`);
+        if (data.error.message?.includes('quota') || data.error.code === 403) {
+          updateQuota(10000, 'search');
+          if (switchToNextApiKey()) {
+            setError('Quota exceeded. Switched to next API key. Please try again.');
+            return;
+          }
+        }
+      } else if (data.items) {
         const videoIds = data.items.map(item => item.id.videoId).join(',');
         
         let videos = data.items.map(item => ({
@@ -276,7 +286,8 @@ function VideoPage() {
               viewCount: statsMap[video.id]?.viewCount,
               publishedAt: statsMap[video.id]?.publishedAt || video.publishedAt,
             }));
-            updateQuota(-1, 'videos');
+            updateQuota(-100, 'search');
+            updateQuota(-12, 'videos');
           }
         } catch (statsErr) {
           console.error('Failed to fetch stats:', statsErr);
@@ -445,7 +456,7 @@ function VideoPage() {
 
         {hasMore && (
           <div className="px-4 md:px-8 pb-8 text-center">
-            <button onClick={loadMore} disabled={loading} className="px-8 py-3 rounded-xl font-medium disabled:opacity-50 hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] transition" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+            <button onClick={loadMore} disabled={loading} className="load-more-btn px-8 py-3 rounded-xl font-medium disabled:opacity-50 hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] transition" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
               {loading ? 'Loading...' : 'Load More Results'}
             </button>
           </div>

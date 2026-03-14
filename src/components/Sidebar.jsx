@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
 function Sidebar() {
-  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen } = useApp();
+  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen, theme } = useApp();
   const [historySearch, setHistorySearch] = useState('');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [showClearBtn, setShowClearBtn] = useState(false);
@@ -170,7 +170,7 @@ const filteredHistory = playlistHistory.filter(item => {
                   onClick={() => setLibraryTab(tab)}
                   className="px-2 py-1 rounded-md text-[10px] font-medium transition flex-1"
                   style={{ 
-                    color: libraryTab === tab ? '#ffffff' : 'var(--text-muted)',
+                    color: libraryTab === tab ? (theme === 'sun' ? '#000000' : '#ffffff') : 'var(--text-muted)',
                     background: libraryTab === tab ? 'var(--accent-color)' : 'var(--bg-main)',
                     border: '1px solid ' + (libraryTab === tab ? 'var(--accent-color)' : 'var(--border-color)')
                   }}

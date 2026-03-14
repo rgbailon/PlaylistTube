@@ -312,6 +312,16 @@ const presets = [
                 {preset.name}
               </button>
             ))}
+            <button
+              onClick={() => { setApiUrl(''); setModel(''); }}
+              className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition"
+              style={{ 
+                background: !apiUrl ? 'var(--accent-color)' : 'var(--bg-hover)',
+                color: !apiUrl ? 'white' : 'var(--text-main)'
+              }}
+            >
+              Custom
+            </button>
           </div>
         </div>
 
@@ -320,8 +330,8 @@ const presets = [
           <input
             type="text"
             value={apiUrl}
-            onChange={(e) => setApiUrl(e.target.value)}
-            placeholder="https://api.openai.com/v1"
+            onChange={(e) => { setApiUrl(e.target.value); setModel(''); }}
+            placeholder={presets.find(p => apiUrl.includes(p.url.split('/v1')[0]))?.url || 'https://api.openai.com/v1'}
             className="w-full rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
           />
         </div>
@@ -339,28 +349,40 @@ const presets = [
 
 <div>
           <label className="block text-[10px] sm:text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>Model</label>
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-            {availableModels.find(m => m.value === model)?.icon && (
-              <i className={`fas ${availableModels.find(m => m.value === model)?.icon}`} style={{ color: 'var(--accent-color)' }}></i>
-            )}
-            <span className="text-[10px] sm:text-xs truncate" style={{ color: 'var(--text-main)' }}>{availableModels.find(m => m.value === model)?.name || 'Select a model'}</span>
-          </div>
-          <select
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            className="w-full rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
-          >
-            <optgroup label="Pro Models">
-              {availableModels.filter(m => m.type === 'pro').map((m) => (
-                <option key={m.value} value={m.value}>{m.icon ? `⬤ ` : ''}{m.name}</option>
-              ))}
-            </optgroup>
-            <optgroup label="Free Models">
-              {availableModels.filter(m => m.type === 'free').map((m) => (
-                <option key={m.value} value={m.value}>{m.icon ? `⬤ ` : ''}{m.name}</option>
-              ))}
-            </optgroup>
-          </select>
+          {getProviderKey(apiUrl) === 'default' && apiUrl.trim() ? (
+            <input
+              type="text"
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              placeholder="Enter custom model name"
+              className="w-full rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
+            />
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                {availableModels.find(m => m.value === model)?.icon && (
+                  <i className={`fas ${availableModels.find(m => m.value === model)?.icon}`} style={{ color: 'var(--accent-color)' }}></i>
+                )}
+                <span className="text-[10px] sm:text-xs truncate" style={{ color: 'var(--text-main)' }}>{availableModels.find(m => m.value === model)?.name || 'Select a model'}</span>
+              </div>
+              <select
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                className="w-full rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
+              >
+                <optgroup label="Pro Models">
+                  {availableModels.filter(m => m.type === 'pro').map((m) => (
+                    <option key={m.value} value={m.value}>{m.icon ? `⬤ ` : ''}{m.name}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Free Models">
+                  {availableModels.filter(m => m.type === 'free').map((m) => (
+                    <option key={m.value} value={m.value}>{m.icon ? `⬤ ` : ''}{m.name}</option>
+                  ))}
+                </optgroup>
+              </select>
+            </>
+          )}
         </div>
 
 <div className="flex flex-wrap gap-1.5 sm:gap-2">
