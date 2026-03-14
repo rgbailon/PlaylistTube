@@ -61,6 +61,15 @@ function SearchPage() {
     return num.toString();
   };
 
+  const getItemType = (item) => {
+    if (item.id.playlistId) return 'playlist';
+    if (item.id.videoId && item.liveStreamingDetails?.concurrentViewers) return 'live';
+    if (item.id.videoId) return 'video';
+    if (item.id.channelId) return 'channel';
+    if (item.id.shortsEntry?.shortsId) return 'shorts';
+    return null;
+  };
+
   const formatViews = (count) => {
     if (!count) return '';
     const num = parseInt(count);
@@ -1234,23 +1243,23 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                       <i className="fas fa-play text-white text-xl ml-1"></i>
                     </div>
                   </div>
-                  {searchType === 'video' && videoStats[item.id.videoId]?.viewCount && (
+                  {getItemType(item) === 'video' && videoStats[item.id.videoId]?.viewCount && (
                     <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs">
                       {formatViews(videoStats[item.id.videoId].viewCount)}
                     </div>
                   )}
-                  {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.videoCount && (
+                  {getItemType(item) === 'playlist' && playlistDetails[item.id.playlistId]?.videoCount && (
                     <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
                       <i className="fas fa-video"></i>
                       {playlistDetails[item.id.playlistId].videoCount}
                     </div>
                   )}
-                  {searchType === 'playlist' && (
+                  {getItemType(item) === 'playlist' && (
                     <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/70 text-white text-xs">
                       Playlist
                     </div>
                   )}
-                  {(searchType === 'live' || item.liveStreamingDetails?.concurrentViewers) && (
+                  {getItemType(item) === 'live' && (
                     <div className="absolute top-2 left-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
                       <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
                       LIVE
@@ -1262,12 +1271,12 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                       {formatViewers(liveDetails[item.id.videoId].concurrentViewers)}
                     </div>
                   )}
-{searchType === 'shorts_playlist' && (
+                  {(searchType === 'shorts_playlist' || searchType === 'shorts') && item.id.playlistId && !getItemType(item) && (
                     <div className="absolute top-2 right-2 px-2 py-1 rounded bg-red-600 text-white text-xs font-medium">
                       SHORTS
                     </div>
                   )}
-                  {searchType === 'courses' && (
+                  {(searchType === 'courses') && item.id.playlistId && (
                     <>
                       {playlistDetails[item.id.playlistId]?.videoCount && (
                         <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
