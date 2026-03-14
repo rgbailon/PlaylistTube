@@ -184,7 +184,7 @@ function App() {
     try {
       localStorage.setItem(key, value);
       try {
-        setCookie(key, value);
+        document.cookie = `${key}=${encodeURIComponent(value)}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 365}`;
       } catch (cookieError) {}
       return true;
     } catch (error) {
@@ -195,7 +195,7 @@ function App() {
             error.message?.includes('quota')) {
           showNotification('Storage full! Please clear some playlists to add more videos.');
         } else {
-          showNotification('Error saving data. Storage may be full.');
+          showNotification('Failed to save. Storage may be full.');
         }
       }
       return false;
