@@ -66,6 +66,9 @@ function App() {
       localStorage.setItem('yt_last_search_query', query);
       localStorage.setItem('yt_last_search_type', type);
       localStorage.setItem('yt_last_search_results', JSON.stringify(results));
+      setCookie('yt_last_search_query', query);
+      setCookie('yt_last_search_type', type);
+      document.cookie = `yt_last_search_results=${encodeURIComponent(JSON.stringify(results))}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 30}`;
     } catch (e) {
       // Silently fail - search results are not critical
     }
@@ -139,9 +142,9 @@ function App() {
       setCurrentVideoIndex(parseInt(savedVideoIndex) || 0);
     }
 
-    const savedSearchQuery = localStorage.getItem('yt_last_search_query');
-    const savedSearchType = localStorage.getItem('yt_last_search_type');
-    const savedSearchResults = localStorage.getItem('yt_last_search_results');
+    const savedSearchQuery = localStorage.getItem('yt_last_search_query') || getCookie('yt_last_search_query');
+    const savedSearchType = localStorage.getItem('yt_last_search_type') || getCookie('yt_last_search_type');
+    const savedSearchResults = localStorage.getItem('yt_last_search_results') || getCookie('yt_last_search_results');
     if (savedSearchResults) {
       try {
         setLastSearchQuery(savedSearchQuery || '');

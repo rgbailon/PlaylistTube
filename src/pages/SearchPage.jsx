@@ -240,9 +240,12 @@ function SearchPage() {
     } else if (q) {
       setSearchQuery(q);
       searchPlaylists(searchTypeFromUrl, q);
-    } else if (lastSearchResults.length > 0 && lastSearchType === searchType) {
+    } else if (lastSearchResults.length > 0) {
       setResults(lastSearchResults);
       setSearchQuery(lastSearchQuery);
+      if (lastSearchType) {
+        setSearchType(lastSearchType);
+      }
     }
   }, []);
 
