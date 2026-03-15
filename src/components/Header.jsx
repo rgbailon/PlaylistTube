@@ -5,22 +5,19 @@ import LiveChat from './LiveChat';
 import Settings from './Settings';
 
 function Header() {
-  const { apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey, settingsOpen, setSettingsOpen, forceSearch, setForceSearch } = useApp();
+  const { apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey, settingsOpen, setSettingsOpen, setForceSearch } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [videoSearchQuery, setVideoSearchQuery] = useState('');
   const [playlistPanelOpen, setPlaylistPanelOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState('playlist');
-  const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchType, setSearchType] = useState('video');
   const [searching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [mobileSuggestions, setMobileSuggestions] = useState([]);
-  const [mobileSelectedIndex, setMobileSelectedIndex] = useState(-1);
   const headerSearchTriggeredRef = useRef(false);
 
 const navItems = [
@@ -94,17 +91,6 @@ const navItems = [
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const handleMobileClickOutside = (e) => {
-      if (!e.target.closest('.mobile-suggestions-container')) {
-        setMobileSuggestions([]);
-        setMobileSelectedIndex(-1);
-      }
-    };
-    document.addEventListener('click', handleMobileClickOutside);
-    return () => document.removeEventListener('click', handleMobileClickOutside);
-  }, []);
-
   const handleSelectSuggestion = (suggestion) => {
     setVideoSearchQuery(suggestion);
     setSuggestions([]);
@@ -116,56 +102,6 @@ const navItems = [
       navigate(`/search?q=${encodeURIComponent(suggestion)}&type=${searchType}`);
     }
   };
-
-  const handleMobileSelectSuggestion = (suggestion) => {
-    setVideoSearchQuery(suggestion);
-    setMobileSuggestions([]);
-    setMobileSelectedIndex(-1);
-    headerSearchTriggeredRef.current = true;
-    setSearchModalOpen(false);
-    navigate(`/search?q=${encodeURIComponent(suggestion)}&type=video`);
-  };
-
-  useEffect(() => {
-    const fetchSuggestions = async (query) => {
-      if (!query.trim() || query.length < 2 || headerSearchTriggeredRef.current) {
-        setMobileSuggestions([]);
-        return;
-      }
-      try {
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const url = isLocalhost 
-          ? `https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`
-          : `/api/suggest?q=${encodeURIComponent(query)}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        const lines = text.split('\n');
-        const suggestions = [];
-        for (const line of lines) {
-          const matches = line.match(/"([^"]+)"/g);
-          if (matches) {
-            for (const m of matches) {
-              let val = m.replace(/"/g, '');
-              try { val = JSON.parse('"' + val + '"'); } catch(e) {}
-              if (val && !val.includes('window.') && val.length > 1) {
-                suggestions.push(val);
-              }
-            }
-          }
-        }
-        const unique = [...new Set(suggestions)].slice(0, 6);
-        setMobileSuggestions(unique);
-      } catch (err) {
-        setMobileSuggestions([]);
-      }
-    };
-
-    const timeoutId = setTimeout(() => {
-      fetchSuggestions(videoSearchQuery);
-    }, 10);
-
-    return () => clearTimeout(timeoutId);
-  }, [videoSearchQuery]);
 
   const extractVideoId = (input) => {
     const patterns = [
@@ -195,8 +131,6 @@ const navItems = [
     headerSearchTriggeredRef.current = true;
     setSuggestions([]);
     setSelectedIndex(-1);
-    setMobileSuggestions([]);
-    setMobileSelectedIndex(-1);
     
     if (videoId) {
       if (!getCurrentApiKey()) {
@@ -360,7 +294,7 @@ const navItems = [
 
       <div className="flex items-center gap-2">
         <button
-          onClick={() => setSearchModalOpen(true)}
+          onClick={() => { setSearchFocused(true); headerSearchTriggeredRef.current = false; }}
           className="md:hidden p-2 rounded-lg hover:bg-[var(--bg-hover)] transition"
           style={{ color: 'var(--text-muted)' }}
         >
@@ -378,7 +312,7 @@ const navItems = [
       {mobileMenuOpen && (
         <div 
           className="md:hidden fixed inset-0 z-40 bg-black/50 animate-fade-in"
-          onClick={() => { setMobileMenuOpen(false); setThemeDropdownOpen(false); }}
+          onClick={() => { setMobileMenuOpen(false); }}
         />
       )}
 
@@ -394,7 +328,7 @@ const navItems = [
                 <Link
                   key={item.id}
                   to={item.path}
-                  onClick={() => { setMobileMenuOpen(false); setThemeDropdownOpen(false); }}
+                  onClick={() => { setMobileMenuOpen(false); }}
                   className={`flex items-center gap-3 px-4 py-3 text-sm transition ${
                     isActive(item.path) ? 'font-semibold' : ''
                   }`}
@@ -448,12 +382,12 @@ const navItems = [
         </div>
       )}
 
-      {/* Search Focus Modal - Big screens only */}
+      {/* Single Floating Search Bar - Works on Mobile and Desktop */}
       {searchFocused && (
         <div 
-          className="hidden md:fixed md:inset-0 md:z-[100] md:flex md:items-start md:justify-center md:pt-16"
+          className="fixed inset-0 z-[100] flex items-start justify-center pt-4 md:pt-8 px-2"
           style={{ 
-            background: 'rgba(0, 0, 0, 0.3)',
+            background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(8px) saturate(150%)',
             WebkitBackdropFilter: 'blur(8px) saturate(150%)',
             animation: 'fadeIn 150ms ease-out'
@@ -465,50 +399,63 @@ const navItems = [
           }}
         >
           <div 
-            className="w-[60%] max-w-2xl rounded-[40px] pointer-events-auto"
+            className="w-full max-w-2xl rounded-2xl md:rounded-[40px] overflow-hidden"
             style={{ 
-              background: 'rgba(30, 30, 30, 0.95)',
+              background: 'rgba(30, 30, 30, 0.98)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
               animation: 'scaleIn 150ms ease-out'
             }}
           >
-            <div className="flex items-center justify-center gap-3 px-6 py-4">
-              <i className="fas fa-search text-lg" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
-              <input
-                placeholder="Search video or paste URL..."
-                className="flex-1 bg-transparent border-none outline-none text-lg text-center"
-                type="text"
-                value={videoSearchQuery}
-                onChange={(e) => {
-                  setVideoSearchQuery(e.target.value);
-                  setSelectedIndex(-1);
-                }}
-                onKeyDown={(e) => {
-                  if (suggestions.length > 0) {
-                    if (e.key === 'ArrowDown') {
-                      e.preventDefault();
-                      setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
-                    } else if (e.key === 'ArrowUp') {
-                      e.preventDefault();
-                      setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
-                    } else if (e.key === 'Enter' && selectedIndex >= 0) {
-                      e.preventDefault();
-                      handleSelectSuggestion(suggestions[selectedIndex]);
-                      setSearchFocused(false);
-                      return;
+            <div className="flex flex-col gap-2 p-3 md:p-4">
+              <div className="flex items-center gap-2 md:gap-3">
+                <i className="fas fa-search text-base md:text-lg" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
+                <input
+                  placeholder="Search video or paste URL..."
+                  className="flex-1 bg-transparent border-none outline-none text-sm md:text-lg text-center w-full"
+                  type="text"
+                  value={videoSearchQuery}
+                  onChange={(e) => {
+                    setVideoSearchQuery(e.target.value);
+                    setSelectedIndex(-1);
+                  }}
+                  onKeyDown={(e) => {
+                    if (suggestions.length > 0) {
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
+                      } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                        e.preventDefault();
+                        handleSelectSuggestion(suggestions[selectedIndex]);
+                        setSearchFocused(false);
+                        return;
+                      }
                     }
-                  }
-                  if (e.key === 'Enter') {
-                    handleVideoSearch(e);
-                    setSearchFocused(false);
-                  } else if (e.key === 'Escape') {
-                    setSearchFocused(false);
-                  }
-                }}
-                style={{ color: '#ffffff' }}
-                autoFocus
-              />
-              <div className="flex items-center gap-2">
+                    if (e.key === 'Enter') {
+                      handleVideoSearch(e);
+                      setSearchFocused(false);
+                    } else if (e.key === 'Escape') {
+                      setSearchFocused(false);
+                    }
+                  }}
+                  style={{ color: '#ffffff' }}
+                  autoFocus
+                />
+                <button
+                  onClick={() => setSearchFocused(false)}
+                  className="px-2 py-1 rounded-md text-xs"
+                  style={{ 
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    background: 'rgba(255, 255, 255, 0.1)'
+                  }}
+                >
+                  ESC
+                </button>
+              </div>
+              
+              <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap">
                 <button
                   onClick={() => setSearchType('video')}
                   className="px-2 py-1 rounded-md text-xs"
@@ -529,7 +476,7 @@ const navItems = [
                 >
                   Playlist
                 </button>
-<button
+                <button
                   onClick={() => setSearchType('live')}
                   className="px-2 py-1 rounded-md text-xs"
                   style={{ 
@@ -549,23 +496,13 @@ const navItems = [
                 >
                   Courses
                 </button>
-                <button
-                  onClick={() => setSearchFocused(false)}
-                  className="px-2 py-1 rounded-md text-xs"
-                  style={{ 
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    background: 'rgba(255, 255, 255, 0.1)'
-                  }}
-                >
-                  ESC
-                </button>
               </div>
-            </div>
-            {suggestions.length > 0 && (
-              <div
-                className="mx-2 mb-2 rounded-xl overflow-hidden"
-                style={{ background: 'rgba(20, 20, 20, 0.95)' }}
-              >
+
+              {suggestions.length > 0 && (
+                <div
+                  className="mt-1 rounded-xl overflow-hidden max-h-48 overflow-y-auto"
+                  style={{ background: 'rgba(20, 20, 20, 0.95)' }}
+                >
                   {suggestions.map((suggestion, index) => (
                     <div
                       key={index}
@@ -573,7 +510,7 @@ const navItems = [
                         handleSelectSuggestion(suggestion);
                         setSearchFocused(false);
                       }}
-                      className="px-5 py-3 cursor-pointer text-sm flex items-center gap-3"
+                      className="px-4 py-2.5 cursor-pointer text-sm flex items-center gap-3"
                       style={{ 
                         color: '#ffffff', 
                         background: index === selectedIndex ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
@@ -588,7 +525,8 @@ const navItems = [
               )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
     {/* Bottom Navigation for Mobile */}
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-14 z-50 flex items-center justify-around border-t"
@@ -683,79 +621,6 @@ const navItems = [
         className="md:hidden fixed inset-0 z-30 bg-black/50"
         onClick={() => setPlaylistPanelOpen(false)}
       />
-    )}
-
-    {/* Search Modal */}
-    {searchModalOpen && (
-      <div className="md:hidden fixed inset-0 z-50 flex items-start justify-center pt-20">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSearchModalOpen(false)} />
-        <div className="relative w-[90%] max-w-md rounded-2xl p-4 shadow-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
-          <div className="flex items-center gap-2">
-            <i className="fas fa-search" style={{ color: 'var(--text-muted)' }}></i>
-            <input
-              type="text"
-              value={videoSearchQuery}
-              onChange={(e) => {
-                setVideoSearchQuery(e.target.value);
-                setMobileSelectedIndex(-1);
-              }}
-              onKeyDown={(e) => {
-                if (mobileSuggestions.length > 0) {
-                  if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    setMobileSelectedIndex(prev => prev < mobileSuggestions.length - 1 ? prev + 1 : 0);
-                  } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    setMobileSelectedIndex(prev => prev > 0 ? prev - 1 : mobileSuggestions.length - 1);
-                  } else if (e.key === 'Enter' && mobileSelectedIndex >= 0) {
-                    e.preventDefault();
-                    handleMobileSelectSuggestion(mobileSuggestions[mobileSelectedIndex]);
-                    return;
-                  } else if (e.key === 'Escape') {
-                    setMobileSuggestions([]);
-                    setMobileSelectedIndex(-1);
-                    return;
-                  }
-                }
-                if (e.key === 'Enter' && videoSearchQuery.trim()) {
-                  headerSearchTriggeredRef.current = true;
-                  setSearchModalOpen(false);
-                  navigate(`/search?q=${encodeURIComponent(videoSearchQuery)}&type=video`);
-                  setVideoSearchQuery('');
-                }
-              }}
-              placeholder="Search videos..."
-              className="flex-1 bg-transparent border-none outline-none text-sm"
-              style={{ color: 'var(--text-main)' }}
-              autoFocus
-            />
-            <button onClick={() => setSearchModalOpen(false)} style={{ color: 'var(--text-muted)' }}>
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-          {searchModalOpen && videoSearchQuery && mobileSuggestions.length > 0 && (
-            <div
-              className="mobile-suggestions-container mt-2 rounded-xl shadow-xl overflow-hidden"
-              style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)' }}
-            >
-              {mobileSuggestions.map((suggestion, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleMobileSelectSuggestion(suggestion)}
-                  className="px-4 py-2.5 cursor-pointer text-sm"
-                  style={{ 
-                    color: 'var(--text-main)', 
-                    background: index === mobileSelectedIndex ? 'var(--bg-hover)' : 'transparent',
-                    borderBottom: index < mobileSuggestions.length - 1 ? '1px solid var(--border-color)' : 'none' 
-                  }}
-                >
-                  {suggestion}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
     )}
     </>
   );
