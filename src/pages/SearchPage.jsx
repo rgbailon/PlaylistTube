@@ -282,6 +282,10 @@ function SearchPage() {
       setResults(lastSearchResults[searchType]);
       setSearchQuery(lastSearchQuery);
       setHasMore(true);
+      const videoIds = lastSearchResults[searchType].filter(item => item.id.videoId).map(item => item.id.videoId);
+      if (videoIds.length > 0) {
+        fetchLiveDetails(videoIds);
+      }
     } else if (results.length === 0) {
       loadTrendingForType(searchType);
     }
@@ -722,6 +726,10 @@ const handleSortChange = (order) => {
       setResults(lastSearchResults[type]);
       setSearchQuery(lastSearchQuery);
       setHasMore(true);
+      const videoIds = lastSearchResults[type].filter(item => item.id.videoId).map(item => item.id.videoId);
+      if (videoIds.length > 0) {
+        fetchLiveDetails(videoIds);
+      }
     } else {
       loadTrendingForType(type);
     }
@@ -1268,51 +1276,51 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                     </div>
                   </div>
                   {getItemType(item) === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
-                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/80 text-white text-[10px] font-medium flex items-center gap-1">
                       <i className="fas fa-eye"></i>
                       {formatViewers(liveDetails[item.id.videoId].concurrentViewers)} watching
                     </div>
                   )}
                   {getItemType(item) === 'video' && videoStats[item.id.videoId]?.viewCount && (
-                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs">
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/80 text-white text-[10px] font-medium">
                       {formatViews(videoStats[item.id.videoId].viewCount)} views
                     </div>
                   )}
                   {getItemType(item) === 'playlist' && playlistDetails[item.id.playlistId]?.videoCount && (
-                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/80 text-white text-[10px] font-medium flex items-center gap-1">
                       <i className="fas fa-video"></i>
                       {playlistDetails[item.id.playlistId].videoCount} videos
                     </div>
                   )}
                   {(getItemType(item) === 'shorts' || getItemType(item) === 'course') && playlistDetails[item.id.playlistId]?.videoCount && (
-                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded-md bg-black/80 text-white text-[10px] font-medium flex items-center gap-1">
                       <i className="fas fa-video"></i>
                       {playlistDetails[item.id.playlistId].videoCount} videos
                     </div>
                   )}
                   {getItemType(item) === 'live' && (
-                    <div className="absolute top-2 left-2 px-2 py-1 rounded bg-red-600 text-white text-xs flex items-center gap-1">
-                      <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                    <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-red-600 text-white text-[10px] font-medium flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
                       LIVE
                     </div>
                   )}
                   {getItemType(item) === 'video' && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-blue-600 text-white text-xs">
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-blue-600 text-white text-[10px] font-medium">
                       Video
                     </div>
                   )}
                   {getItemType(item) === 'playlist' && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-green-600 text-white text-xs">
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-green-600 text-white text-[10px] font-medium">
                       Playlist
                     </div>
                   )}
                   {getItemType(item) === 'shorts' && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-red-600 text-white text-xs font-medium">
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-red-600 text-white text-[10px] font-medium">
                       SHORTS
                     </div>
                   )}
                   {getItemType(item) === 'course' && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-purple-600 text-white text-xs font-medium">
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-purple-600 text-white text-[10px] font-medium">
                       COURSE
                     </div>
                   )}
