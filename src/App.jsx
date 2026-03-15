@@ -35,7 +35,7 @@ function App() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [playlistPanelOpen, setPlaylistPanelOpen] = useState(false);
   const [playerPanelOpen, setPlayerPanelOpen] = useState(true);
-  const [lastSearchResults, setLastSearchResults] = useState([]);
+  const [lastSearchResults, setLastSearchResults] = useState({});
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [lastSearchType, setLastSearchType] = useState('');
   const [notification, setNotification] = useState(null);
@@ -61,17 +61,20 @@ function App() {
   const saveSearchResults = (query, type, results) => {
     setLastSearchQuery(query);
     setLastSearchType(type);
-    setLastSearchResults(results);
+    setLastSearchResults(prev => {
+      const updated = { ...prev, [type]: results };
+      try {
+        localStorage.setItem('yt_last_search_results', JSON.stringify(updated));
+        document.cookie = `yt_last_search_results=${encodeURIComponent(JSON.stringify(updated))}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 30}`;
+      } catch (e) {}
+      return updated;
+    });
     try {
       localStorage.setItem('yt_last_search_query', query);
       localStorage.setItem('yt_last_search_type', type);
-      localStorage.setItem('yt_last_search_results', JSON.stringify(results));
       setCookie('yt_last_search_query', query);
       setCookie('yt_last_search_type', type);
-      document.cookie = `yt_last_search_results=${encodeURIComponent(JSON.stringify(results))}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 30}`;
-    } catch (e) {
-      // Silently fail - search results are not critical
-    }
+    } catch (e) {}
   };
 
   const loadTheme = () => {
@@ -151,7 +154,7 @@ function App() {
         setLastSearchType(savedSearchType || '');
         setLastSearchResults(JSON.parse(savedSearchResults));
       } catch (e) {
-        setLastSearchResults([]);
+        setLastSearchResults({});
       }
     }
   };

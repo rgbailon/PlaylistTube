@@ -56,17 +56,22 @@ function SearchPage() {
   const formatViewers = (count) => {
     if (!count) return '';
     const num = parseInt(count);
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    if (num >= 1000000) return Math.floor(num / 1000000) + 'M';
+    if (num >= 1000) return Math.floor(num / 1000) + 'k';
     return num.toString();
   };
 
   const getItemType = (item) => {
-    if (item.id.playlistId) return 'playlist';
-    if (item.id.videoId && item.liveStreamingDetails?.concurrentViewers) return 'live';
-    if (item.id.videoId) return 'video';
+    if (item.id.playlistId) {
+      if (searchType === 'shorts_playlist' || searchType === 'shorts') return 'shorts';
+      if (searchType === 'courses') return 'course';
+      return 'playlist';
+    }
+    if (item.id.videoId) {
+      if (searchType === 'live' || item.liveStreamingDetails?.concurrentViewers || liveDetails[item.id.videoId]?.concurrentViewers) return 'live';
+      return 'video';
+    }
     if (item.id.channelId) return 'channel';
-    if (item.id.shortsEntry?.shortsId) return 'shorts';
     return null;
   };
 
@@ -255,19 +260,30 @@ function SearchPage() {
       explicitSearchRef.current = true;
       setSearchQuery(q);
       searchPlaylists(searchTypeFromUrl, q);
-    } else if (lastSearchResults.length > 0) {
-      setResults(lastSearchResults);
+    } else if (lastSearchResults[searchTypeFromUrl]?.length > 0) {
+      setResults(lastSearchResults[searchTypeFromUrl]);
       setSearchQuery(lastSearchQuery);
-      if (lastSearchType) {
-        setSearchType(lastSearchType);
-      }
       setHasMore(true);
     }
   }, []);
 
+  const loadTrendingForType = (type) => {
+    if (type === 'playlist') loadTrendingPlaylists();
+    else if (type === 'video') loadTrendingVideos();
+    else if (type === 'live') loadTrendingLive();
+    else if (type === 'shorts_playlist') loadTrendingShortsPlaylists();
+    else if (type === 'courses') loadTrendingCourses();
+  };
+
   useEffect(() => {
     if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists();
+    } else if (lastSearchResults[searchType]?.length > 0) {
+      setResults(lastSearchResults[searchType]);
+      setSearchQuery(lastSearchQuery);
+      setHasMore(true);
+    } else if (results.length === 0) {
+      loadTrendingForType(searchType);
     }
   }, [region, timeFilter, sortOrder, searchType]);
 
@@ -701,6 +717,12 @@ const handleSortChange = (order) => {
     setSearchType(type);
     if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(type, searchQuery);
+    } else if (lastSearchResults[type]?.length > 0) {
+      setResults(lastSearchResults[type]);
+      setSearchQuery(lastSearchQuery);
+      setHasMore(true);
+    } else {
+      loadTrendingForType(type);
     }
   };
 
@@ -1107,6 +1129,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         searchTriggeredRef.current = true;
+                        explicitSearchRef.current = true;
                         setSuggestions([]);
                         setSelectedIndex(-1);
                         searchPlaylists();
@@ -1243,20 +1266,27 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                       <i className="fas fa-play text-white text-xl ml-1"></i>
                     </div>
                   </div>
+                  {getItemType(item) === 'live' && liveDetails[item.id.videoId]?.concurrentViewers && (
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                      <i className="fas fa-eye"></i>
+                      {formatViewers(liveDetails[item.id.videoId].concurrentViewers)} watching
+                    </div>
+                  )}
                   {getItemType(item) === 'video' && videoStats[item.id.videoId]?.viewCount && (
                     <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs">
-                      {formatViews(videoStats[item.id.videoId].viewCount)}
+                      {formatViews(videoStats[item.id.videoId].viewCount)} views
                     </div>
                   )}
                   {getItemType(item) === 'playlist' && playlistDetails[item.id.playlistId]?.videoCount && (
                     <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
                       <i className="fas fa-video"></i>
-                      {playlistDetails[item.id.playlistId].videoCount}
+                      {playlistDetails[item.id.playlistId].videoCount} videos
                     </div>
                   )}
-                  {getItemType(item) === 'playlist' && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/70 text-white text-xs">
-                      Playlist
+                  {(getItemType(item) === 'shorts' || getItemType(item) === 'course') && playlistDetails[item.id.playlistId]?.videoCount && (
+                    <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
+                      <i className="fas fa-video"></i>
+                      {playlistDetails[item.id.playlistId].videoCount} videos
                     </div>
                   )}
                   {getItemType(item) === 'live' && (
@@ -1265,29 +1295,25 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                       LIVE
                     </div>
                   )}
-                  {liveDetails[item.id.videoId]?.concurrentViewers && (
-                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
-                      <i className="fas fa-eye"></i>
-                      {formatViewers(liveDetails[item.id.videoId].concurrentViewers)}
+                  {getItemType(item) === 'video' && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-blue-600 text-white text-xs">
+                      Video
                     </div>
                   )}
-                  {(searchType === 'shorts_playlist' || searchType === 'shorts') && item.id.playlistId && !getItemType(item) && (
+                  {getItemType(item) === 'playlist' && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-green-600 text-white text-xs">
+                      Playlist
+                    </div>
+                  )}
+                  {getItemType(item) === 'shorts' && (
                     <div className="absolute top-2 right-2 px-2 py-1 rounded bg-red-600 text-white text-xs font-medium">
                       SHORTS
                     </div>
                   )}
-                  {(searchType === 'courses') && item.id.playlistId && (
-                    <>
-                      {playlistDetails[item.id.playlistId]?.videoCount && (
-                        <div className="absolute bottom-2 right-2 px-2 py-1 rounded bg-black/80 text-white text-xs flex items-center gap-1">
-                          <i className="fas fa-video"></i>
-                          {playlistDetails[item.id.playlistId].videoCount}
-                        </div>
-                      )}
-                      <div className="absolute top-2 right-2 px-2 py-1 rounded bg-blue-600 text-white text-xs font-medium">
-                        COURSE
-                      </div>
-                    </>
+                  {getItemType(item) === 'course' && (
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded bg-purple-600 text-white text-xs font-medium">
+                      COURSE
+                    </div>
                   )}
                 </div>
                 <div className="flex items-start justify-between gap-2">
@@ -1297,43 +1323,33 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                     </h3>
                     <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
                       {decodeHtml(item.snippet.channelTitle)}
-                      {searchType === 'video' && (videoStats[item.id.videoId]?.viewCount > 0 || videoStats[item.id.videoId]?.likeCount > 0) && (
+                      {getItemType(item) === 'video' && (videoStats[item.id.videoId]?.viewCount > 0 || videoStats[item.id.videoId]?.likeCount > 0) && (
                         <span>
-                          {videoStats[item.id.videoId]?.viewCount > 0 && <span> • {formatViews(videoStats[item.id.videoId].viewCount)}</span>}
+                          {videoStats[item.id.videoId]?.viewCount > 0 && <span> • {formatViews(videoStats[item.id.videoId].viewCount)} views</span>}
                           {videoStats[item.id.videoId]?.likeCount > 0 && <span> • {formatLikes(videoStats[item.id.videoId].likeCount)} likes</span>}
                         </span>
                       )}
-                      {searchType === 'video' && !videoStats[item.id.videoId]?.viewCount && !videoStats[item.id.videoId]?.likeCount && item.snippet.publishedAt && (
+                      {getItemType(item) === 'video' && !videoStats[item.id.videoId]?.viewCount && !videoStats[item.id.videoId]?.likeCount && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
-                      {searchType === 'video' && (videoStats[item.id.videoId]?.viewCount > 0 || videoStats[item.id.videoId]?.likeCount > 0) && item.snippet.publishedAt && (
+                      {getItemType(item) === 'video' && (videoStats[item.id.videoId]?.viewCount > 0 || videoStats[item.id.videoId]?.likeCount > 0) && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
-                      {liveDetails[item.id.videoId]?.concurrentViewers && (
-                        <span> • {formatViewers(liveDetails[item.id.videoId].concurrentViewers)} watching</span>
-                      )}
-                      {searchType === 'playlist' && playlistDetails[item.id.playlistId]?.publishedAt && (
+                      {getItemType(item) === 'playlist' && playlistDetails[item.id.playlistId]?.publishedAt && (
                         <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
                       )}
-{searchType === 'shorts_playlist' && item.snippet.publishedAt && (
+                      {getItemType(item) === 'shorts' && item.snippet.publishedAt && (
                         <span> • {formatTimeAgo(item.snippet.publishedAt)}</span>
                       )}
-                      {searchType === 'courses' && (
-                        <>
-                          {playlistDetails[item.id.playlistId]?.videoCount > 0 && (
-                            <span> • {playlistDetails[item.id.playlistId].videoCount} videos</span>
-                          )}
-                          {playlistDetails[item.id.playlistId]?.publishedAt && (
-                            <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
-                          )}
-                        </>
+                      {getItemType(item) === 'course' && playlistDetails[item.id.playlistId]?.publishedAt && (
+                        <span> • {formatTimeAgo(playlistDetails[item.id.playlistId].publishedAt)}</span>
                       )}
                     </p>
                   </div>
-{(searchType === 'playlist' || searchType === 'video' || searchType === 'shorts_playlist' || searchType === 'live' || searchType === 'courses') && (
+                  {(getItemType(item) === 'playlist' || getItemType(item) === 'video' || getItemType(item) === 'shorts' || getItemType(item) === 'live' || getItemType(item) === 'course') && (
                     <button
                       onClick={(e) => {
-                        if (searchType === 'playlist' || searchType === 'courses') {
+                        if (getItemType(item) === 'playlist' || getItemType(item) === 'course') {
                           addToPlaylist(item.id.playlistId, item, e);
                         } else {
                           addSingleVideo(item, e);
