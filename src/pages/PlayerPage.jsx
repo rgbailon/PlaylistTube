@@ -1052,7 +1052,7 @@ const toggleFullscreen = () => {
 
 {isFullscreen && (
         <aside 
-          className={`fixed right-0 top-0 h-screen w-80 flex flex-col overflow-hidden transition-transform duration-300 z-[9998] ${showFullscreenPlaylist ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`fixed right-0 top-0 h-screen w-96 flex flex-col overflow-hidden transition-transform duration-300 z-[9998] ${showFullscreenPlaylist ? 'translate-x-0' : 'translate-x-full'}`}
           style={{ background: 'rgba(30,30,30,0.95)', backdropFilter: 'blur(10px)' }}
           onMouseEnter={() => {
             if (hidePlaylistTimeout.current) {
