@@ -1110,7 +1110,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
               }
             }}
           >
-            <div className="w-full h-full flex items-start justify-center p-4 pt-16 pointer-events-none overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center p-4 pointer-events-none overflow-hidden">
               <div 
                 className="w-full max-w-2xl rounded-[20px] md:rounded-[40px] pointer-events-auto relative"
                 style={{ 
@@ -1120,10 +1120,10 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 }}
               >
                 <div className="flex flex-row items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-3 md:py-4">
-                  <i className="fas fa-search text-base md:text-lg" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
+                  <i className="fas fa-search text-sm md:text-base" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
                   <input
                     placeholder="Search video or paste URL..."
-                    className="flex-1 bg-transparent border-none outline-none text-base md:text-lg text-center w-full"
+                    className="flex-1 bg-transparent border-none outline-none text-sm md:text-base text-center w-full"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => handleSearchInput(e.target.value)}
