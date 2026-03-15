@@ -662,6 +662,11 @@ if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType 
   };
 
   const loadMore = async () => {
+    if (searchQuery.trim()) {
+      searchPlaylists();
+      return;
+    }
+    
     if (!nextPageToken) return;
     
     const apiKey = getCurrentApiKey();
@@ -700,7 +705,10 @@ if (searchType === 'playlist' || searchType === 'shorts_playlist' || searchType 
         } else if (searchType === 'video' || searchType === 'live') {
           updateQuota(-100, 'search');
           const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
-          if (videoIds.length > 0) fetchVideoStats(videoIds);
+          if (videoIds.length > 0) {
+            fetchVideoStats(videoIds);
+            fetchLiveDetails(videoIds);
+          }
         }
       }
     } catch (err) {
