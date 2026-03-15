@@ -13,7 +13,10 @@ function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState('relevance');
   const [searchType, setSearchType] = useState('video');
-  const [region, setRegion] = useState('US');
+  const [region, setRegion] = useState(() => {
+    const saved = localStorage.getItem('userRegion');
+    return saved || 'auto';
+  });
   const [timeFilter, setTimeFilter] = useState('all');
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
@@ -30,6 +33,28 @@ function SearchPage() {
   const searchTriggeredRef = useRef(false);
   const initialLoadRef = useRef(false);
   const explicitSearchRef = useRef(false);
+
+  const getDetectedRegion = () => {
+    const saved = localStorage.getItem('userRegion');
+    if (saved) return saved;
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const regionMap = {
+        'America/New_York': 'US', 'America/Los_Angeles': 'US', 'America/Chicago': 'US',
+        'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Mexico_City': 'MX',
+        'America/Sao_Paulo': 'BR', 'America/Buenos_Aires': 'BR',
+        'Europe/London': 'GB', 'Europe/Paris': 'FR', 'Europe/Berlin': 'DE',
+        'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR', 'Asia/Manila': 'PH',
+        'Asia/Kolkata': 'IN', 'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG',
+        'Australia/Sydney': 'AU', 'Pacific/Auckland': 'NZ',
+      };
+      const detectedRegion = regionMap[timezone] || 'US';
+      localStorage.setItem('userRegion', detectedRegion);
+      return detectedRegion;
+    } catch { return 'US'; }
+  };
+
+  const getRegionCode = () => region === 'auto' ? getDetectedRegion() : region;
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -92,6 +117,7 @@ function SearchPage() {
   };
 
   const regions = [
+    { code: 'auto', name: 'Auto' },
     { code: 'US', name: 'United States' },
     { code: 'GB', name: 'United Kingdom' },
     { code: 'PH', name: 'Philippines' },
@@ -188,8 +214,13 @@ function SearchPage() {
 
   useEffect(() => {
     if (forceSearch) {
-      const { query, type } = forceSearch;
+      const { query, type, filters } = forceSearch;
       setSearchType(type || 'video');
+      if (filters) {
+        setSortOrder(filters.sortOrder || 'relevance');
+        setRegion(filters.region || 'US');
+        setTimeFilter(filters.timeFilter || 'all');
+      }
       searchTriggeredRef.current = true;
       setSuggestions([]);
       setSelectedIndex(-1);
@@ -248,9 +279,22 @@ function SearchPage() {
     const q = params.get('q');
     const list = params.get('list');
     const type = params.get('type');
+    const sort = params.get('sort');
+    const region = params.get('region');
+    const time = params.get('time');
     
     const searchTypeFromUrl = (type && ['video', 'playlist', 'live', 'shorts_playlist', 'courses'].includes(type)) ? type : 'video';
     setSearchType(searchTypeFromUrl);
+    
+    if (sort && ['relevance', 'date', 'viewCount', 'rating'].includes(sort)) {
+      setSortOrder(sort);
+    }
+    if (region) {
+      setRegion(region);
+    }
+    if (time && ['all', 'today', 'week', 'month'].includes(time)) {
+      setTimeFilter(time);
+    }
     
     if (list) {
       explicitSearchRef.current = true;
@@ -376,7 +420,7 @@ function SearchPage() {
     setError(null);
     try {
       const relevanceLang = 'en';
-      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=trending&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=trending&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       const publishedAfter = getPublishedAfter();
       if (publishedAfter) {
         url += `&publishedAfter=${publishedAfter}`;
@@ -552,7 +596,7 @@ if (!activeQuery.trim()) {
     try {
       const relevanceLang = 'en';
       const publishedAfter = getPublishedAfter();
-      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       
       if (publishedAfter) {
         url += `&publishedAfter=${publishedAfter}`;
@@ -560,16 +604,16 @@ if (!activeQuery.trim()) {
       
       if (activeType === 'playlist') {
         const playlistOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=playlist&order=${playlistOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=playlist&order=${playlistOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       } else if (activeType === 'live') {
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
 } else if (activeType === 'shorts_playlist') {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       } else if (activeType === 'courses') {
         const courseQuery = activeQuery ? `${activeQuery}+tutorial+course` : 'complete+course+tutorial+learn';
         const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);

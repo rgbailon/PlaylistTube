@@ -18,7 +18,33 @@ function Header() {
   const [searchError, setSearchError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [searchSortOrder, setSearchSortOrder] = useState('relevance');
+  const [searchRegion, setSearchRegion] = useState(() => {
+    const saved = localStorage.getItem('userRegion');
+    return saved || 'auto';
+  });
+  const [searchTimeFilter, setSearchTimeFilter] = useState('all');
   const headerSearchTriggeredRef = useRef(false);
+
+  const getDetectedRegion = () => {
+    const saved = localStorage.getItem('userRegion');
+    if (saved) return saved;
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const regionMap = {
+        'America/New_York': 'US', 'America/Los_Angeles': 'US', 'America/Chicago': 'US',
+        'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Mexico_City': 'MX',
+        'America/Sao_Paulo': 'BR', 'America/Buenos_Aires': 'BR',
+        'Europe/London': 'GB', 'Europe/Paris': 'FR', 'Europe/Berlin': 'DE',
+        'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR', 'Asia/Manila': 'PH',
+        'Asia/Kolkata': 'IN', 'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG',
+        'Australia/Sydney': 'AU', 'Pacific/Auckland': 'NZ',
+      };
+      const region = regionMap[timezone] || 'US';
+      localStorage.setItem('userRegion', region);
+      return region;
+    } catch { return 'US'; }
+  };
 
 const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
@@ -96,10 +122,12 @@ const navItems = [
     setSuggestions([]);
     setSelectedIndex(-1);
     headerSearchTriggeredRef.current = true;
+    const region = searchRegion === 'auto' ? getDetectedRegion() : searchRegion;
+    const filters = { sortOrder: searchSortOrder, region, timeFilter: searchTimeFilter };
     if (isActive('/search')) {
-      setForceSearch({ query: suggestion, type: searchType });
+      setForceSearch({ query: suggestion, type: searchType, filters });
     } else {
-      navigate(`/search?q=${encodeURIComponent(suggestion)}&type=${searchType}`);
+      navigate(`/search?q=${encodeURIComponent(suggestion)}&type=${searchType}&sort=${searchSortOrder}&region=${region}&time=${searchTimeFilter}`);
     }
   };
 
@@ -127,6 +155,7 @@ const navItems = [
     const input = videoSearchQuery.trim();
     const videoId = extractVideoId(input);
     const playlistId = extractPlaylistId(input);
+    const region = searchRegion === 'auto' ? getDetectedRegion() : searchRegion;
     
     headerSearchTriggeredRef.current = true;
     setSuggestions([]);
@@ -146,16 +175,18 @@ const navItems = [
       setCurrentVideoIndex(0);
       navigate('/');
     } else if (playlistId) {
+      const filters = { sortOrder: searchSortOrder, region, timeFilter: searchTimeFilter };
       if (isActive('/search')) {
-        setForceSearch({ query: `?list=${playlistId}`, type: 'playlist' });
+        setForceSearch({ query: `?list=${playlistId}`, type: 'playlist', filters });
       } else {
-        navigate(`/search?list=${playlistId}`);
+        navigate(`/search?list=${playlistId}&sort=${searchSortOrder}&region=${region}&time=${searchTimeFilter}`);
       }
     } else {
+      const filters = { sortOrder: searchSortOrder, region, timeFilter: searchTimeFilter };
       if (isActive('/search')) {
-        setForceSearch({ query: input, type: searchType });
+        setForceSearch({ query: input, type: searchType, filters });
       } else {
-        navigate(`/search?q=${encodeURIComponent(input)}&type=${searchType}`);
+        navigate(`/search?q=${encodeURIComponent(input)}&type=${searchType}&sort=${searchSortOrder}&region=${region}&time=${searchTimeFilter}`);
       }
     }
     setVideoSearchQuery('');
@@ -385,7 +416,7 @@ const navItems = [
       {/* Single Floating Search Bar - Works on Mobile and Desktop */}
       {searchFocused && (
         <div 
-          className="fixed inset-0 z-[100] flex items-start justify-center pt-4 md:pt-8 px-2"
+          className="fixed inset-0 z-[100] flex items-start justify-center pt-8 md:pt-12 px-2"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(8px) saturate(150%)',
@@ -406,12 +437,12 @@ const navItems = [
               animation: 'scaleIn 150ms ease-out'
             }}
           >
-            <div className="flex flex-col gap-2 p-3 md:p-4">
-              <div className="flex items-center gap-2 md:gap-3">
-                <i className="fas fa-search text-base md:text-lg" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
+              <div className="flex flex-col gap-4 p-2 md:p-3">
+              <div className="flex items-center justify-center gap-2">
+                <i className="fas fa-search text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
                 <input
                   placeholder="Search video or paste URL..."
-                  className="flex-1 bg-transparent border-none outline-none text-sm md:text-lg text-center w-full"
+                  className="flex-1 bg-transparent border-none outline-none text-sm text-center w-full font-medium"
                   type="text"
                   value={videoSearchQuery}
                   onChange={(e) => {
@@ -445,7 +476,7 @@ const navItems = [
                 />
                 <button
                   onClick={() => setSearchFocused(false)}
-                  className="px-2 py-1 rounded-md text-xs"
+                  className="px-1.5 py-1 rounded-md text-xs"
                   style={{ 
                     color: 'rgba(255, 255, 255, 0.5)',
                     background: 'rgba(255, 255, 255, 0.1)'
@@ -455,47 +486,78 @@ const navItems = [
                 </button>
               </div>
               
-              <div className="flex items-center justify-center gap-1 md:gap-2 flex-wrap">
-                <button
-                  onClick={() => setSearchType('video')}
-                  className="px-2 py-1 rounded-md text-xs"
+              <div className="flex flex-wrap items-center justify-center gap-2 px-1">
+                <select
+                  value={searchType}
+                  onChange={(e) => setSearchType(e.target.value)}
+                  className="px-1.5 py-1 rounded-md text-xs font-medium appearance-none cursor-pointer text-center"
                   style={{ 
-                    color: searchType === 'video' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                    background: searchType === 'video' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                    color: '#ffffff',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
                   }}
                 >
-                  Video
-                </button>
-                <button
-                  onClick={() => setSearchType('playlist')}
-                  className="px-2 py-1 rounded-md text-xs"
+                  <option value="video" style={{ background: '#1e1e1e', color: '#ffffff' }}>Video</option>
+                  <option value="playlist" style={{ background: '#1e1e1e', color: '#ffffff' }}>Playlist</option>
+                  <option value="live" style={{ background: '#1e1e1e', color: '#ffffff' }}>Live</option>
+                  <option value="courses" style={{ background: '#1e1e1e', color: '#ffffff' }}>Courses</option>
+                </select>
+
+                <select
+                  value={searchSortOrder}
+                  onChange={(e) => setSearchSortOrder(e.target.value)}
+                  className="px-1.5 py-1 rounded-md text-xs font-medium appearance-none cursor-pointer text-center"
                   style={{ 
-                    color: searchType === 'playlist' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                    background: searchType === 'playlist' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                    color: '#ffffff',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
                   }}
                 >
-                  Playlist
-                </button>
-                <button
-                  onClick={() => setSearchType('live')}
-                  className="px-2 py-1 rounded-md text-xs"
+                  <option value="relevance" style={{ background: '#1e1e1e', color: '#ffffff' }}>Relevance</option>
+                  <option value="date" style={{ background: '#1e1e1e', color: '#ffffff' }}>Newest</option>
+                  <option value="viewCount" style={{ background: '#1e1e1e', color: '#ffffff' }}>Popular</option>
+                </select>
+
+                <select
+                  value={searchTimeFilter}
+                  onChange={(e) => setSearchTimeFilter(e.target.value)}
+                  className="px-1.5 py-1 rounded-md text-xs font-medium appearance-none cursor-pointer text-center"
                   style={{ 
-                    color: searchType === 'live' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                    background: searchType === 'live' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                    color: '#ffffff',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
                   }}
                 >
-                  Live
-                </button>
-                <button
-                  onClick={() => setSearchType('courses')}
-                  className="px-2 py-1 rounded-md text-xs"
+                  <option value="all" style={{ background: '#1e1e1e', color: '#ffffff' }}>All Time</option>
+                  <option value="today" style={{ background: '#1e1e1e', color: '#ffffff' }}>Today</option>
+                  <option value="week" style={{ background: '#1e1e1e', color: '#ffffff' }}>This Week</option>
+                  <option value="month" style={{ background: '#1e1e1e', color: '#ffffff' }}>This Month</option>
+                </select>
+
+                <select
+                  value={searchRegion}
+                  onChange={(e) => setSearchRegion(e.target.value)}
+                  className="px-1.5 py-1 rounded-md text-xs font-medium appearance-none cursor-pointer text-center"
                   style={{ 
-                    color: searchType === 'courses' ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
-                    background: searchType === 'courses' ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
+                    color: '#ffffff',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)'
                   }}
                 >
-                  Courses
-                </button>
+                  <option value="auto" style={{ background: '#1e1e1e', color: '#ffffff' }}>Auto</option>
+                  <option value="US" style={{ background: '#1e1e1e', color: '#ffffff' }}>US</option>
+                  <option value="GB" style={{ background: '#1e1e1e', color: '#ffffff' }}>UK</option>
+                  <option value="PH" style={{ background: '#1e1e1e', color: '#ffffff' }}>PH</option>
+                  <option value="IN" style={{ background: '#1e1e1e', color: '#ffffff' }}>IN</option>
+                  <option value="CA" style={{ background: '#1e1e1e', color: '#ffffff' }}>CA</option>
+                  <option value="AU" style={{ background: '#1e1e1e', color: '#ffffff' }}>AU</option>
+                  <option value="DE" style={{ background: '#1e1e1e', color: '#ffffff' }}>DE</option>
+                  <option value="FR" style={{ background: '#1e1e1e', color: '#ffffff' }}>FR</option>
+                  <option value="JP" style={{ background: '#1e1e1e', color: '#ffffff' }}>JP</option>
+                  <option value="KR" style={{ background: '#1e1e1e', color: '#ffffff' }}>KR</option>
+                  <option value="BR" style={{ background: '#1e1e1e', color: '#ffffff' }}>BR</option>
+                  <option value="MX" style={{ background: '#1e1e1e', color: '#ffffff' }}>MX</option>
+                </select>
               </div>
 
               {suggestions.length > 0 && (
