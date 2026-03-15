@@ -401,6 +401,17 @@
   border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
+[data-theme="emo"] .fixed .fa-search {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-theme="emo"] .fixed input,
+[data-theme="emo"] .fixed input::placeholder {
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+
 [data-theme="emo"] .video-card,
 [data-theme="emo"] .playlist-item,
 [data-theme="emo"] [class*="card"],

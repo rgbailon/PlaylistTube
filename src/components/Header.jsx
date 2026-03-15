@@ -399,10 +399,10 @@ const navItems = [
           }}
         >
           <div 
-            className="w-full max-w-2xl rounded-2xl md:rounded-[40px] overflow-hidden"
+            className="w-full max-w-2xl rounded-xl overflow-hidden"
             style={{ 
-              background: 'rgba(30, 30, 30, 0.98)',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
+              background: 'var(--bg-card, rgba(30, 30, 30, 0.98))',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--border-color, rgba(255, 255, 255, 0.1))',
               animation: 'scaleIn 150ms ease-out'
             }}
           >
