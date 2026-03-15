@@ -154,7 +154,7 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
           
           {themeExpanded && (
             <div className="grid grid-cols-4 gap-2">
-              {['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix', 'sun'].map((t) => (
+              {['light', 'bold', 'dark', 'retro', 'cartoon', 'photo', 'forest', 'forest2', 'ocean', 'sunset', 'cyber', 'coffee', 'netflix', 'sun', 'emo'].map((t) => (
                 <button
                   key={t}
                   onClick={() => setTheme(t)}
@@ -162,7 +162,7 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
                     theme === t ? 'ring-2 ring-[var(--accent-color)]' : ''
                   }`}
                   style={{ 
-                    background: t === 'light' ? '#f5f5f5' : t === 'bold' ? '#171717' : t === 'dark' ? '#0f172a' : t === 'retro' ? '#fdf6e3' : t === 'cartoon' ? '#fff8f0' : t === 'photo' ? '#000000' : t === 'forest' ? '#14281d' : t === 'forest2' ? '#19270d' : t === 'ocean' ? '#0c4a6e' : t === 'sunset' ? '#4a044e' : t === 'cyber' ? '#000000' : t === 'coffee' ? '#E8D8C4' : t === 'netflix' ? '#141414' : '#1a1a1a',
+                    background: t === 'light' ? '#f5f5f5' : t === 'bold' ? '#171717' : t === 'dark' ? '#0f172a' : t === 'retro' ? '#fdf6e3' : t === 'cartoon' ? '#fff8f0' : t === 'photo' ? '#000000' : t === 'forest' ? '#14281d' : t === 'forest2' ? '#19270d' : t === 'ocean' ? '#0c4a6e' : t === 'sunset' ? '#4a044e' : t === 'cyber' ? '#000000' : t === 'coffee' ? '#E8D8C4' : t === 'netflix' ? '#141414' : t === 'emo' ? 'url(https://i.ibb.co/tTcP5kkk/wallpaperflare-com-wallpaper.jpg)' : '#1a1a1a',
                     color: t === 'light' || t === 'retro' || t === 'cartoon' || t === 'coffee' ? '#000000' : '#ffffff',
                     border: theme === t ? '2px solid var(--accent-color)' : '1px solid var(--border-color)'
                   }}
