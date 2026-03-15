@@ -491,9 +491,9 @@ const loadTrendingShortsPlaylists = async () => {
     setError(null);
     try {
       const relevanceLang = 'en';
-      const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
+      const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : sortOrder;
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=educational+course+tutorial+playlist&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=complete+course+tutorial+learn&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
       );
       const data = await resp.json();
       
@@ -567,8 +567,8 @@ if (!activeQuery.trim()) {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
       } else if (activeType === 'courses') {
-        const courseQuery = activeQuery ? `${activeQuery}+course+tutorial` : 'educational+course+tutorial+playlist';
-        const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
+        const courseQuery = activeQuery ? `${activeQuery}+tutorial+course` : 'complete+course+tutorial+learn';
+        const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
       }
       
