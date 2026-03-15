@@ -1075,7 +1075,7 @@ const toggleFullscreen = () => {
             </button>
           </div>
           {activeTab === 'playlist' ? (
-            <div className="flex-1 h-full overflow-y-auto scrollbar-hide" style={{ background: '#0f0f0f' }}>
+            <div className="flex-1 h-full overflow-y-auto" style={{ background: '#0f0f0f' }}>
               {currentPlaylist.length === 0 ? (
                 <div className="text-center py-8">
                   <i className="fas fa-film text-2xl mb-2" style={{ color: '#6b7280' }}></i>
