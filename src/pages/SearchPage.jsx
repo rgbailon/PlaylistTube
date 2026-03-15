@@ -593,6 +593,7 @@ if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType 
           const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
           if (videoIds.length > 0) {
             fetchVideoStats(videoIds);
+            fetchLiveDetails(videoIds);
           }
         }
       }
