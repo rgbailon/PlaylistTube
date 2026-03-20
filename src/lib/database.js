@@ -2,9 +2,23 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL_KEY = 'yt_supabase_url';
 const SUPABASE_KEY_KEY = 'yt_supabase_key';
+const SUPABASE_DB_KEY = 'yt_supabase_connection_string';
 
 export const getStoredSupabaseUrl = () => localStorage.getItem(SUPABASE_URL_KEY) || '';
 export const getStoredSupabaseKey = () => localStorage.getItem(SUPABASE_KEY_KEY) || '';
+export const getStoredConnectionString = () => localStorage.getItem(SUPABASE_DB_KEY) || '';
+export const parseConnectionString = (connStr) => {
+  if (!connStr) return null;
+  const match = connStr.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(\S+)/);
+  if (!match) return null;
+  return {
+    user: match[1],
+    password: match[2],
+    host: match[3],
+    port: parseInt(match[4]),
+    database: match[5],
+  };
+};
 
 export const saveSupabaseConfig = (url, key) => {
   localStorage.setItem(SUPABASE_URL_KEY, url);
