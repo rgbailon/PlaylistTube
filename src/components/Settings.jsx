@@ -12,12 +12,18 @@ function Settings() {
   const [validating, setValidating] = useState(false);
   const [quotaResetTime, setQuotaResetTime] = useState({ pacific: '', philippines: '' });
   const [themeExpanded, setThemeExpanded] = useState(false);
-  const [clearPlaylistExpanded, setClearPlaylistExpanded] = useState(false);
+const [clearPlaylistExpanded, setClearPlaylistExpanded] = useState(false);
   const [dbConnectionExpanded, setDbConnectionExpanded] = useState(false);
-  const [supabaseUrl, setSupabaseUrl] = useState(getStoredSupabaseUrl());
-  const [supabaseKey, setSupabaseKey] = useState(getStoredSupabaseKey());
+  const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
+  const [supabaseUrl, setSupabaseUrl] = useState('');
+  const [supabaseKey, setSupabaseKey] = useState('');
   const [dbStatus, setDbStatus] = useState({ connected: false, checking: false, message: '' });
   const btnRef = useRef(null);
+
+  useEffect(() => {
+    setSupabaseUrl(getStoredSupabaseUrl());
+    setSupabaseKey(getStoredSupabaseKey());
+  }, []);
 
   useEffect(() => {
     const updateResetTimes = () => {
@@ -117,19 +123,7 @@ const handleTestDbConnection = async () => {
     setSupabaseKey('');
     setDbStatus({ connected: false, checking: false, message: '' });
     showNotification('Database disconnected');
-  };
-
-  useEffect(() => {
-    const savedUrl = getStoredSupabaseUrl();
-    const savedKey = getStoredSupabaseKey();
-    if (savedUrl && savedKey) {
-      setSupabaseUrl(savedUrl);
-      setSupabaseKey(savedKey);
-      setDbStatus({ connected: true, checking: false, message: 'Connected' });
-    }
-  }, []);
-
-const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
+};
 
   const handleAddKey = async () => {
     if (!apiKeyInput.trim()) {
