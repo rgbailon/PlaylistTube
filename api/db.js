@@ -1,4 +1,4 @@
-import { Client } from 'pg';
+const { Client } = require('pg');
 
 const parseConnectionString = (connStr) => {
   connStr = connStr.trim();
@@ -38,7 +38,7 @@ const parseConnectionString = (connStr) => {
   return null;
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
@@ -173,4 +173,4 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
-}
+};
