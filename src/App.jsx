@@ -10,7 +10,7 @@ import ChatPage from './pages/ChatPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import PrivacyPage from './pages/PrivacyPage';
 import CastReceiver from './pages/CastReceiver';
-import { getStoredConnectionString, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, parseConnectionString } from './lib/database';
+import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems } from './lib/database';
 import './index.css';
 
 export const AppContext = createContext();
@@ -319,13 +319,11 @@ const [notification, setNotification] = useState(null);
   };
 
 const checkDbConnection = async () => {
-    const connStr = getStoredConnectionString();
-    if (connStr) {
-      const config = parseConnectionString(connStr);
-      if (config) {
-        setDbConnected(true);
-        loadDbSavedItems();
-      }
+    const url = getStoredSupabaseUrl();
+    const key = getStoredSupabaseKey();
+    if (url && key) {
+      setDbConnected(true);
+      loadDbSavedItems();
     }
   };
 
