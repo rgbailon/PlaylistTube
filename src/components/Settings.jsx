@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../App';
+import { getStoredConnectionString, saveConnectionString, testConnection, initDatabase, clearConnectionString } from '../lib/database';
 
 function Settings() {
-  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory, apiUsage, apiCalls, theme, setTheme, setCurrentPlaylist } = useApp();
+  const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory, apiUsage, apiCalls, theme, setTheme, setCurrentPlaylist, showNotification } = useApp();
   
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [apiKeysExpanded, setApiKeysExpanded] = useState(false);
@@ -12,6 +13,9 @@ function Settings() {
   const [quotaResetTime, setQuotaResetTime] = useState({ pacific: '', philippines: '' });
   const [themeExpanded, setThemeExpanded] = useState(false);
   const [clearPlaylistExpanded, setClearPlaylistExpanded] = useState(false);
+  const [dbConnectionExpanded, setDbConnectionExpanded] = useState(false);
+  const [dbConnectionString, setDbConnectionString] = useState(getStoredConnectionString());
+  const [dbStatus, setDbStatus] = useState({ connected: false, checking: false, message: '' });
   const btnRef = useRef(null);
 
   useEffect(() => {
@@ -80,6 +84,51 @@ function Settings() {
   }, []);
 
   const totalUsed = Object.values(apiUsage).reduce((a, b) => a + b, 0);
+
+const handleTestDbConnection = async () => {
+    if (!dbConnectionString.trim()) {
+      setDbStatus({ connected: false, checking: false, message: 'Please enter a connection string' });
+      return;
+    }
+
+    setDbStatus({ connected: false, checking: true, message: 'Testing connection...' });
+
+    const result = await testConnection(dbConnectionString.trim());
+    if (result.success) {
+      setDbStatus({ connected: true, checking: false, message: 'Connected successfully!' });
+      saveConnectionString(dbConnectionString.trim());
+      const initResult = await initDatabase(dbConnectionString.trim());
+      if (initResult.success) {
+        showNotification('Database connected and initialized!');
+      } else {
+        showNotification('Connected but failed to initialize tables');
+      }
+    } else {
+      setDbStatus({ connected: false, checking: false, message: result.error || 'Connection failed' });
+    }
+  };
+
+  const handleSaveDbConnection = () => {
+    if (dbConnectionString.trim()) {
+      saveConnectionString(dbConnectionString.trim());
+      showNotification('Database connection saved!');
+    }
+  };
+
+  const handleDisconnectDb = () => {
+    clearConnectionString();
+    setDbConnectionString('');
+    setDbStatus({ connected: false, checking: false, message: '' });
+    showNotification('Database disconnected');
+  };
+
+  useEffect(() => {
+    const savedConnStr = getStoredConnectionString();
+    if (savedConnStr) {
+      setDbConnectionString(savedConnStr);
+      setDbStatus({ connected: true, checking: false, message: 'Connected' });
+    }
+  }, []);
 
 const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
 
@@ -170,6 +219,68 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
                   {t}
                 </button>
               ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <button 
+            onClick={() => setDbConnectionExpanded(!dbConnectionExpanded)} 
+            className="flex items-center justify-between w-full text-xs font-medium mb-2 text-[var(--text-main)]"
+          >
+<span>
+              <i className="fas fa-database mr-2 text-green-500"></i>
+              Supabase Database
+              {dbStatus.connected && <span className="ml-2 px-1.5 py-0.5 bg-green-500/20 text-green-500 rounded text-[10px]">Connected</span>}
+            </span>
+            <i className={`fas fa-chevron-${dbConnectionExpanded ? 'up' : 'down'} text-xs`}></i>
+          </button>
+          
+{dbConnectionExpanded && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <input
+                  type="password"
+                  value={dbConnectionString}
+                  onChange={(e) => setDbConnectionString(e.target.value)}
+                  placeholder="postgresql://user:pass@host:5432/db"
+                  className="flex-1 rounded-lg px-3 py-2 text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleTestDbConnection} 
+                  disabled={dbStatus.checking}
+                  className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50"
+                >
+                  {dbStatus.checking ? <span><i className="fas fa-circle-notch fa-spin mr-1"></i>Testing...</span> : <span><i className="fas fa-plug mr-1"></i>Test Connection</span>}
+                </button>
+                <button 
+                  onClick={handleSaveDbConnection}
+                  disabled={!dbConnectionString.trim()}
+                  className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50"
+                >
+                  <i className="fas fa-save mr-1"></i>Save
+                </button>
+                {dbStatus.connected && (
+                  <button 
+                    onClick={handleDisconnectDb}
+                    className="px-3 py-2 border border-red-200 text-red-500 rounded-lg text-xs hover:bg-red-50 transition"
+                  >
+                    <i className="fas fa-unlink mr-1"></i>
+                  </button>
+                )}
+              </div>
+              {dbStatus.message && (
+                <div className={`text-xs px-3 py-2 rounded-lg ${dbStatus.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  <i className={`fas ${dbStatus.connected ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-1`}></i>
+                  {dbStatus.message}
+                </div>
+              )}
+<div className="text-[10px] text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1.5 rounded">
+                <i className="fas fa-info-circle mr-1"></i>
+                Get your Supabase connection string from Project Settings {'->'} Database {'->'} Connection Pooling
+              </div>
             </div>
           )}
         </div>

@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
 function Sidebar() {
-  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen, theme } = useApp();
+  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen, theme, dbConnected, isItemSavedInDb } = useApp();
   const [historySearch, setHistorySearch] = useState('');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [showClearBtn, setShowClearBtn] = useState(false);
@@ -243,6 +243,11 @@ const filteredHistory = playlistHistory.filter(item => {
                               } text-white`}
                             >
                               {playlist.type === 'courses' ? 'Course' : playlist.type}
+                            </span>
+                          )}
+                          {dbConnected && isItemSavedInDb(playlist.id, playlist.type) && (
+                            <span className="absolute top-0.5 left-1 text-[8px] px-1 rounded bg-orange-500 text-white font-medium">
+                              db
                             </span>
                           )}
                         </div>

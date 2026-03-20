@@ -10,6 +10,7 @@ import ChatPage from './pages/ChatPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import PrivacyPage from './pages/PrivacyPage';
 import CastReceiver from './pages/CastReceiver';
+import { getStoredConnectionString, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, parseConnectionString } from './lib/database';
 import './index.css';
 
 export const AppContext = createContext();
@@ -38,13 +39,16 @@ function App() {
   const [lastSearchResults, setLastSearchResults] = useState({});
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [lastSearchType, setLastSearchType] = useState('');
-  const [notification, setNotification] = useState(null);
+const [notification, setNotification] = useState(null);
   const [forceSearch, setForceSearch] = useState(null);
+  const [dbConnected, setDbConnected] = useState(false);
+  const [dbSavedItems, setDbSavedItems] = useState({});
 
   useEffect(() => {
     loadSavedData();
     loadTheme();
     loadYouTubeAPI();
+    checkDbConnection();
   }, []);
 
   useEffect(() => {
@@ -314,7 +318,33 @@ function App() {
     setCookie('yt_quota', '0');
   };
 
-const addToHistory = (playlist, type = 'playlist') => {
+const checkDbConnection = async () => {
+    const connStr = getStoredConnectionString();
+    if (connStr) {
+      const config = parseConnectionString(connStr);
+      if (config) {
+        setDbConnected(true);
+        loadDbSavedItems();
+      }
+    }
+  };
+
+  const loadDbSavedItems = async () => {
+    const result = await getAllItems();
+    if (result.success && result.items) {
+      const savedMap = {};
+      result.items.forEach(item => {
+        savedMap[`${item.id}_${item.type}`] = true;
+      });
+      setDbSavedItems(savedMap);
+    }
+  };
+
+  const isItemSavedInDb = (id, type) => {
+    return dbSavedItems[`${id}_${type}`] || false;
+  };
+
+const addToHistory = async (playlist, type = 'playlist') => {
     const existingIndex = playlistHistory.findIndex(p => p.id === playlist.id);
     let newHistory;
     const playlistWithType = { ...playlist, type };
@@ -324,10 +354,28 @@ const addToHistory = (playlist, type = 'playlist') => {
       newHistory = [playlistWithType, ...playlistHistory];
     }
     setPlaylistHistory(newHistory);
-    return safeSaveToStorage('yt_playlist_history', JSON.stringify(newHistory));
+    const localSuccess = safeSaveToStorage('yt_playlist_history', JSON.stringify(newHistory));
+
+    if (dbConnected) {
+      let saveResult;
+      if (type === 'video') {
+        saveResult = await saveVideo(playlistWithType);
+      } else if (type === 'live') {
+        saveResult = await saveLive(playlistWithType);
+      } else if (type === 'courses') {
+        saveResult = await saveCourse(playlistWithType);
+      } else {
+        saveResult = await savePlaylist(playlistWithType);
+      }
+      if (saveResult.success) {
+        setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${type}`]: true }));
+      }
+    }
+
+    return localSuccess;
   };
 
-  const addVideoToPlaylist = (video, type = 'video') => {
+  const addVideoToPlaylist = async (video, type = 'video') => {
     const playlist = {
       id: `video_${video.id}_${Date.now()}`,
       title: video.title,
@@ -365,7 +413,7 @@ const addToHistory = (playlist, type = 'playlist') => {
     setCookie('yt_sidebar_collapsed', sidebarCollapsed ? '0' : '1');
   };
 
-  const value = {
+const value = {
     currentPage, setCurrentPage,
     player, setPlayer,
     currentPlaylist, setCurrentPlaylist,
@@ -383,7 +431,8 @@ const addToHistory = (playlist, type = 'playlist') => {
     getCookie, setCookie,
     saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType,
     notification, showNotification,
-    forceSearch, setForceSearch
+    forceSearch, setForceSearch,
+    dbConnected, isItemSavedInDb, loadDbSavedItems
   };
 
   return (
