@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../App';
-import { getStoredConnectionString, saveConnectionString, testConnection, initDatabase, clearConnectionString } from '../lib/database';
+import { getStoredSupabaseUrl, getStoredSupabaseKey, saveSupabaseConfig, clearSupabaseConfig, testConnection, initDatabase, getSupabaseClient } from '../lib/database';
 
 function Settings() {
   const { apiKeys, addApiKey, removeApiKey, currentKeyIndex, setActiveKey, quota, resetQuota, clearHistory, playlistHistory, apiUsage, apiCalls, theme, setTheme, setCurrentPlaylist, showNotification } = useApp();
@@ -14,7 +14,8 @@ function Settings() {
   const [themeExpanded, setThemeExpanded] = useState(false);
   const [clearPlaylistExpanded, setClearPlaylistExpanded] = useState(false);
   const [dbConnectionExpanded, setDbConnectionExpanded] = useState(false);
-  const [dbConnectionString, setDbConnectionString] = useState(getStoredConnectionString());
+  const [supabaseUrl, setSupabaseUrl] = useState(getStoredSupabaseUrl());
+  const [supabaseKey, setSupabaseKey] = useState(getStoredSupabaseKey());
   const [dbStatus, setDbStatus] = useState({ connected: false, checking: false, message: '' });
   const btnRef = useRef(null);
 
@@ -86,46 +87,44 @@ function Settings() {
   const totalUsed = Object.values(apiUsage).reduce((a, b) => a + b, 0);
 
 const handleTestDbConnection = async () => {
-    if (!dbConnectionString.trim()) {
-      setDbStatus({ connected: false, checking: false, message: 'Please enter a connection string' });
+    if (!supabaseUrl.trim() || !supabaseKey.trim()) {
+      setDbStatus({ connected: false, checking: false, message: 'Please enter both URL and Key' });
       return;
     }
 
     setDbStatus({ connected: false, checking: true, message: 'Testing connection...' });
 
-    const result = await testConnection(dbConnectionString.trim());
+    const result = await testConnection(supabaseUrl.trim(), supabaseKey.trim());
     if (result.success) {
       setDbStatus({ connected: true, checking: false, message: 'Connected successfully!' });
-      saveConnectionString(dbConnectionString.trim());
-      const initResult = await initDatabase(dbConnectionString.trim());
-      if (initResult.success) {
-        showNotification('Database connected and initialized!');
-      } else {
-        showNotification('Connected but failed to initialize tables');
-      }
+      saveSupabaseConfig(supabaseUrl.trim(), supabaseKey.trim());
+      showNotification('Database connected!');
     } else {
       setDbStatus({ connected: false, checking: false, message: result.error || 'Connection failed' });
     }
   };
 
   const handleSaveDbConnection = () => {
-    if (dbConnectionString.trim()) {
-      saveConnectionString(dbConnectionString.trim());
+    if (supabaseUrl.trim() && supabaseKey.trim()) {
+      saveSupabaseConfig(supabaseUrl.trim(), supabaseKey.trim());
       showNotification('Database connection saved!');
     }
   };
 
   const handleDisconnectDb = () => {
-    clearConnectionString();
-    setDbConnectionString('');
+    clearSupabaseConfig();
+    setSupabaseUrl('');
+    setSupabaseKey('');
     setDbStatus({ connected: false, checking: false, message: '' });
     showNotification('Database disconnected');
   };
 
   useEffect(() => {
-    const savedConnStr = getStoredConnectionString();
-    if (savedConnStr) {
-      setDbConnectionString(savedConnStr);
+    const savedUrl = getStoredSupabaseUrl();
+    const savedKey = getStoredSupabaseKey();
+    if (savedUrl && savedKey) {
+      setSupabaseUrl(savedUrl);
+      setSupabaseKey(savedKey);
       setDbStatus({ connected: true, checking: false, message: 'Connected' });
     }
   }, []);
@@ -230,7 +229,7 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
           >
 <span>
               <i className="fas fa-database mr-2 text-green-500"></i>
-              Supabase Database
+              Supabase
               {dbStatus.connected && <span className="ml-2 px-1.5 py-0.5 bg-green-500/20 text-green-500 rounded text-[10px]">Connected</span>}
             </span>
             <i className={`fas fa-chevron-${dbConnectionExpanded ? 'up' : 'down'} text-xs`}></i>
@@ -238,13 +237,20 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
           
 {dbConnectionExpanded && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={supabaseUrl}
+                  onChange={(e) => setSupabaseUrl(e.target.value)}
+                  placeholder="Supabase URL (https://xxx.supabase.co)"
+                  className="w-full rounded-lg px-3 py-2 text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
+                />
                 <input
                   type="password"
-                  value={dbConnectionString}
-                  onChange={(e) => setDbConnectionString(e.target.value)}
-                  placeholder="postgresql://user:pass@host:5432/db"
-                  className="flex-1 rounded-lg px-3 py-2 text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
+                  value={supabaseKey}
+                  onChange={(e) => setSupabaseKey(e.target.value)}
+                  placeholder="Supabase anon key"
+                  className="w-full rounded-lg px-3 py-2 text-xs bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
                 />
               </div>
               <div className="flex gap-2">
@@ -279,7 +285,7 @@ const [youtubeApiExpanded, setYoutubeApiExpanded] = useState(false);
               )}
 <div className="text-[10px] text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1.5 rounded">
                 <i className="fas fa-info-circle mr-1"></i>
-                Get your Supabase connection string from Project Settings {'->'} Database {'->'} Connection Pooling
+                Get URL and anon key from Supabase Dashboard {'->'} Settings {'->'} API
               </div>
             </div>
           )}

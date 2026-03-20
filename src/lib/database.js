@@ -1,240 +1,229 @@
-const SUPABASE_DB_KEY = 'yt_supabase_connection_string';
+import { createClient } from '@supabase/supabase-js';
 
-export const getStoredConnectionString = () => {
-  return localStorage.getItem(SUPABASE_DB_KEY) || '';
+const SUPABASE_URL_KEY = 'yt_supabase_url';
+const SUPABASE_KEY_KEY = 'yt_supabase_key';
+
+export const getStoredSupabaseUrl = () => localStorage.getItem(SUPABASE_URL_KEY) || '';
+export const getStoredSupabaseKey = () => localStorage.getItem(SUPABASE_KEY_KEY) || '';
+
+export const saveSupabaseConfig = (url, key) => {
+  localStorage.setItem(SUPABASE_URL_KEY, url);
+  localStorage.setItem(SUPABASE_KEY_KEY, key);
 };
 
-export const saveConnectionString = (connStr) => {
-  localStorage.setItem(SUPABASE_DB_KEY, connStr);
+export const clearSupabaseConfig = () => {
+  localStorage.removeItem(SUPABASE_URL_KEY);
+  localStorage.removeItem(SUPABASE_KEY_KEY);
 };
 
-export const clearConnectionString = () => {
-  localStorage.removeItem(SUPABASE_DB_KEY);
-};
+let supabase = null;
 
-export const parseConnectionString = (connStr) => {
-  connStr = connStr.trim();
-  
-  if (connStr.startsWith('postgresql://') || connStr.startsWith('postgres://')) {
-    const withoutScheme = connStr.replace(/^postgresql:\/\//, '').replace(/^postgres:\/\//, '');
-    const atIndex = withoutScheme.lastIndexOf('@');
-    if (atIndex === -1) return null;
-    
-    const userPass = withoutScheme.substring(0, atIndex);
-    const hostPart = withoutScheme.substring(atIndex + 1);
-    
-    const colonIndex = userPass.indexOf(':');
-    if (colonIndex === -1) return null;
-    
-    const user = userPass.substring(0, colonIndex);
-    const password = userPass.substring(colonIndex + 1);
-    
-    const slashIndex = hostPart.indexOf('/');
-    if (slashIndex === -1) return null;
-    
-    const hostPort = hostPart.substring(0, slashIndex);
-    const database = hostPart.substring(slashIndex + 1);
-    
-    const portColonIndex = hostPort.lastIndexOf(':');
-    if (portColonIndex === -1) return null;
-    
-    return {
-      user,
-      password,
-      host: hostPort.substring(0, portColonIndex),
-      port: parseInt(hostPort.substring(portColonIndex + 1)),
-      database,
-    };
+export const getSupabaseClient = () => {
+  const url = getStoredSupabaseUrl();
+  const key = getStoredSupabaseKey();
+  if (!url || !key) return null;
+  if (!supabase) {
+    supabase = createClient(url, key);
   }
-  
-  return null;
+  return supabase;
 };
 
-const getBaseUrl = () => {
-  return '/api';
-};
-
-export const testConnection = async (connStr) => {
-  const config = parseConnectionString(connStr);
-  if (!config) {
-    return { success: false, error: 'Invalid connection string format' };
-  }
-
+export const testConnection = async (url, key) => {
   try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'test' }),
-    });
-    
-    const text = await response.text();
-    if (!text) {
-      return { success: false, error: 'Empty response from server' };
-    }
-    
-    const data = JSON.parse(text);
-    if (!response.ok) {
-      return { success: false, error: data.error || 'Connection failed' };
-    }
-    
+    const client = createClient(url, key);
+    const { error } = await client.from('playlists').select('id').limit(1);
+    if (error && error.code !== '42P01') throw error;
     return { success: true, message: 'Connected successfully!' };
   } catch (err) {
-    return { success: false, error: err.message || 'Failed to connect' };
+    return { success: false, error: err.message };
   }
 };
 
-export const initDatabase = async (connStr) => {
-  const config = parseConnectionString(connStr);
-  if (!config) return { success: false, error: 'Invalid connection string' };
+export const initDatabase = async () => {
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
 
   try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'init' }),
-    });
-    
-    const text = await response.text();
-    if (!text) {
-      return { success: false, error: 'Empty response from server' };
+    const { error } = await client.from('playlists').select('id').limit(1);
+    if (error && error.code === '42P01') {
+      await client.rpc('exec', {
+        query: `
+          CREATE TABLE IF NOT EXISTS playlists (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            description TEXT,
+            thumbnail TEXT,
+            video_count INTEGER DEFAULT 0,
+            user_id TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+          CREATE TABLE IF NOT EXISTS videos (
+            id TEXT PRIMARY KEY,
+            playlist_id TEXT,
+            title TEXT,
+            description TEXT,
+            thumbnail TEXT,
+            video_id TEXT,
+            position INTEGER,
+            user_id TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+          CREATE TABLE IF NOT EXISTS lives (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            description TEXT,
+            thumbnail TEXT,
+            channel_id TEXT,
+            channel_title TEXT,
+            user_id TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+          CREATE TABLE IF NOT EXISTS courses (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            description TEXT,
+            thumbnail TEXT,
+            video_count INTEGER DEFAULT 0,
+            user_id TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+        `
+      });
     }
-    
-    const data = JSON.parse(text);
-    if (!response.ok) {
-      return { success: false, error: data.error || 'Failed to initialize database' };
-    }
-    
     return { success: true };
   } catch (err) {
     return { success: false, error: err.message };
   }
 };
 
-const getStoredConnStr = () => {
-  return getStoredConnectionString();
-};
-
 export const savePlaylist = async (playlist) => {
-  const connStr = getStoredConnStr();
-  if (!connStr) return { success: false, error: 'No database connection' };
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
 
-  try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'save', data: { type: 'playlist', item: playlist } }),
-    });
-    
-    const data = await response.json();
-    return data;
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const { error } = await client.from('playlists').upsert([{
+    id: playlist.id,
+    title: playlist.title,
+    description: playlist.description,
+    thumbnail: playlist.thumbnail,
+    video_count: playlist.videoCount || playlist.video_count,
+    user_id: playlist.userId || 'default'
+  }], { onConflict: 'id' });
+  
+  if (error) return { success: false, error: error.message };
+  return { success: true };
 };
 
 export const saveVideo = async (video) => {
-  const connStr = getStoredConnStr();
-  if (!connStr) return { success: false, error: 'No database connection' };
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
 
-  try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'save', data: { type: 'video', item: video } }),
-    });
-    
-    const data = await response.json();
-    return data;
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const { error } = await client.from('videos').upsert([{
+    id: video.id,
+    playlist_id: video.playlist_id || video.playlistId,
+    title: video.title,
+    description: video.description,
+    thumbnail: video.thumbnail,
+    video_id: video.videoId || video.video_id,
+    position: video.position,
+    user_id: video.userId || 'default'
+  }], { onConflict: 'id' });
+  
+  if (error) return { success: false, error: error.message };
+  return { success: true };
 };
 
 export const saveLive = async (live) => {
-  const connStr = getStoredConnStr();
-  if (!connStr) return { success: false, error: 'No database connection' };
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
 
-  try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'save', data: { type: 'live', item: live } }),
-    });
-    
-    const data = await response.json();
-    return data;
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const { error } = await client.from('lives').upsert([{
+    id: live.id,
+    title: live.title,
+    description: live.description,
+    thumbnail: live.thumbnail,
+    channel_id: live.channelId || live.channel_id,
+    channel_title: live.channelTitle || live.channel_title,
+    user_id: live.userId || 'default'
+  }], { onConflict: 'id' });
+  
+  if (error) return { success: false, error: error.message };
+  return { success: true };
 };
 
 export const saveCourse = async (course) => {
-  const connStr = getStoredConnStr();
-  if (!connStr) return { success: false, error: 'No database connection' };
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
 
-  try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'save', data: { type: 'course', item: course } }),
-    });
-    
-    const data = await response.json();
-    return data;
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  const { error } = await client.from('courses').upsert([{
+    id: course.id,
+    title: course.title,
+    description: course.description,
+    thumbnail: course.thumbnail,
+    video_count: course.videoCount || course.video_count,
+    user_id: course.userId || 'default'
+  }], { onConflict: 'id' });
+  
+  if (error) return { success: false, error: error.message };
+  return { success: true };
 };
 
 export const getAllItems = async (type = null) => {
-  const connStr = getStoredConnStr();
-  if (!connStr) return { success: false, error: 'No database connection', items: [] };
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured', items: [] };
 
   try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'get', data: { type: type || 'playlist' } }),
-    });
-    
-    const data = await response.json();
-    return data;
+    let table;
+    switch (type) {
+      case 'playlist': table = 'playlists'; break;
+      case 'video': table = 'videos'; break;
+      case 'live': table = 'lives'; break;
+      case 'course': table = 'courses'; break;
+      default: table = 'playlists';
+    }
+    const { data, error } = await client.from(table).select('*');
+    if (error) throw error;
+    return { success: true, items: data || [] };
   } catch (err) {
     return { success: false, error: err.message, items: [] };
   }
 };
 
 export const deleteItem = async (id, type) => {
-  const connStr = getStoredConnStr();
-  if (!connStr) return { success: false, error: 'No database connection' };
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
 
   try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'delete', data: { id, type } }),
-    });
-    
-    const data = await response.json();
-    return data;
+    let table;
+    switch (type) {
+      case 'playlist': table = 'playlists'; break;
+      case 'video': table = 'videos'; break;
+      case 'live': table = 'lives'; break;
+      case 'course': table = 'courses'; break;
+      default: return { success: false, error: 'Unknown type' };
+    }
+    const { error } = await client.from(table).delete().eq('id', id);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
   } catch (err) {
     return { success: false, error: err.message };
   }
 };
 
 export const isPlaylistSavedInDb = async (playlistId, type) => {
-  const connStr = getStoredConnStr();
-  if (!connStr) return false;
+  const client = getSupabaseClient();
+  if (!client) return false;
 
   try {
-    const response = await fetch(`${getBaseUrl()}/db`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connectionString: connStr, action: 'exists', data: { id: playlistId, type } }),
-    });
-    
-    const data = await response.json();
-    return data.exists || false;
+    let table;
+    switch (type) {
+      case 'playlist': table = 'playlists'; break;
+      case 'video': table = 'videos'; break;
+      case 'live': table = 'lives'; break;
+      case 'course': table = 'courses'; break;
+      default: return false;
+    }
+    const { data } = await client.from(table).select('id').eq('id', playlistId).single();
+    return !!data;
   } catch (err) {
     return false;
   }
