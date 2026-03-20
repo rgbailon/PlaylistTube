@@ -287,11 +287,13 @@ function PlayerPage() {
   const [activeTab, setActiveTab] = useState('playlist');
   const [tabAnimating, setTabAnimating] = useState(false);
   const [mobileTab, setMobileTab] = useState('player');
-  const [isFullscreen, setIsFullscreen] = useState(false);
+const [isFullscreen, setIsFullscreen] = useState(false);
   const [immersiveMode, setImmersiveMode] = useState(false);
   const [lastPlaylistUpdate, setLastPlaylistUpdate] = useState(0);
   const [showFullscreenPlaylist, setShowFullscreenPlaylist] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [volume, setVolume] = useState(100);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const playerContainerId = 'youtube-player';
   const playerRef = useRef(null);
   const isCreatingPlayer = useRef(false);
@@ -372,8 +374,9 @@ function PlayerPage() {
       const currentVideo = currentPlaylist[currentVideoIndex];
       if (!currentVideo || !currentVideo.id) return;
       
-      try {
+try {
         playerRef.current.loadVideoById(currentVideo.id);
+        playerRef.current.setVolume(volume);
         setVideoTitle(currentVideo.title);
         setVideoChannel(currentVideo.channelTitle || 'Unknown');
       } catch (err) {
@@ -515,11 +518,13 @@ function PlayerPage() {
           break;
         case 'arrowup':
           e.preventDefault();
-          playerRef.current.setVolume(Math.min(100, playerRef.current.getVolume() + 10));
+playerRef.current.setVolume(Math.min(100, playerRef.current.getVolume() + 10));
+          setVolume(Math.min(100, playerRef.current.getVolume()));
           break;
         case 'arrowdown':
           e.preventDefault();
           playerRef.current.setVolume(Math.max(0, playerRef.current.getVolume() - 10));
+          setVolume(Math.max(0, playerRef.current.getVolume()));
           break;
         case 'f':
           e.preventDefault();
@@ -581,9 +586,10 @@ function PlayerPage() {
     }
   };
 
-  const onPlayerReady = (event) => { 
+const onPlayerReady = (event) => { 
     setPlayer(event.target); 
     setPlayerReady(true); 
+    event.target.setVolume(volume);
   };
   
   const onPlayerStateChange = (event) => {
