@@ -10,7 +10,7 @@ import ChatPage from './pages/ChatPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import PrivacyPage from './pages/PrivacyPage';
 import CastReceiver from './pages/CastReceiver';
-import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems } from './lib/database';
+import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, loadFullPlaylistsFromDb } from './lib/database';
 import './index.css';
 
 export const AppContext = createContext();
@@ -160,6 +160,26 @@ const [notification, setNotification] = useState(null);
       } catch (e) {
         setLastSearchResults({});
       }
+    }
+  };
+
+  const loadFromDatabase = async () => {
+    const result = await loadFullPlaylistsFromDb();
+    if (result.success && result.playlists && result.playlists.length > 0) {
+      const dbPlaylists = result.playlists.map(p => ({
+        ...p,
+        addedAt: p.created_at
+      }));
+      setPlaylistHistory(prev => {
+        const merged = [...prev];
+        dbPlaylists.forEach(dbPlaylist => {
+          const exists = merged.find(p => p.id === dbPlaylist.id);
+          if (!exists) {
+            merged.push(dbPlaylist);
+          }
+        });
+        return merged;
+      });
     }
   };
 
@@ -324,6 +344,7 @@ const checkDbConnection = async () => {
     if (url && key) {
       setDbConnected(true);
       loadDbSavedItems();
+      loadFromDatabase();
     }
   };
 

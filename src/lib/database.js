@@ -67,7 +67,9 @@ export const initDatabase = async () => {
             title TEXT,
             description TEXT,
             thumbnail TEXT,
+            channel_title TEXT,
             video_count INTEGER DEFAULT 0,
+            type TEXT DEFAULT 'playlist',
             user_id TEXT,
             created_at TIMESTAMP DEFAULT NOW()
           );
@@ -77,8 +79,11 @@ export const initDatabase = async () => {
             title TEXT,
             description TEXT,
             thumbnail TEXT,
+            channel_title TEXT,
             video_id TEXT,
             position INTEGER,
+            published_at TEXT,
+            view_count INTEGER DEFAULT 0,
             user_id TEXT,
             created_at TIMESTAMP DEFAULT NOW()
           );
@@ -119,10 +124,40 @@ export const savePlaylist = async (playlist) => {
     title: playlist.title,
     description: playlist.description,
     thumbnail: playlist.thumbnail,
-    video_count: playlist.videoCount || playlist.video_count,
+    channel_title: playlist.channelTitle,
+    video_count: playlist.videoCount || playlist.video_count || (playlist.videos ? playlist.videos.length : 0),
+    type: playlist.type || 'playlist',
     user_id: playlist.userId || 'default'
   }], { onConflict: 'id' });
   
+  if (error) return { success: false, error: error.message };
+
+  if (playlist.videos && playlist.videos.length > 0) {
+    await savePlaylistVideos(playlist.id, playlist.videos);
+  }
+
+  return { success: true };
+};
+
+export const savePlaylistVideos = async (playlistId, videos) => {
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
+
+  const videoRecords = videos.map((v, index) => ({
+    id: v.id || `${playlistId}_video_${index}`,
+    playlist_id: playlistId,
+    title: v.title,
+    description: v.description || '',
+    thumbnail: v.thumbnail,
+    channel_title: v.channelTitle || '',
+    video_id: v.id,
+    position: index,
+    published_at: v.publishedAt || '',
+    view_count: v.viewCount || 0,
+    user_id: 'default'
+  }));
+
+  const { error } = await client.from('videos').upsert(videoRecords, { onConflict: 'id' });
   if (error) return { success: false, error: error.message };
   return { success: true };
 };
@@ -199,6 +234,67 @@ export const getAllItems = async (type = null) => {
     return { success: true, items: data || [] };
   } catch (err) {
     return { success: false, error: err.message, items: [] };
+  }
+};
+
+export const loadFullPlaylistsFromDb = async () => {
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured', playlists: [] };
+
+  try {
+    const { data: playlists, error } = await client.from('playlists').select('*');
+    if (error) throw error;
+    if (!playlists || playlists.length === 0) return { success: true, playlists: [] };
+
+    const { data: allVideos, error: videosError } = await client.from('videos').select('*');
+    if (videosError) throw videosError;
+
+    const videosByPlaylist = {};
+    if (allVideos) {
+      allVideos.forEach(video => {
+        if (!videosByPlaylist[video.playlist_id]) {
+          videosByPlaylist[video.playlist_id] = [];
+        }
+        videosByPlaylist[video.playlist_id].push({
+          id: video.video_id,
+          title: video.title,
+          description: video.description,
+          thumbnail: video.thumbnail,
+          channelTitle: video.channel_title,
+          publishedAt: video.published_at,
+          viewCount: video.view_count,
+          position: video.position
+        });
+      });
+    }
+
+    const fullPlaylists = playlists.map(p => ({
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      thumbnail: p.thumbnail,
+      channelTitle: p.channel_title,
+      videoCount: p.video_count,
+      type: p.type || 'playlist',
+      videos: videosByPlaylist[p.id] || []
+    })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    return { success: true, playlists: fullPlaylists };
+  } catch (err) {
+    return { success: false, error: err.message, playlists: [] };
+  }
+};
+
+export const deletePlaylistWithVideos = async (playlistId) => {
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
+
+  try {
+    await client.from('videos').delete().eq('playlist_id', playlistId);
+    await client.from('playlists').delete().eq('id', playlistId);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
 };
 
