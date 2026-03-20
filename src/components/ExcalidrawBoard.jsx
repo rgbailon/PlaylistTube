@@ -23,11 +23,11 @@ function ExcalidrawBoard() {
   };
 
   return (
-    <div className="excalidraw-wrapper" style={{ height: '100%', minHeight: '300px', background: getBackgroundColor() }}>
+    <div className="excalidraw-wrapper" style={{ height: '100%', minHeight: '300px', background: '#ffffff' }}>
       <Excalidraw
         excalidrawAPI={setExcalidrawAPI}
-        theme={getTheme()}
-        viewBackgroundColor={getBackgroundColor()}
+        theme="light"
+        viewBackgroundColor="#ffffff"
       />
     </div>
   );
