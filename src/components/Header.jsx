@@ -72,7 +72,7 @@ return true;
         return;
       }
       try {
-        const url = `https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`;
+        const url = `/api/suggest?q=${encodeURIComponent(query)}`;
         const res = await fetch(url);
         const text = await res.text();
         const lines = text.split('\n');
