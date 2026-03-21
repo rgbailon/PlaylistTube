@@ -172,15 +172,11 @@ const [dbConnected, setDbConnected] = useState(false);
   };
 
   const loadFromDatabase = async () => {
-    console.log('[DB] loadFromDatabase called');
     try {
       const [playlistsResult, coursesResult] = await Promise.all([
         loadFullPlaylistsFromDb(),
         getAllItems('course')
       ]);
-      
-      console.log('[DB] playlistsResult:', playlistsResult);
-      console.log('[DB] coursesResult:', coursesResult);
       
       const allDbItems = [];
       
@@ -190,7 +186,6 @@ const [dbConnected, setDbConnected] = useState(false);
           addedAt: p.created_at,
           type: p.type || 'playlist'
         }));
-        console.log('[DB] Loaded playlists:', dbPlaylists.length);
         allDbItems.push(...dbPlaylists);
       }
       
@@ -200,7 +195,6 @@ const [dbConnected, setDbConnected] = useState(false);
           addedAt: c.created_at,
           type: 'courses'
         }));
-        console.log('[DB] Loaded courses:', dbCourses.length, 'ids:', dbCourses.map(c => c.id), 'sample:', JSON.stringify(dbCourses[0]));
         allDbItems.push(...dbCourses);
       }
       
@@ -250,8 +244,6 @@ const [dbConnected, setDbConnected] = useState(false);
         });
       }
       
-      console.log('[DB] All DB items:', allDbItems.length);
-      
       if (allDbItems.length > 0) {
         const playlistsNeedingVideos = allDbItems.filter(p => (p.type === 'playlist' || p.type === 'courses') && (!p.videos || p.videos.length === 0));
         
@@ -288,9 +280,7 @@ const [dbConnected, setDbConnected] = useState(false);
           }
         }
         
-        console.log('[DB] Merging allDbItems into history, count:', allDbItems.length);
         setPlaylistHistory(prev => {
-          console.log('[DB] Current history count:', prev.length);
           const merged = [...prev];
           allDbItems.forEach(dbItem => {
             const exists = merged.find(p => p.id === dbItem.id);
@@ -298,11 +288,8 @@ const [dbConnected, setDbConnected] = useState(false);
               merged.push(dbItem);
             }
           });
-          console.log('[DB] Merged history count:', merged.length);
           return merged;
         });
-      } else {
-        console.log('[DB] No items in database or error');
       }
     } catch (err) {
       console.error('[DB] loadFromDatabase error:', err);
@@ -467,7 +454,6 @@ const [dbConnected, setDbConnected] = useState(false);
 const checkDbConnection = async () => {
     const url = getStoredSupabaseUrl();
     const key = getStoredSupabaseKey();
-    console.log('[DB] checkDbConnection - url:', !!url, 'key:', !!key);
     if (url && key) {
       setDbConnected(true);
       setDbLoading(true);
@@ -479,7 +465,6 @@ const checkDbConnection = async () => {
 
 const loadDbSavedItems = async () => {
     const result = await getAllItems();
-    console.log('[DB] loadDbSavedItems result:', result);
     if (result.success && result.items) {
       const savedMap = {};
       result.items.forEach(item => {
@@ -493,8 +478,6 @@ const loadDbSavedItems = async () => {
         savedMap[`${cleanId}_${normalizedType}`] = true;
         savedMap[`${cleanId}_${item.type}`] = true;
       });
-      console.log('[DB] savedMap keys:', Object.keys(savedMap));
-      console.log('[DB] savedMap courses sample:', Object.keys(savedMap).filter(k => k.includes('PLOl4xN4eJVEOWn4gGVyeesXr_TYf2XOAA')));
       setDbSavedItems(savedMap);
     }
   };
@@ -521,17 +504,20 @@ const isDbConfigured = () => !!(getStoredSupabaseUrl() && getStoredSupabaseKey()
     if (isDbConfigured()) {
       let saveResult;
       const normalizedType = type === 'course' ? 'courses' : type;
-      console.log('[DB] addToHistory saving, type:', type, 'normalizedType:', normalizedType);
       if (normalizedType === 'video') {
         saveResult = await saveVideo(playlistWithType);
       } else if (normalizedType === 'live') {
         saveResult = await saveLive(playlistWithType);
       } else if (normalizedType === 'courses') {
         saveResult = await saveCourse(playlistWithType);
+        if (saveResult.success && playlistWithType.videos && playlistWithType.videos.length > 0) {
+          if (typeof showNotification === 'function') {
+            showNotification(`Course saved with ${playlistWithType.videos.length} videos (DB synced)`);
+          }
+        }
       } else {
         saveResult = await savePlaylist(playlistWithType);
       }
-      console.log('[DB] saveResult:', saveResult);
       if (saveResult.success) {
         setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${normalizedType}`]: true }));
       }
@@ -570,10 +556,11 @@ const removeFromHistory = async (id) => {
     
     if (isDbConfigured() && item) {
       const type = item.type || 'playlist';
-      await deleteItem(id, type);
+      const normalizedType = type === 'course' ? 'courses' : type;
+      await deleteItem(id, normalizedType);
       setDbSavedItems(prev => {
         const newMap = { ...prev };
-        delete newMap[`${id}_${type}`];
+        delete newMap[`${id}_${normalizedType}`];
         delete newMap[id];
         return newMap;
       });

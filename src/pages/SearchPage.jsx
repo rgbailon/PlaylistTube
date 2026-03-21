@@ -613,7 +613,7 @@ function SearchPage() {
     }
   };
 
-  const loadTrendingCourses = async () => {
+const loadTrendingCourses = async () => {
     const apiKey = getCurrentApiKey();
     if (!apiKey) {
       setResults([]);
@@ -627,7 +627,7 @@ function SearchPage() {
       const relevanceLang = 'en';
       const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : sortOrder;
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=full+course+complete+tutorial+masterclass&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=full+course+complete+tutorial+masterclass+educational+learn&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
       );
       const data = await resp.json();
       
@@ -820,7 +820,9 @@ if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType 
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
       } else if (searchType === 'courses') {
-        const courseQuery = searchQuery ? `${searchQuery}+course+tutorial` : 'educational+course+tutorial+playlist';
+        const courseQuery = searchQuery 
+          ? `${searchQuery}+full+course+complete+tutorial+masterclass` 
+          : 'full+course+complete+tutorial+masterclass+educational+learn';
         const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
       }
