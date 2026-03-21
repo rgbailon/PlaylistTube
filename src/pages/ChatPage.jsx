@@ -83,7 +83,12 @@ function ChatPage() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    localStorage.setItem('yt_chat_conversations', JSON.stringify(conversations));
+    try {
+      const trimmed = conversations.slice(0, 50);
+      localStorage.setItem('yt_chat_conversations', JSON.stringify(trimmed));
+    } catch (e) {
+      console.warn('Failed to save conversations to localStorage:', e);
+    }
   }, [conversations]);
 
   useEffect(() => {
@@ -96,9 +101,9 @@ function ChatPage() {
 
   const createNewConversation = () => {
     const newConv = {
-      id: Date.now(),
+      id: generateId(),
       title: 'New Chat',
-      messages: [{ id: Date.now(), role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?", timestamp: new Date() }],
+      messages: [{ id: generateId(), role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?", timestamp: new Date() }],
       createdAt: new Date()
     };
     setConversations(prev => [newConv, ...prev]);
@@ -129,7 +134,7 @@ function ChatPage() {
         c.id === currentConversationId ? { ...c, title, messages } : c
       ));
     } else {
-      const newConv = { id: Date.now(), title, messages, createdAt: new Date() };
+      const newConv = { id: generateId(), title, messages, createdAt: new Date() };
       setConversations(prev => [newConv, ...prev]);
       setCurrentConversationId(newConv.id);
     }
@@ -160,11 +165,13 @@ function ChatPage() {
       .trim();
   };
 
+  const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
-    const userMessage = { id: Date.now(), role: 'user', content: input.trim(), timestamp: new Date() };
-    const tempAssistantMessage = { id: Date.now() + 1, role: 'assistant', content: '', timestamp: new Date() };
+    const userMessage = { id: generateId(), role: 'user', content: input.trim(), timestamp: new Date() };
+    const tempAssistantMessage = { id: generateId(), role: 'assistant', content: '', timestamp: new Date() };
 
     const newMessages = [...messages, userMessage, tempAssistantMessage];
     setMessages(newMessages);
@@ -248,7 +255,7 @@ function ChatPage() {
         if (currentConversationId) {
           setConversations(c => c.map(c => c.id === currentConversationId ? { ...c, title, messages: updated } : c));
         } else {
-          const newConv = { id: Date.now(), title, messages: updated, createdAt: new Date() };
+          const newConv = { id: generateId(), title, messages: updated, createdAt: new Date() };
           setConversations(c => [newConv, ...c]);
           setCurrentConversationId(newConv.id);
         }
