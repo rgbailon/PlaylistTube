@@ -172,7 +172,9 @@ const [dbConnected, setDbConnected] = useState(false);
   };
 
   const loadFromDatabase = async () => {
+    console.log('Loading from database...');
     const result = await loadFullPlaylistsFromDb();
+    console.log('Database result:', result);
     if (result.success && result.playlists && result.playlists.length > 0) {
       const dbPlaylists = result.playlists.map(p => ({
         ...p,
@@ -385,10 +387,11 @@ const [dbConnected, setDbConnected] = useState(false);
 const checkDbConnection = async () => {
     const url = getStoredSupabaseUrl();
     const key = getStoredSupabaseKey();
+    console.log('Checking DB connection:', { hasUrl: !!url, hasKey: !!key });
     if (url && key) {
       setDbConnected(true);
       setDbLoading(true);
-      loadDbSavedItems();
+      await loadDbSavedItems();
       await loadFromDatabase();
       setDbLoading(false);
     }

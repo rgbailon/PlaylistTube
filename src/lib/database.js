@@ -23,21 +23,31 @@ export const parseConnectionString = (connStr) => {
 export const saveSupabaseConfig = (url, key) => {
   localStorage.setItem(SUPABASE_URL_KEY, url);
   localStorage.setItem(SUPABASE_KEY_KEY, key);
+  supabase = null;
+  cachedUrl = '';
+  cachedKey = '';
 };
 
 export const clearSupabaseConfig = () => {
   localStorage.removeItem(SUPABASE_URL_KEY);
   localStorage.removeItem(SUPABASE_KEY_KEY);
+  supabase = null;
+  cachedUrl = '';
+  cachedKey = '';
 };
 
 let supabase = null;
+let cachedUrl = '';
+let cachedKey = '';
 
 export const getSupabaseClient = () => {
   const url = getStoredSupabaseUrl();
   const key = getStoredSupabaseKey();
   if (!url || !key) return null;
-  if (!supabase) {
+  if (!supabase || cachedUrl !== url || cachedKey !== key) {
     supabase = createClient(url, key);
+    cachedUrl = url;
+    cachedKey = key;
   }
   return supabase;
 };
