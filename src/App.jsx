@@ -10,7 +10,7 @@ import ChatPage from './pages/ChatPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import PrivacyPage from './pages/PrivacyPage';
 import CastReceiver from './pages/CastReceiver';
-import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, loadFullPlaylistsFromDb } from './lib/database';
+import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, loadFullPlaylistsFromDb, deleteItem } from './lib/database';
 import './index.css';
 
 export const AppContext = createContext();
@@ -562,10 +562,22 @@ const isDbConfigured = () => !!(getStoredSupabaseUrl() && getStoredSupabaseKey()
     deleteCookie('yt_playlist_history');
   };
 
-  const removeFromHistory = (id) => {
+const removeFromHistory = async (id) => {
+    const item = playlistHistory.find(p => p.id === id);
     const newHistory = playlistHistory.filter(p => p.id !== id);
     setPlaylistHistory(newHistory);
     safeSaveToStorage('yt_playlist_history', JSON.stringify(newHistory));
+    
+    if (isDbConfigured() && item) {
+      const type = item.type || 'playlist';
+      await deleteItem(id, type);
+      setDbSavedItems(prev => {
+        const newMap = { ...prev };
+        delete newMap[`${id}_${type}`];
+        delete newMap[id];
+        return newMap;
+      });
+    }
   };
 
   const deleteCookie = (name) => {
