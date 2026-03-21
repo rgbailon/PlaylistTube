@@ -329,7 +329,8 @@ export const deleteItem = async (id, type) => {
 
   try {
     let table;
-    switch (type) {
+    const normalizedType = type === 'courses' ? 'course' : type;
+    switch (normalizedType) {
       case 'playlist': table = 'playlists'; break;
       case 'video': table = 'videos'; break;
       case 'live': table = 'lives'; break;
@@ -338,6 +339,11 @@ export const deleteItem = async (id, type) => {
     }
     const { error } = await client.from(table).delete().eq('id', id);
     if (error) return { success: false, error: error.message };
+    
+    if (normalizedType === 'course' || normalizedType === 'playlist') {
+      await client.from('videos').delete().eq('playlist_id', id);
+    }
+    
     return { success: true };
   } catch (err) {
     return { success: false, error: err.message };
