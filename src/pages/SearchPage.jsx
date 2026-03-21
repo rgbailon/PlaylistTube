@@ -625,9 +625,9 @@ const loadTrendingCourses = async () => {
     setError(null);
     try {
       const relevanceLang = 'en';
-      const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : sortOrder;
+      const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=complete+course+full+tutorial+masterclass+learn+programming+development&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=course+tutorial+complete+learn+programming&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
       );
       const data = await resp.json();
 
@@ -703,8 +703,8 @@ if (!activeQuery.trim()) {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       } else if (activeType === 'courses') {
         const courseQuery = activeQuery 
-          ? `${encodeURIComponent(activeQuery)}+complete+course+full+tutorial+masterclass+programming`
-          : 'complete+course+full+tutorial+masterclass+programming+development+learn';
+          ? `${encodeURIComponent(activeQuery)}+course+tutorial+complete+playlist`
+          : 'course+tutorial+complete+learn+programming';
         const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       }
@@ -825,11 +825,11 @@ if (!activeQuery.trim()) {
 } else if (searchType === 'shorts_playlist') {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
-      } else if (searchType === 'courses') {
-        const courseQuery = searchQuery 
-          ? `${encodeURIComponent(searchQuery)}+complete+course+full+tutorial+masterclass+programming`
-          : 'complete+course+full+tutorial+masterclass+programming+development+learn+skills';
-        const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : 'relevance';
+} else if (searchType === 'courses') {
+        const courseQuery = activeQuery 
+          ? `${encodeURIComponent(activeQuery)}+course+tutorial+complete+playlist`
+          : 'course+tutorial+complete+learn+programming';
+        const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
       }
       
