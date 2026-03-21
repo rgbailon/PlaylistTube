@@ -170,6 +170,42 @@ const [notification, setNotification] = useState(null);
         ...p,
         addedAt: p.created_at
       }));
+      
+      const playlistsNeedingVideos = dbPlaylists.filter(p => !p.videos || p.videos.length === 0);
+      
+      for (const playlist of playlistsNeedingVideos) {
+        const apiKey = getCurrentApiKey();
+        if (apiKey && playlist.id) {
+          try {
+            const resp = await fetch(
+              `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlist.id}&key=${apiKey}`
+            );
+            const data = await resp.json();
+            if (data.items && data.items.length > 0) {
+              const videos = data.items
+                .filter(item => item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId)
+                .map((item, index) => ({
+                  id: item.snippet.resourceId.videoId,
+                  title: item.snippet.title,
+                  description: item.snippet.description,
+                  thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                  channelTitle: item.snippet.channelTitle,
+                  publishedAt: item.snippet.publishedAt,
+                  viewCount: 0,
+                }));
+              
+              const playlistIndex = dbPlaylists.findIndex(p => p.id === playlist.id);
+              if (playlistIndex !== -1) {
+                dbPlaylists[playlistIndex].videos = videos;
+                dbPlaylists[playlistIndex].videoCount = videos.length;
+              }
+            }
+          } catch (err) {
+            console.error('Failed to fetch videos for playlist:', playlist.id, err);
+          }
+        }
+      }
+      
       setPlaylistHistory(prev => {
         const merged = [...prev];
         dbPlaylists.forEach(dbPlaylist => {
