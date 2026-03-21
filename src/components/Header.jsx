@@ -48,8 +48,8 @@ function Header() {
 
 const navItems = [
     { id: 'main', path: '/', icon: 'fa-play', label: 'Player' },
-    { id: 'search', path: '/search', icon: 'fa-search', label: 'Search Videos' },
-    { id: 'chat', path: '/chat', icon: 'fa-robot', label: 'AI Chat' },
+    { id: 'search', path: '/search', icon: 'fa-search', label: 'Videos' },
+    { id: 'chat', path: '/chat', icon: 'fa-robot', label: 'Chat' },
     { id: 'whiteboard', path: '/whiteboard', icon: 'fa-pen', label: 'Whiteboard' },
     { id: 'privacy', path: '/privacy', icon: 'fa-shield-alt', label: 'Privacy' },
   ];

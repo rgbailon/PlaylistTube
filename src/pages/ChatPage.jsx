@@ -79,7 +79,11 @@ function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false);
+
+  useEffect(() => {
+    setShowSidebar(false);
+  }, []);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -277,9 +281,16 @@ function ChatPage() {
   const formatTime = (date) => new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="h-[calc(100vh-48px)] flex" style={{ background: 'var(--bg-main)' }}>
+    <div className="h-[calc(100vh-48px)] flex relative" style={{ background: 'var(--bg-main)' }}>
+      {/* Mobile Overlay */}
+      {showSidebar && (
+        <div 
+          className="md:hidden fixed inset-0 z-30 bg-black/50" 
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
       {/* Sidebar */}
-      <div className={`${showSidebar ? 'w-64' : 'w-0'} flex-shrink-0 transition-all duration-300 overflow-hidden flex flex-col`} style={{ background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)' }}>
+      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:relative z-40 h-full w-64 flex-shrink-0 transition-transform duration-300 overflow-hidden flex flex-col`} style={{ background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)' }}>
         <div className="p-3 flex-shrink-0">
           <button
             onClick={createNewConversation}
@@ -329,7 +340,7 @@ function ChatPage() {
             </button>
             <h2 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
               <i className="fas fa-robot mr-2" style={{ color: 'var(--accent-color)' }}></i>
-              AI Chat
+              Chat
             </h2>
           </div>
           <div className="flex items-center gap-1">
@@ -470,7 +481,7 @@ function ChatPage() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
                 <i className="fas fa-cog mr-2" style={{ color: 'var(--accent-color)' }}></i>
-                AI Chat Settings
+                Chat Settings
               </h3>
               <button onClick={() => setShowSettings(false)} className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)]" style={{ color: 'var(--text-muted)' }}>
                 <i className="fas fa-times"></i>

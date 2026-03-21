@@ -1,9 +1,8 @@
-import { useApp } from '../App';
 import ExcalidrawBoard from '../components/ExcalidrawBoard';
 
 function WhiteboardPage() {
   return (
-    <div className="h-[calc(100vh-48px)] flex flex-col" style={{ background: 'var(--bg-main)' }}>
+    <div className="h-[calc(100vh-48px)] w-full flex flex-col" style={{ background: '#ffffff' }}>
       <ExcalidrawBoard />
     </div>
   );

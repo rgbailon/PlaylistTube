@@ -1128,8 +1128,8 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
           title: playlist.snippet.title,
           channelTitle: playlist.snippet.channelTitle,
           thumbnail: playlist.snippet.thumbnails?.medium?.url,
-          videos: newVideos,
-          videoCount: newVideos.length,
+          videos: allVideos,
+          videoCount: allVideos.length,
         };
         addToHistory(playlistData, searchType);
         

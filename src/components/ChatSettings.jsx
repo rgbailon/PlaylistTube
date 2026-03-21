@@ -267,7 +267,7 @@ const presets = [
     <div className="p-2 sm:p-3 rounded-lg border mb-2 sm:mb-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border-color)' }}>
       <h3 className="text-xs sm:text-sm font-semibold mb-2 sm:mb-3 flex items-center gap-2" style={{ color: 'var(--text-main)' }}>
         <i className="fas fa-robot text-purple-500"></i>
-        AI Chat Settings
+        Chat Settings
       </h3>
 
       <div className="space-y-2 sm:space-y-3">
