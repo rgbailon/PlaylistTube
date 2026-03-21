@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useApp } from '../App';
+import typeahead from 'typeahead-standalone';
 
 function SearchPage() {
   const { getCurrentApiKey, updateQuota, setCurrentPlaylist, setCurrentVideoIndex, addToHistory, currentPlaylist, checkAndSwitchApiKey, switchToNextApiKey, apiKeys, saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType, addVideoToPlaylist, forceSearch, setForceSearch, theme } = useApp();
@@ -33,6 +34,8 @@ function SearchPage() {
   const searchTriggeredRef = useRef(false);
   const initialLoadRef = useRef(false);
   const explicitSearchRef = useRef(false);
+  const searchInputRef = useRef(null);
+  const typeaheadInstanceRef = useRef(null);
 
   const getDetectedRegion = () => {
     const saved = localStorage.getItem('userRegion');
@@ -154,52 +157,72 @@ function SearchPage() {
   };
 
   useEffect(() => {
-    const fetchSuggestions = async (query) => {
-      if (!query.trim() || query.length < 2 || searchTriggeredRef.current) {
-        setSuggestions([]);
+    if (!searchInputRef.current) return;
+
+    const fetchYoutubeSuggestions = (query, callback) => {
+      if (!query.trim() || query.length < 2) {
+        callback([]);
         return;
       }
-      try {
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const url = isLocalhost 
-          ? `https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`
-          : `/api/suggest?q=${encodeURIComponent(query)}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        
-        if (!text || text.includes('<!DOCTYPE') || text.includes('<html')) {
-          setSuggestions([]);
-          return;
-        }
-        
-        const lines = text.split('\n');
-        const suggestions = [];
-        for (const line of lines) {
-          const matches = line.match(/"([^"]+)"/g);
-          if (matches) {
-            for (const m of matches) {
-              let val = m.replace(/"/g, '');
-              try { val = JSON.parse('"' + val + '"'); } catch(e) {}
-              val = val.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-              if (val && val.length >= 2 && !val.includes('window.') && /[a-zA-Z]/.test(val)) {
-                suggestions.push(val);
+      const url = `https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`;
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          if (!text || text.includes('<!DOCTYPE') || text.includes('<html')) {
+            callback([]);
+            return;
+          }
+          const lines = text.split('\n');
+          const results = [];
+          for (const line of lines) {
+            const matches = line.match(/"([^"]+)"/g);
+            if (matches) {
+              for (const m of matches) {
+                let val = m.replace(/"/g, '');
+                try { val = JSON.parse('"' + val + '"'); } catch(e) {}
+                val = val.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                if (val && val.length >= 2 && !val.includes('window.') && /[a-zA-Z]/.test(val)) {
+                  results.push(val);
+                }
               }
             }
           }
-        }
-        const unique = [...new Set(suggestions)].slice(0, 6);
-        setSuggestions(unique);
-      } catch (err) {
-        setSuggestions([]);
-      }
+          callback([...new Set(results)].slice(0, 6));
+        })
+        .catch(() => callback([]));
     };
 
-    const timeoutId = setTimeout(() => {
-      fetchSuggestions(searchQuery);
-    }, 300);
+    typeaheadInstanceRef.current = typeahead({
+      input: searchInputRef.current,
+      minLength: 2,
+      limit: 6,
+      autoSelect: false,
+      highlight: true,
+      source: {
+        youtube: {
+          data: (query, callback) => fetchYoutubeSuggestions(query, callback),
+        },
+      },
+      callback: {
+        onClick: (ev, item) => {
+          ev.preventDefault();
+          handleSelectSuggestion(item);
+        },
+        onSubmit: (ev, item) => {
+          if (item) {
+            handleSelectSuggestion(item);
+          }
+        },
+      },
+    });
 
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+    return () => {
+      if (typeaheadInstanceRef.current) {
+        typeaheadInstanceRef.current.destroy();
+        typeaheadInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {

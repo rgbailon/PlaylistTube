@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import LiveChat from './LiveChat';
 import Settings from './Settings';
+import typeahead from 'typeahead-standalone';
 
 function Header() {
   const { apiKeys, quota, setCurrentPlaylist, setCurrentVideoIndex, mobileSidebarOpen, setMobileSidebarOpen, currentPlaylist, currentVideoIndex, getCurrentApiKey, settingsOpen, setSettingsOpen, setForceSearch } = useApp();
@@ -25,6 +26,8 @@ function Header() {
   });
   const [searchTimeFilter, setSearchTimeFilter] = useState('all');
   const headerSearchTriggeredRef = useRef(false);
+  const searchInputRef = useRef(null);
+  const typeaheadInstanceRef = useRef(null);
 
   const getDetectedRegion = () => {
     const saved = localStorage.getItem('userRegion');
@@ -62,46 +65,75 @@ const navItems = [
     if (gibberishPattern.test(text)) return false;
     const randomChars = text.replace(/[a-zA-Z0-9\s]/g, '').length;
     if (randomChars > text.length * 0.3) return false;
-    return true;
+return true;
   };
 
   useEffect(() => {
-    const fetchSuggestions = async (query) => {
-      if (!query.trim() || query.length < 2 || headerSearchTriggeredRef.current) {
-        setSuggestions([]);
+    if (!searchFocused || !searchInputRef.current) return;
+
+    const fetchYoutubeSuggestions = (query, callback) => {
+      if (!query.trim() || query.length < 2) {
+        callback([]);
         return;
       }
-      try {
-const url = `https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        const lines = text.split('\n');
-        const suggestions = [];
-        for (const line of lines) {
-          const matches = line.match(/"([^"]+)"/g);
-          if (matches) {
-            for (const m of matches) {
-              let val = m.replace(/"/g, '');
-              try { val = JSON.parse('"' + val + '"'); } catch(e) {}
-              if (isValidSuggestion(val)) {
-                suggestions.push(val);
+      const url = `https://corsproxy.io/?https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`;
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          const lines = text.split('\n');
+          const results = [];
+          for (const line of lines) {
+            const matches = line.match(/"([^"]+)"/g);
+            if (matches) {
+              for (const m of matches) {
+                let val = m.replace(/"/g, '');
+                try { val = JSON.parse('"' + val + '"'); } catch(e) {}
+                if (isValidSuggestion(val)) {
+                  results.push(val);
+                }
               }
             }
           }
-        }
-        const unique = [...new Set(suggestions)].slice(0, 6);
-        setSuggestions(unique);
-      } catch (err) {
-        setSuggestions([]);
-      }
+          callback([...new Set(results)].slice(0, 6));
+        })
+        .catch(() => callback([]));
     };
 
-    const timeoutId = setTimeout(() => {
-      fetchSuggestions(videoSearchQuery);
-    }, 10);
+    typeaheadInstanceRef.current = typeahead({
+      input: searchInputRef.current,
+      minLength: 2,
+      limit: 6,
+      autoSelect: false,
+      highlight: true,
+      source: {
+        youtube: {
+          data: (query, callback) => fetchYoutubeSuggestions(query, callback),
+        },
+      },
+      callback: {
+        onClick: (ev, item) => {
+          ev.preventDefault();
+          handleSelectSuggestion(item);
+          setSearchFocused(false);
+        },
+        onSubmit: (ev, item) => {
+          if (item) {
+            handleSelectSuggestion(item);
+          } else {
+            handleVideoSearch(ev);
+          }
+          setSearchFocused(false);
+        },
+      },
+    });
 
-    return () => clearTimeout(timeoutId);
-  }, [videoSearchQuery]);
+    return () => {
+      if (typeaheadInstanceRef.current) {
+        typeaheadInstanceRef.current.destroy();
+        typeaheadInstanceRef.current = null;
+      }
+    };
+  }, [searchFocused]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -437,37 +469,12 @@ const url = `https://corsproxy.io/?https://suggestqueries.google.com/complete/se
               <div className="flex flex-col gap-4 p-2 md:p-3">
               <div className="flex items-center justify-center gap-2">
                 <i className="fas fa-search text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
-                <input
+<input
+                  ref={searchInputRef}
                   placeholder="Search video or paste URL..."
-                  className="flex-1 bg-transparent border-none outline-none text-sm text-center w-full font-medium"
+                  className="flex-1 bg-transparent border-none outline-none text-sm text-center w-full font-medium typeahead-input"
                   type="text"
-                  value={videoSearchQuery}
-                  onChange={(e) => {
-                    setVideoSearchQuery(e.target.value);
-                    setSelectedIndex(-1);
-                  }}
-                  onKeyDown={(e) => {
-                    if (suggestions.length > 0) {
-                      if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
-                      } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        setSelectedIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
-                      } else if (e.key === 'Enter' && selectedIndex >= 0) {
-                        e.preventDefault();
-                        handleSelectSuggestion(suggestions[selectedIndex]);
-                        setSearchFocused(false);
-                        return;
-                      }
-                    }
-                    if (e.key === 'Enter') {
-                      handleVideoSearch(e);
-                      setSearchFocused(false);
-                    } else if (e.key === 'Escape') {
-                      setSearchFocused(false);
-                    }
-                  }}
+                  defaultValue={videoSearchQuery}
                   style={{ color: '#ffffff' }}
                   autoFocus
                 />
