@@ -172,60 +172,140 @@ const [dbConnected, setDbConnected] = useState(false);
   };
 
   const loadFromDatabase = async () => {
-    console.log('Loading from database...');
-    const result = await loadFullPlaylistsFromDb();
-    console.log('Database result:', result);
-    if (result.success && result.playlists && result.playlists.length > 0) {
-      const dbPlaylists = result.playlists.map(p => ({
-        ...p,
-        addedAt: p.created_at
-      }));
+    console.log('[DB] loadFromDatabase called');
+    try {
+      const [playlistsResult, coursesResult] = await Promise.all([
+        loadFullPlaylistsFromDb(),
+        getAllItems('course')
+      ]);
       
-      const playlistsNeedingVideos = dbPlaylists.filter(p => !p.videos || p.videos.length === 0);
+      console.log('[DB] playlistsResult:', playlistsResult);
+      console.log('[DB] coursesResult:', coursesResult);
       
-      for (const playlist of playlistsNeedingVideos) {
-        const apiKey = getCurrentApiKey();
-        if (apiKey && playlist.id) {
-          try {
-            const resp = await fetch(
-              `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlist.id}&key=${apiKey}`
-            );
-            const data = await resp.json();
-            if (data.items && data.items.length > 0) {
-              const videos = data.items
-                .filter(item => item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId)
-                .map((item, index) => ({
-                  id: item.snippet.resourceId.videoId,
-                  title: item.snippet.title,
-                  description: item.snippet.description,
-                  thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-                  channelTitle: item.snippet.channelTitle,
-                  publishedAt: item.snippet.publishedAt,
-                  viewCount: 0,
-                }));
-              
-              const playlistIndex = dbPlaylists.findIndex(p => p.id === playlist.id);
-              if (playlistIndex !== -1) {
-                dbPlaylists[playlistIndex].videos = videos;
-                dbPlaylists[playlistIndex].videoCount = videos.length;
-              }
-            }
-          } catch (err) {
-            console.error('Failed to fetch videos for playlist:', playlist.id, err);
-          }
-        }
+      const allDbItems = [];
+      
+      if (playlistsResult.success && playlistsResult.playlists) {
+        const dbPlaylists = playlistsResult.playlists.map(p => ({
+          ...p,
+          addedAt: p.created_at,
+          type: p.type || 'playlist'
+        }));
+        console.log('[DB] Loaded playlists:', dbPlaylists.length);
+        allDbItems.push(...dbPlaylists);
       }
       
-      setPlaylistHistory(prev => {
-        const merged = [...prev];
-        dbPlaylists.forEach(dbPlaylist => {
-          const exists = merged.find(p => p.id === dbPlaylist.id);
-          if (!exists) {
-            merged.push(dbPlaylist);
+      if (coursesResult.success && coursesResult.items) {
+        const dbCourses = coursesResult.items.map(c => ({
+          ...c,
+          addedAt: c.created_at,
+          type: 'courses'
+        }));
+        console.log('[DB] Loaded courses:', dbCourses.length, 'ids:', dbCourses.map(c => c.id), 'sample:', JSON.stringify(dbCourses[0]));
+        allDbItems.push(...dbCourses);
+      }
+      
+      const [playlistsResult2, coursesResult2] = await Promise.all([
+        getAllItems('playlist'),
+        getAllItems('course')
+      ]);
+      
+      const videosResult = await getAllItems();
+      const videosByPlaylistId = {};
+      if (videosResult.success && videosResult.items) {
+        videosResult.items.forEach(v => {
+          if (v.playlist_id) {
+            if (!videosByPlaylistId[v.playlist_id]) {
+              videosByPlaylistId[v.playlist_id] = [];
+            }
+            videosByPlaylistId[v.playlist_id].push({
+              id: v.video_id || v.id,
+              title: v.title,
+              description: v.description,
+              thumbnail: v.thumbnail,
+              channelTitle: v.channel_title,
+              publishedAt: v.published_at,
+              viewCount: v.view_count
+            });
           }
         });
-        return merged;
-      });
+      }
+      
+      if (playlistsResult2.success && playlistsResult2.items) {
+        playlistsResult2.items.forEach(p => {
+          const existing = allDbItems.find(i => i.id === p.id && i.type === 'playlist');
+          if (existing && videosByPlaylistId[p.id]) {
+            existing.videos = videosByPlaylistId[p.id];
+            existing.videoCount = videosByPlaylistId[p.id].length;
+          }
+        });
+      }
+      
+      if (coursesResult2.success && coursesResult2.items) {
+        coursesResult2.items.forEach(c => {
+          const existing = allDbItems.find(i => i.id === c.id && i.type === 'courses');
+          if (existing && videosByPlaylistId[c.id]) {
+            existing.videos = videosByPlaylistId[c.id];
+            existing.videoCount = videosByPlaylistId[c.id].length;
+          }
+        });
+      }
+      
+      console.log('[DB] All DB items:', allDbItems.length);
+      
+      if (allDbItems.length > 0) {
+        const playlistsNeedingVideos = allDbItems.filter(p => (p.type === 'playlist' || p.type === 'courses') && (!p.videos || p.videos.length === 0));
+        
+        for (const playlist of playlistsNeedingVideos) {
+          const apiKey = getCurrentApiKey();
+          if (apiKey && playlist.id) {
+            try {
+              const resp = await fetch(
+                `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlist.id}&key=${apiKey}`
+              );
+              const data = await resp.json();
+              if (data.items && data.items.length > 0) {
+                const videos = data.items
+                  .filter(item => item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId)
+                  .map((item, index) => ({
+                    id: item.snippet.resourceId.videoId,
+                    title: item.snippet.title,
+                    description: item.snippet.description,
+                    thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                    channelTitle: item.snippet.channelTitle,
+                    publishedAt: item.snippet.publishedAt,
+                    viewCount: 0,
+                  }));
+                
+                const playlistIndex = allDbItems.findIndex(p => p.id === playlist.id);
+                if (playlistIndex !== -1) {
+                  allDbItems[playlistIndex].videos = videos;
+                  allDbItems[playlistIndex].videoCount = videos.length;
+                }
+              }
+            } catch (err) {
+              console.error('Failed to fetch videos for playlist:', playlist.id, err);
+            }
+          }
+        }
+        
+        console.log('[DB] Merging allDbItems into history, count:', allDbItems.length);
+        setPlaylistHistory(prev => {
+          console.log('[DB] Current history count:', prev.length);
+          const merged = [...prev];
+          allDbItems.forEach(dbItem => {
+            const exists = merged.find(p => p.id === dbItem.id);
+            if (!exists) {
+              merged.push(dbItem);
+            }
+          });
+          console.log('[DB] Merged history count:', merged.length);
+          return merged;
+        });
+      } else {
+        console.log('[DB] No items in database or error');
+      }
+    } catch (err) {
+      console.error('[DB] loadFromDatabase error:', err);
     }
   };
 
@@ -387,7 +467,7 @@ const [dbConnected, setDbConnected] = useState(false);
 const checkDbConnection = async () => {
     const url = getStoredSupabaseUrl();
     const key = getStoredSupabaseKey();
-    console.log('Checking DB connection:', { hasUrl: !!url, hasKey: !!key });
+    console.log('[DB] checkDbConnection - url:', !!url, 'key:', !!key);
     if (url && key) {
       setDbConnected(true);
       setDbLoading(true);
@@ -397,22 +477,36 @@ const checkDbConnection = async () => {
     }
   };
 
-  const loadDbSavedItems = async () => {
+const loadDbSavedItems = async () => {
     const result = await getAllItems();
+    console.log('[DB] loadDbSavedItems result:', result);
     if (result.success && result.items) {
       const savedMap = {};
       result.items.forEach(item => {
-        savedMap[`${item.id}_${item.type}`] = true;
+        let cleanId = item.id;
+        if (cleanId.endsWith('_playlist') || cleanId.endsWith('_video') || cleanId.endsWith('_live') || cleanId.endsWith('_course')) {
+          cleanId = cleanId.slice(0, cleanId.lastIndexOf('_'));
+        }
+        const normalizedType = item.type === 'course' ? 'courses' : item.type;
+        savedMap[cleanId] = true;
+        savedMap[item.id] = true;
+        savedMap[`${cleanId}_${normalizedType}`] = true;
+        savedMap[`${cleanId}_${item.type}`] = true;
       });
+      console.log('[DB] savedMap keys:', Object.keys(savedMap));
+      console.log('[DB] savedMap courses sample:', Object.keys(savedMap).filter(k => k.includes('PLOl4xN4eJVEOWn4gGVyeesXr_TYf2XOAA')));
       setDbSavedItems(savedMap);
     }
   };
 
-  const isItemSavedInDb = (id, type) => {
-    return dbSavedItems[`${id}_${type}`] || false;
+const isItemSavedInDb = (id, type) => {
+    const normalizedType = type === 'courses' ? 'course' : type;
+    return !!(dbSavedItems[id] || dbSavedItems[`${id}_${type}`] || dbSavedItems[`${id}_${normalizedType}`]);
   };
 
-const addToHistory = async (playlist, type = 'playlist') => {
+const isDbConfigured = () => !!(getStoredSupabaseUrl() && getStoredSupabaseKey());
+
+  const addToHistory = async (playlist, type = 'playlist') => {
     const existingIndex = playlistHistory.findIndex(p => p.id === playlist.id);
     let newHistory;
     const playlistWithType = { ...playlist, type };
@@ -424,19 +518,22 @@ const addToHistory = async (playlist, type = 'playlist') => {
     setPlaylistHistory(newHistory);
     const localSuccess = safeSaveToStorage('yt_playlist_history', JSON.stringify(newHistory));
 
-    if (dbConnected) {
+    if (isDbConfigured()) {
       let saveResult;
-      if (type === 'video') {
+      const normalizedType = type === 'course' ? 'courses' : type;
+      console.log('[DB] addToHistory saving, type:', type, 'normalizedType:', normalizedType);
+      if (normalizedType === 'video') {
         saveResult = await saveVideo(playlistWithType);
-      } else if (type === 'live') {
+      } else if (normalizedType === 'live') {
         saveResult = await saveLive(playlistWithType);
-      } else if (type === 'courses') {
+      } else if (normalizedType === 'courses') {
         saveResult = await saveCourse(playlistWithType);
       } else {
         saveResult = await savePlaylist(playlistWithType);
       }
+      console.log('[DB] saveResult:', saveResult);
       if (saveResult.success) {
-        setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${type}`]: true }));
+        setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${normalizedType}`]: true }));
       }
     }
 

@@ -68,58 +68,34 @@ export const initDatabase = async () => {
   if (!client) return { success: false, error: 'Not configured' };
 
   try {
-    const { error } = await client.from('playlists').select('id').limit(1);
-    if (error && error.code === '42P01') {
-      await client.rpc('exec', {
-        query: `
-          CREATE TABLE IF NOT EXISTS playlists (
-            id TEXT PRIMARY KEY,
-            title TEXT,
-            description TEXT,
-            thumbnail TEXT,
-            channel_title TEXT,
-            video_count INTEGER DEFAULT 0,
-            type TEXT DEFAULT 'playlist',
-            user_id TEXT,
-            created_at TIMESTAMP DEFAULT NOW()
-          );
-          CREATE TABLE IF NOT EXISTS videos (
-            id TEXT PRIMARY KEY,
-            playlist_id TEXT,
-            title TEXT,
-            description TEXT,
-            thumbnail TEXT,
-            channel_title TEXT,
-            video_id TEXT,
-            position INTEGER,
-            published_at TEXT,
-            view_count INTEGER DEFAULT 0,
-            user_id TEXT,
-            created_at TIMESTAMP DEFAULT NOW()
-          );
-          CREATE TABLE IF NOT EXISTS lives (
-            id TEXT PRIMARY KEY,
-            title TEXT,
-            description TEXT,
-            thumbnail TEXT,
-            channel_id TEXT,
-            channel_title TEXT,
-            user_id TEXT,
-            created_at TIMESTAMP DEFAULT NOW()
-          );
-          CREATE TABLE IF NOT EXISTS courses (
-            id TEXT PRIMARY KEY,
-            title TEXT,
-            description TEXT,
-            thumbnail TEXT,
-            video_count INTEGER DEFAULT 0,
-            user_id TEXT,
-            created_at TIMESTAMP DEFAULT NOW()
-          );
-        `
-      });
+    const { data, error } = await client.from('playlists').select('channel_title,type').limit(1);
+    if (error) {
+      if (error.code === '42P01') {
+        return { success: false, error: 'Tables do not exist. Please create them in Supabase Dashboard.', needsManualUpdate: true };
+      }
+      if (error.message.includes('channel_title') || error.message.includes('column') || error.message.includes('does not exist')) {
+        return { 
+          success: false, 
+          error: 'Missing columns in playlists table.',
+          needsManualUpdate: true,
+          migrationSql: [
+            'ALTER TABLE playlists ADD COLUMN IF NOT EXISTS channel_title TEXT;',
+            'ALTER TABLE playlists ADD COLUMN IF NOT EXISTS type TEXT DEFAULT \'playlist\';',
+            'ALTER TABLE playlists ADD COLUMN IF NOT EXISTS thumbnail TEXT;',
+            'ALTER TABLE playlists ADD COLUMN IF NOT EXISTS video_count INTEGER DEFAULT 0;',
+            'ALTER TABLE videos ADD COLUMN IF NOT EXISTS channel_title TEXT;',
+            'ALTER TABLE videos ADD COLUMN IF NOT EXISTS published_at TEXT;',
+            'ALTER TABLE videos ADD COLUMN IF NOT EXISTS view_count INTEGER DEFAULT 0;',
+            'ALTER TABLE videos ADD COLUMN IF NOT EXISTS playlist_id TEXT;',
+            'ALTER TABLE lives ADD COLUMN IF NOT EXISTS channel_id TEXT;',
+            'ALTER TABLE lives ADD COLUMN IF NOT EXISTS channel_title TEXT;',
+            'ALTER TABLE lives ADD COLUMN IF NOT EXISTS thumbnail TEXT;'
+          ]
+        };
+      }
+      throw error;
     }
-    return { success: true };
+    return { success: true, message: 'Database schema OK!' };
   } catch (err) {
     return { success: false, error: err.message };
   }
@@ -149,27 +125,38 @@ export const savePlaylist = async (playlist) => {
   return { success: true };
 };
 
-export const savePlaylistVideos = async (playlistId, videos) => {
+export const savePlaylistVideos = async (playlistId, videos, onProgress) => {
   const client = getSupabaseClient();
   if (!client) return { success: false, error: 'Not configured' };
 
-  const videoRecords = videos.map((v, index) => ({
-    id: v.id || `${playlistId}_video_${index}`,
-    playlist_id: playlistId,
-    title: v.title,
-    description: v.description || '',
-    thumbnail: v.thumbnail,
-    channel_title: v.channelTitle || '',
-    video_id: v.id,
-    position: index,
-    published_at: v.publishedAt || '',
-    view_count: v.viewCount || 0,
-    user_id: 'default'
-  }));
+  const BATCH_SIZE = 100;
+  let savedCount = 0;
 
-  const { error } = await client.from('videos').upsert(videoRecords, { onConflict: 'id' });
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+  for (let i = 0; i < videos.length; i += BATCH_SIZE) {
+    const batch = videos.slice(i, i + BATCH_SIZE);
+    const videoRecords = batch.map((v, index) => ({
+      id: v.id || `${playlistId}_video_${i + index}`,
+      playlist_id: playlistId,
+      title: v.title,
+      description: v.description || '',
+      thumbnail: v.thumbnail,
+      channel_title: v.channelTitle || '',
+      video_id: v.id,
+      position: i + index,
+      published_at: v.publishedAt || '',
+      view_count: v.viewCount || 0,
+      user_id: 'default'
+    }));
+
+    const { error } = await client.from('videos').upsert(videoRecords, { onConflict: 'id' });
+    if (error) {
+      console.error('Error saving video batch:', error);
+      return { success: false, error: error.message, savedCount };
+    }
+    savedCount += batch.length;
+    if (onProgress) onProgress(savedCount, videos.length);
+  }
+  return { success: true, savedCount };
 };
 
 export const saveVideo = async (video) => {
@@ -223,6 +210,11 @@ export const saveCourse = async (course) => {
   }], { onConflict: 'id' });
   
   if (error) return { success: false, error: error.message };
+
+  if (course.videos && course.videos.length > 0) {
+    await savePlaylistVideos(course.id, course.videos);
+  }
+
   return { success: true };
 };
 
@@ -231,17 +223,40 @@ export const getAllItems = async (type = null) => {
   if (!client) return { success: false, error: 'Not configured', items: [] };
 
   try {
-    let table;
-    switch (type) {
-      case 'playlist': table = 'playlists'; break;
-      case 'video': table = 'videos'; break;
-      case 'live': table = 'lives'; break;
-      case 'course': table = 'courses'; break;
-      default: table = 'playlists';
+    let tables = [];
+    if (type) {
+      switch (type) {
+        case 'playlist': tables = ['playlists']; break;
+        case 'video': tables = ['videos']; break;
+        case 'live': tables = ['lives']; break;
+        case 'course': tables = ['courses']; break;
+      }
+    } else {
+      tables = ['playlists', 'videos', 'lives', 'courses'];
     }
-    const { data, error } = await client.from(table).select('*');
-    if (error) throw error;
-    return { success: true, items: data || [] };
+
+    const allItems = [];
+    for (const table of tables) {
+      try {
+        const { data, error } = await client.from(table).select('*');
+        if (error) {
+          if (error.code === '42P01' || error.code === '404') {
+            continue;
+          }
+          throw error;
+        }
+        if (data) {
+          const tableType = table === 'playlists' ? 'playlist' : table === 'videos' ? 'video' : table === 'lives' ? 'live' : 'course';
+          data.forEach(item => {
+            const cleanId = item.id.replace(/_playlist$|_video$|_live$|_course$/, '');
+            allItems.push({ ...item, id: cleanId, type: item.type || tableType });
+          });
+        }
+      } catch (tableErr) {
+        console.error(`Error querying table ${table}:`, tableErr.message || tableErr);
+      }
+    }
+    return { success: true, items: allItems };
   } catch (err) {
     return { success: false, error: err.message, items: [] };
   }

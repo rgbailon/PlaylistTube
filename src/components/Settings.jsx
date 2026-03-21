@@ -18,6 +18,7 @@ const [clearPlaylistExpanded, setClearPlaylistExpanded] = useState(false);
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
   const [dbStatus, setDbStatus] = useState({ connected: false, checking: false, message: '' });
+  const [migrationSql, setMigrationSql] = useState(null);
   const btnRef = useRef(null);
 
   useEffect(() => {
@@ -113,7 +114,21 @@ const handleTestDbConnection = async () => {
   const handleSaveDbConnection = async () => {
     if (supabaseUrl.trim() && supabaseKey.trim()) {
       saveSupabaseConfig(supabaseUrl.trim(), supabaseKey.trim());
-      showNotification('Database connection saved! Reloading data...');
+      showNotification('Database connection saved! Initializing...');
+      setMigrationSql(null);
+      
+      const initResult = await initDatabase();
+      if (initResult.success) {
+        showNotification('Database ready! Loading data...');
+        setMigrationSql(null);
+      } else {
+        if (initResult.migrationSql) {
+          setMigrationSql(initResult.migrationSql);
+          showNotification('Missing columns. Copy SQL to fix.');
+        } else {
+          showNotification(initResult.error || 'Database saved. Check schema.');
+        }
+      }
       
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('dbConnected', { 
@@ -266,21 +281,38 @@ const handleTestDbConnection = async () => {
                   disabled={!supabaseUrl.trim() || !supabaseKey.trim()}
                   className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50"
                 >
-                  <i className="fas fa-save mr-1"></i>Save
+<i className="fas fa-save mr-1"></i>Save
                 </button>
-                {dbStatus.connected && (
-                  <button 
-                    onClick={handleDisconnectDb}
-                    className="px-3 py-2 border border-red-200 text-red-500 rounded-lg text-xs hover:bg-red-50 transition"
-                  >
-                    <i className="fas fa-unlink mr-1"></i>
-                  </button>
-                )}
+                <button 
+                  onClick={handleDisconnectDb}
+                  className="px-2 py-1.5 text-xs rounded transition"
+                  style={{ background: 'var(--bg-hover)', color: 'var(--text-muted)' }}
+                  title="Disconnect database"
+                >
+                  <i className="fas fa-unlink mr-1"></i>Disconnect
+                </button>
               </div>
-              {dbStatus.message && (
+{dbStatus.message && (
                 <div className={`text-xs px-3 py-2 rounded-lg ${dbStatus.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                   <i className={`fas ${dbStatus.connected ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-1`}></i>
                   {dbStatus.message}
+                </div>
+              )}
+              {migrationSql && (
+                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-yellow-800"><i className="fas fa-exclamation-triangle mr-1"></i>Missing columns - run SQL in Supabase:</span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(migrationSql.join('\n'));
+                        showNotification('SQL copied to clipboard!');
+                      }}
+                      className="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-[10px] font-medium"
+                    >
+                      <i className="fas fa-copy mr-1"></i>Copy SQL
+                    </button>
+                  </div>
+                  <pre className="text-[10px] bg-yellow-100 p-2 rounded overflow-x-auto whitespace-pre-wrap text-yellow-900 max-h-32 overflow-y-auto">{migrationSql.join('\n')}</pre>
                 </div>
               )}
 <div className="text-[10px] text-[var(--text-muted)] bg-[var(--bg-hover)] px-2 py-1.5 rounded">
