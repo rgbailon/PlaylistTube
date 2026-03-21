@@ -67,8 +67,12 @@ function ChatPage() {
   const { getCookie, theme } = useApp();
   
   const [conversations, setConversations] = useState(() => {
-    const saved = localStorage.getItem('yt_chat_conversations');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('yt_chat_conversations');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [messages, setMessages] = useState([{ id: 1, role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?", timestamp: new Date() }]);
@@ -134,7 +138,7 @@ function ChatPage() {
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-    } catch (err) {
+    } catch {
       const textarea = document.createElement('textarea');
       textarea.value = text;
       document.body.appendChild(textarea);
@@ -223,11 +227,11 @@ function ChatPage() {
                   fullContent += content;
                   setMessages(prev => prev.map(m => m.id === tempAssistantMessage.id ? { ...m, content: fullContent } : m));
                 }
-              } catch (e) { /* Skip invalid JSON */ }
+              } catch { /* Skip invalid JSON */ }
             }
           }
         }
-      } catch (streamErr) {
+      } catch {
         const response = await fetch(`${config.url}/chat/completions`, {
           method: 'POST',
           headers,
@@ -338,42 +342,46 @@ function ChatPage() {
                   style={{ background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)' }}
                 >
                   <div className="prose prose-sm max-w-none">
-                    <ReactMarkdown 
-                      components={{
-                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                        ul: ({ children }) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
-                        ol: ({ children }) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
-                        li: ({ children }) => <li>{children}</li>,
-                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                        em: ({ children }) => <em>{children}</em>,
-                        code: ({ inline, children, ...props }) => inline ? (
-                          <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)' }}>{children}</code>
-                        ) : (
-                          <div className="relative group">
-                            <pre className="p-3 rounded-lg overflow-x-auto text-sm font-mono mb-2" style={{ background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)' }}>
-                              <code {...props}>{children}</code>
-                            </pre>
-                            <button
-                              onClick={() => copyToClipboard(String(children))}
-                              className="absolute top-2 right-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition"
-                              style={{ background: 'rgba(0,0,0,0.3)', color: '#fff' }}
-                            >
-                              <i className="fas fa-copy text-xs"></i>
-                            </button>
-                          </div>
-                        ),
-                        pre: ({ children }) => <>{children}</>,
-                        a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{children}</a>,
-                        h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
-                        h2: ({ children }) => <h2 className="text-lg font-semibold mb-2">{children}</h2>,
-                        h3: ({ children }) => <h3 className="text-base font-medium mb-1">{children}</h3>,
-                        blockquote: ({ children }) => <blockquote className="border-l-3 border-[var(--border-color)] pl-3 italic opacity-80 mb-2">{children}</blockquote>,
-                        hr: () => <hr className="my-4 border-[var(--border-color)]" />,
-                        table: ({ children }) => <table className="w-full border-collapse my-2">{children}</table>,
-                        th: ({ children }) => <th className="border p-2 bg-[var(--bg-hover)]">{children}</th>,
-                        td: ({ children }) => <td className="border p-2">{children}</td>,
-                      }}
-                    >{cleanContent(msg.content)}</ReactMarkdown>
+                    {msg.content ? (
+                      <ReactMarkdown 
+                        components={{
+                          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                          ul: ({ children }) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+                          li: ({ children }) => <li>{children}</li>,
+                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                          em: ({ children }) => <em>{children}</em>,
+                          code: ({ inline, children, ...props }) => inline ? (
+                            <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)' }}>{children}</code>
+                          ) : (
+                            <div className="relative group">
+                              <pre className="p-3 rounded-lg overflow-x-auto text-sm font-mono mb-2" style={{ background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)' }}>
+                                <code {...props}>{children}</code>
+                              </pre>
+                              <button
+                                onClick={() => copyToClipboard(String(children))}
+                                className="absolute top-2 right-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition"
+                                style={{ background: 'rgba(0,0,0,0.3)', color: '#fff' }}
+                              >
+                                <i className="fas fa-copy text-xs"></i>
+                              </button>
+                            </div>
+                          ),
+                          pre: ({ children }) => <>{children}</>,
+                          a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{children}</a>,
+                          h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-lg font-semibold mb-2">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-base font-medium mb-1">{children}</h3>,
+                          blockquote: ({ children }) => <blockquote className="border-l-3 border-[var(--border-color)] pl-3 italic opacity-80 mb-2">{children}</blockquote>,
+                          hr: () => <hr className="my-4 border-[var(--border-color)]" />,
+                          table: ({ children }) => <table className="w-full border-collapse my-2">{children}</table>,
+                          th: ({ children }) => <th className="border p-2 bg-[var(--bg-hover)]">{children}</th>,
+                          td: ({ children }) => <td className="border p-2">{children}</td>,
+                        }}
+                      >{cleanContent(msg.content)}</ReactMarkdown>
+                    ) : (
+                      <p className="text-gray-400 italic">No response</p>
+                    )}
                   </div>
                   <div className="flex items-center justify-end gap-2 mt-2">
                     {msg.role === 'assistant' && (
