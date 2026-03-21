@@ -627,10 +627,10 @@ const loadTrendingCourses = async () => {
       const relevanceLang = 'en';
       const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : sortOrder;
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=full+course+complete+tutorial+masterclass+educational+learn&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=complete+course+full+tutorial+masterclass+learn+programming+development&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
       );
       const data = await resp.json();
-      
+
       if (data.error) {
         setError(`API Error: ${data.error.message}`);
         if (data.error.message?.includes('quota') || data.error.code === 403) {
@@ -641,11 +641,12 @@ const loadTrendingCourses = async () => {
           }
         }
       } else if (data.items) {
-        setResults(data.items);
+        const filteredItems = data.items.filter(item => item.id.playlistId);
+        setResults(filteredItems);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         updateQuota(-1, 'playlists');
-        fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
+        fetchPlaylistDetails(filteredItems.map(item => item.id.playlistId));
       }
     } catch (err) {
       console.error('Failed to load courses:', err);
@@ -701,9 +702,11 @@ if (!activeQuery.trim()) {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       } else if (activeType === 'courses') {
-        const courseQuery = activeQuery ? `${activeQuery}+tutorial+course` : 'complete+course+tutorial+learn';
-        const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
+        const courseQuery = activeQuery 
+          ? `${encodeURIComponent(activeQuery)}+complete+course+full+tutorial+masterclass+programming`
+          : 'complete+course+full+tutorial+masterclass+programming+development+learn';
+        const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -719,14 +722,17 @@ if (!activeQuery.trim()) {
           }
         }
       } else if (data.items) {
-        setResults(data.items);
+        const filteredItems = activeType === 'courses' 
+          ? data.items.filter(item => item.id.playlistId)
+          : data.items;
+        setResults(filteredItems);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         updateQuota(-100, 'search');
-        saveSearchResults(searchQuery, activeType, data.items);
+        saveSearchResults(searchQuery, activeType, filteredItems);
         
-if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType === 'courses') {
-          fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
+        if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType === 'courses') {
+          fetchPlaylistDetails(filteredItems.map(item => item.id.playlistId));
         } else if (activeType === 'video' || activeType === 'live') {
           const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
           if (videoIds.length > 0) {
@@ -821,23 +827,26 @@ if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType 
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
       } else if (searchType === 'courses') {
         const courseQuery = searchQuery 
-          ? `${searchQuery}+full+course+complete+tutorial+masterclass` 
-          : 'full+course+complete+tutorial+masterclass+educational+learn';
-        const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(courseQuery)}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
+          ? `${encodeURIComponent(searchQuery)}+complete+course+full+tutorial+masterclass+programming`
+          : 'complete+course+full+tutorial+masterclass+programming+development+learn+skills';
+        const courseOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'viewCount' : 'relevance';
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
       const data = await resp.json();
       
       if (data.items) {
-        setResults([...results, ...data.items]);
+        const filteredItems = searchType === 'courses' 
+          ? data.items.filter(item => item.id.playlistId)
+          : data.items;
+        setResults([...results, ...filteredItems]);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         
-if (searchType === 'playlist' || searchType === 'shorts_playlist' || searchType === 'courses') {
+        if (searchType === 'playlist' || searchType === 'shorts_playlist' || searchType === 'courses') {
           updateQuota(-1, 'playlists');
-          fetchPlaylistDetails(data.items.map(item => item.id.playlistId));
+          fetchPlaylistDetails(filteredItems.map(item => item.id.playlistId));
         } else if (searchType === 'video' || searchType === 'live') {
           updateQuota(-100, 'search');
           const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
