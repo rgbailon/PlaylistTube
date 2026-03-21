@@ -167,10 +167,10 @@ export const saveVideo = async (video) => {
     id: video.id,
     playlist_id: video.playlist_id || video.playlistId,
     title: video.title,
-    description: video.description,
+    description: video.description || video.snippet?.description || '',
     thumbnail: video.thumbnail,
-    video_id: video.videoId || video.video_id,
-    position: video.position,
+    video_id: video.videoId || video.video_id || video.id,
+    position: video.position || 0,
     user_id: video.userId || 'default'
   }], { onConflict: 'id' });
   
@@ -185,7 +185,7 @@ export const saveLive = async (live) => {
   const { error } = await client.from('lives').upsert([{
     id: live.id,
     title: live.title,
-    description: live.description,
+    description: live.description || live.snippet?.description || '',
     thumbnail: live.thumbnail,
     channel_id: live.channelId || live.channel_id,
     channel_title: live.channelTitle || live.channel_title,

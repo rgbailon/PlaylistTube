@@ -173,9 +173,11 @@ const [dbConnected, setDbConnected] = useState(false);
 
   const loadFromDatabase = async () => {
     try {
-      const [playlistsResult, coursesResult] = await Promise.all([
+      const [playlistsResult, coursesResult, videosResult, livesResult] = await Promise.all([
         loadFullPlaylistsFromDb(),
-        getAllItems('course')
+        getAllItems('course'),
+        getAllItems('video'),
+        getAllItems('live')
       ]);
       
       const allDbItems = [];
@@ -189,23 +191,8 @@ const [dbConnected, setDbConnected] = useState(false);
         allDbItems.push(...dbPlaylists);
       }
       
-      if (coursesResult.success && coursesResult.items) {
-        const dbCourses = coursesResult.items.map(c => ({
-          ...c,
-          addedAt: c.created_at,
-          type: 'courses'
-        }));
-        allDbItems.push(...dbCourses);
-      }
-      
-      const [playlistsResult2, coursesResult2] = await Promise.all([
-        getAllItems('playlist'),
-        getAllItems('course')
-      ]);
-      
-      const videosResult = await getAllItems();
-      const videosByPlaylistId = {};
       if (videosResult.success && videosResult.items) {
+        const videosByPlaylistId = {};
         videosResult.items.forEach(v => {
           if (v.playlist_id) {
             if (!videosByPlaylistId[v.playlist_id]) {
@@ -214,72 +201,85 @@ const [dbConnected, setDbConnected] = useState(false);
             videosByPlaylistId[v.playlist_id].push({
               id: v.video_id || v.id,
               title: v.title,
-              description: v.description,
-              thumbnail: v.thumbnail,
-              channelTitle: v.channel_title,
+              description: v.description || '',
+              thumbnail: v.thumbnail || '',
+              channelTitle: v.channel_title || '',
               publishedAt: v.published_at,
-              viewCount: v.view_count
+              viewCount: v.view_count || 0,
+              position: v.position
             });
           }
         });
+        
+        if (coursesResult.success && coursesResult.items) {
+          coursesResult.items.forEach(c => {
+            allDbItems.push({
+              ...c,
+              addedAt: c.created_at,
+              type: 'courses',
+              videos: videosByPlaylistId[c.id] || []
+            });
+          });
+        }
+        
+        if (videosResult.success && videosResult.items) {
+          videosResult.items.forEach(v => {
+            if (!v.playlist_id) {
+              allDbItems.push({
+                id: v.id,
+                title: v.title,
+                description: v.description || '',
+                thumbnail: v.thumbnail || '',
+                channelTitle: v.channel_title || '',
+                type: 'video',
+                addedAt: v.created_at,
+                videos: [{
+                  id: v.video_id || v.id,
+                  title: v.title,
+                  description: v.description || '',
+                  thumbnail: v.thumbnail || '',
+                  channelTitle: v.channel_title || '',
+                  publishedAt: v.published_at,
+                  viewCount: v.view_count || 0
+                }]
+              });
+            }
+          });
+        }
+      } else {
+        if (coursesResult.success && coursesResult.items) {
+          coursesResult.items.forEach(c => {
+            allDbItems.push({
+              ...c,
+              addedAt: c.created_at,
+              type: 'courses'
+            });
+          });
+        }
       }
       
-      if (playlistsResult2.success && playlistsResult2.items) {
-        playlistsResult2.items.forEach(p => {
-          const existing = allDbItems.find(i => i.id === p.id && i.type === 'playlist');
-          if (existing && videosByPlaylistId[p.id]) {
-            existing.videos = videosByPlaylistId[p.id];
-            existing.videoCount = videosByPlaylistId[p.id].length;
-          }
-        });
-      }
-      
-      if (coursesResult2.success && coursesResult2.items) {
-        coursesResult2.items.forEach(c => {
-          const existing = allDbItems.find(i => i.id === c.id && i.type === 'courses');
-          if (existing && videosByPlaylistId[c.id]) {
-            existing.videos = videosByPlaylistId[c.id];
-            existing.videoCount = videosByPlaylistId[c.id].length;
-          }
+      if (livesResult.success && livesResult.items) {
+        livesResult.items.forEach(l => {
+          allDbItems.push({
+            id: l.id,
+            title: l.title,
+            description: l.description || '',
+            thumbnail: l.thumbnail || '',
+            channelTitle: l.channel_title || '',
+            type: 'live',
+            addedAt: l.created_at,
+            videos: [{
+              id: l.id,
+              title: l.title,
+              description: l.description || '',
+              thumbnail: l.thumbnail || '',
+              channelTitle: l.channel_title || ''
+            }]
+          });
         });
       }
       
       if (allDbItems.length > 0) {
-        const playlistsNeedingVideos = allDbItems.filter(p => (p.type === 'playlist' || p.type === 'courses') && (!p.videos || p.videos.length === 0));
-        
-        for (const playlist of playlistsNeedingVideos) {
-          const apiKey = getCurrentApiKey();
-          if (apiKey && playlist.id) {
-            try {
-              const resp = await fetch(
-                `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlist.id}&key=${apiKey}`
-              );
-              const data = await resp.json();
-              if (data.items && data.items.length > 0) {
-                const videos = data.items
-                  .filter(item => item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId)
-                  .map((item, index) => ({
-                    id: item.snippet.resourceId.videoId,
-                    title: item.snippet.title,
-                    description: item.snippet.description,
-                    thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-                    channelTitle: item.snippet.channelTitle,
-                    publishedAt: item.snippet.publishedAt,
-                    viewCount: 0,
-                  }));
-                
-                const playlistIndex = allDbItems.findIndex(p => p.id === playlist.id);
-                if (playlistIndex !== -1) {
-                  allDbItems[playlistIndex].videos = videos;
-                  allDbItems[playlistIndex].videoCount = videos.length;
-                }
-              }
-            } catch (err) {
-              console.error('Failed to fetch videos for playlist:', playlist.id, err);
-            }
-          }
-        }
-        
         setPlaylistHistory(prev => {
           const merged = [...prev];
           allDbItems.forEach(dbItem => {
@@ -288,7 +288,7 @@ const [dbConnected, setDbConnected] = useState(false);
               merged.push(dbItem);
             }
           });
-          return merged;
+          return merged.sort((a, b) => new Date(b.addedAt || b.created_at) - new Date(a.addedAt || a.created_at));
         });
       }
     } catch (err) {
@@ -499,15 +499,17 @@ const isDbConfigured = () => !!(getStoredSupabaseUrl() && getStoredSupabaseKey()
       newHistory = [playlistWithType, ...playlistHistory];
     }
     setPlaylistHistory(newHistory);
-    const localSuccess = safeSaveToStorage('yt_playlist_history', JSON.stringify(newHistory));
+    const sortedHistory = newHistory.sort((a, b) => new Date(b.addedAt || b.created_at) - new Date(a.addedAt || a.created_at));
+    const localSuccess = safeSaveToStorage('yt_playlist_history', JSON.stringify(sortedHistory));
 
     if (isDbConfigured()) {
       let saveResult;
       const normalizedType = type === 'course' ? 'courses' : type;
-      if (normalizedType === 'video') {
-        saveResult = await saveVideo(playlistWithType);
-      } else if (normalizedType === 'live') {
-        saveResult = await saveLive(playlistWithType);
+      if (normalizedType === 'video' || normalizedType === 'live') {
+        const itemToSave = playlistWithType.videos?.[0] || playlistWithType;
+        saveResult = normalizedType === 'video' 
+          ? await saveVideo(itemToSave) 
+          : await saveLive(itemToSave);
       } else if (normalizedType === 'courses') {
         saveResult = await saveCourse(playlistWithType);
         if (saveResult.success && playlistWithType.videos && playlistWithType.videos.length > 0) {
