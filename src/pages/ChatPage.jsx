@@ -18,96 +18,69 @@ const getProviderFromUrl = (url) => {
 };
 
 const buildHeaders = (provider, key) => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
+  const headers = { 'Content-Type': 'application/json' };
   if (!key) return headers;
 
   switch (provider) {
     case 'openai':
-      headers['Authorization'] = `Bearer ${key}`;
-      break;
-    case 'anthropic':
-      headers['x-api-key'] = key;
-      headers['anthropic-version'] = '2023-06-01';
-      break;
     case 'openrouter':
-      headers['Authorization'] = `Bearer ${key}`;
-      headers['HTTP-Referer'] = window.location.origin;
-      headers['X-Title'] = 'PlaylistTube';
-      break;
     case 'google':
     case 'xai':
     case 'mistral':
     case 'perplexity':
     case 'groq':
       headers['Authorization'] = `Bearer ${key}`;
+      if (provider === 'openrouter') {
+        headers['HTTP-Referer'] = window.location.origin;
+        headers['X-Title'] = 'PlaylistTube';
+      }
       break;
-    case 'ollama':
+    case 'anthropic':
+      headers['x-api-key'] = key;
+      headers['anthropic-version'] = '2023-06-01';
       break;
-    default:
-      headers['Authorization'] = `Bearer ${key}`;
   }
-
   return headers;
 };
 
 const buildBody = (provider, model, messages) => {
   if (provider === 'anthropic') {
     const lastMsg = messages[messages.length - 1];
-    return {
-      model: model,
-      max_tokens: 1024,
-      messages: [{ role: 'user', content: lastMsg.content }]
-    };
+    return { model, max_tokens: 4096, messages: [{ role: 'user', content: lastMsg.content }] };
   }
-
-  return {
-    model: model || 'gpt-3.5-turbo',
-    messages: messages,
-  };
+  return { model: model || 'gpt-3.5-turbo', messages };
 };
 
 const parseResponse = (provider, data, isStreaming = false) => {
   if (provider === 'anthropic') {
-    if (data.content && data.content[0]?.type === 'text') {
-      return data.content[0].text;
-    }
-    if (data.error) {
-      throw new Error(data.error.message || 'API Error');
-    }
+    if (data.content?.[0]?.type === 'text') return data.content[0].text;
+    if (data.error) throw new Error(data.error.message || 'API Error');
   }
-
-  if (data.choices && data.choices[0]) {
-    if (isStreaming) {
-      return data.choices[0].delta?.content || '';
-    }
-    return data.choices[0].message?.content || '';
+  if (data.choices?.[0]) {
+    return isStreaming ? data.choices[0].delta?.content || '' : data.choices[0].message?.content || '';
   }
-
-  if (data.error) {
-    throw new Error(data.error.message || data.error);
-  }
-
+  if (data.error) throw new Error(data.error.message || data.error);
   return '';
 };
 
 function ChatPage() {
-  const { getCookie, setCookie, theme } = useApp();
+  const { getCookie, theme } = useApp();
   
-const [messages, setMessages] = useState([
-    {
-      id: 1,
-      role: 'assistant',
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      timestamp: new Date(),
-    },
-  ]);
+  const [conversations, setConversations] = useState(() => {
+    const saved = localStorage.getItem('yt_chat_conversations');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [messages, setMessages] = useState([{ id: 1, role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?", timestamp: new Date() }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    localStorage.setItem('yt_chat_conversations', JSON.stringify(conversations));
+  }, [conversations]);
 
   useEffect(() => {
     scrollToBottom();
@@ -117,63 +90,99 @@ const [messages, setMessages] = useState([
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const createNewConversation = () => {
+    const newConv = {
+      id: Date.now(),
+      title: 'New Chat',
+      messages: [{ id: Date.now(), role: 'assistant', content: "Hello! I'm your AI assistant. How can I help you today?", timestamp: new Date() }],
+      createdAt: new Date()
+    };
+    setConversations(prev => [newConv, ...prev]);
+    setCurrentConversationId(newConv.id);
+    setMessages(newConv.messages);
+  };
+
+  const selectConversation = (conv) => {
+    setCurrentConversationId(conv.id);
+    setMessages(conv.messages);
+  };
+
+  const deleteConversation = (e, id) => {
+    e.stopPropagation();
+    setConversations(prev => prev.filter(c => c.id !== id));
+    if (currentConversationId === id) {
+      createNewConversation();
+    }
+  };
+
+  const saveCurrentConversation = () => {
+    if (!input.trim() && messages.length <= 1) return;
+    
+    const title = messages.find(m => m.role === 'user')?.content?.slice(0, 30) + '...' || 'New Chat';
+    
+    if (currentConversationId) {
+      setConversations(prev => prev.map(c => 
+        c.id === currentConversationId ? { ...c, title, messages } : c
+      ));
+    } else {
+      const newConv = { id: Date.now(), title, messages, createdAt: new Date() };
+      setConversations(prev => [newConv, ...prev]);
+      setCurrentConversationId(newConv.id);
+    }
+  };
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+  };
+
+  const cleanContent = (content) => {
+    if (!content) return '';
+    return content
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\s{3,}/g, ' ')
+      .trim();
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
 
-    const userMessage = {
-      id: Date.now(),
-      role: 'user',
-      content: input.trim(),
-      timestamp: new Date(),
-    };
+    const userMessage = { id: Date.now(), role: 'user', content: input.trim(), timestamp: new Date() };
+    const tempAssistantMessage = { id: Date.now() + 1, role: 'assistant', content: '', timestamp: new Date() };
 
-    const tempAssistantMessage = {
-      id: Date.now() + 1,
-      role: 'assistant',
-      content: '',
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage, tempAssistantMessage]);
+    const newMessages = [...messages, userMessage, tempAssistantMessage];
+    setMessages(newMessages);
     setInput('');
     setLoading(true);
+    saveCurrentConversation();
 
     try {
-      let chatbotConfig = getCookie('yt_chatbot_config');
+      let chatbotConfig = getCookie('yt_chatbot_config') || localStorage.getItem('yt_chatbot_config');
       if (!chatbotConfig) {
-        chatbotConfig = localStorage.getItem('yt_chatbot_config');
-      }
-      if (!chatbotConfig) {
-        setMessages(prev => prev.filter(m => m.id !== tempAssistantMessage.id));
-        const errorMsg = {
-          id: Date.now() + 2,
-          role: 'assistant',
-          content: 'Please configure your AI API key by clicking the gear icon above.',
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, errorMsg]);
-        setLoading(false);
-        return;
+        throw new Error('Please configure your AI API key in settings.');
       }
 
       const config = JSON.parse(chatbotConfig);
       if (!config.url || !config.key) {
-        setMessages(prev => prev.filter(m => m.id !== tempAssistantMessage.id));
-        const errorMsg = {
-          id: Date.now() + 2,
-          role: 'assistant',
-          content: 'Please configure your AI API key by clicking the gear icon above.',
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, errorMsg]);
-        setLoading(false);
-        return;
+        throw new Error('Please configure your AI API key in settings.');
       }
 
       const provider = getProviderFromUrl(config.url);
       const allMessages = [
-        { role: 'system', content: 'You are a helpful assistant.' },
-        ...messages.map(m => ({ role: m.role, content: m.content })),
+        { role: 'system', content: 'You are a helpful AI assistant. Provide clear, well-formatted responses using markdown when appropriate.' },
+        ...messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
         { role: 'user', content: userMessage.content }
       ];
 
@@ -206,223 +215,243 @@ const [messages, setMessages] = useState([
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               const dataStr = line.slice(6);
-              if (dataStr === '[DONE]') {
-                done = true;
-                break;
-              }
+              if (dataStr === '[DONE]') { done = true; break; }
               try {
                 const data = JSON.parse(dataStr);
                 const content = parseResponse(provider, data, true);
                 if (content) {
                   fullContent += content;
-                  setMessages(prev => prev.map(m => 
-                    m.id === tempAssistantMessage.id 
-                      ? { ...m, content: fullContent }
-                      : m
-                  ));
+                  setMessages(prev => prev.map(m => m.id === tempAssistantMessage.id ? { ...m, content: fullContent } : m));
                 }
-              } catch (e) {
-                // Skip invalid JSON
-              }
+              } catch (e) { /* Skip invalid JSON */ }
             }
           }
         }
       } catch (streamErr) {
-        // Fallback to non-streaming
-        try {
-          const response = await fetch(`${config.url}/chat/completions`, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(body),
-          });
-
-          const data = await response.json();
-          const content = parseResponse(provider, data);
-          
-          setMessages(prev => prev.map(m => 
-            m.id === tempAssistantMessage.id 
-              ? { ...m, content: content }
-              : m
-          ));
-        } catch (err) {
-          throw err;
-        }
+        const response = await fetch(`${config.url}/chat/completions`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        const content = parseResponse(provider, data);
+        setMessages(prev => prev.map(m => m.id === tempAssistantMessage.id ? { ...m, content } : m));
       }
+
+      setMessages(prev => {
+        const updated = prev.map(m => m.id === tempAssistantMessage.id ? { ...m, content: m.content || "I apologize, but I couldn't generate a response." } : m);
+        const title = (updated.find(m => m.role === 'user')?.content?.slice(0, 30) || 'New Chat') + '...';
+        if (currentConversationId) {
+          setConversations(c => c.map(c => c.id === currentConversationId ? { ...c, title, messages: updated } : c));
+        } else {
+          const newConv = { id: Date.now(), title, messages: updated, createdAt: new Date() };
+          setConversations(c => [newConv, ...c]);
+          setCurrentConversationId(newConv.id);
+        }
+        return updated;
+      });
     } catch (err) {
-      setMessages(prev => prev.filter(m => m.id !== tempAssistantMessage.id));
-      const errorMsg = {
-        id: Date.now() + 2,
-        role: 'assistant',
-        content: 'Error: ' + err.message,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages(prev => prev.map(m => m.id === tempAssistantMessage.id ? { ...m, content: `Error: ${err.message}` } : m));
     } finally {
       setLoading(false);
     }
   };
 
-  const clearChat = () => {
-    setMessages([
-      {
-        id: 1,
-        role: 'assistant',
-        content: "Hello! I'm your AI assistant. How can I help you today?",
-        timestamp: new Date(),
-      },
-    ]);
-  };
-
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const cleanContent = (content) => {
-    if (!content) return '';
-    return content
-      .replace(/\\n/g, '\n')
-      .replace(/\\t/g, '\t')
-      .replace(/\\"/g, '"')
-      .replace(/\\\\/g, '')
-      .replace(/\n{3,}/g, '\n\n')
-      .replace(/\s{3,}/g, ' ')
-      .trim();
-  };
+  const formatTime = (date) => new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-<div className="h-[calc(100vh-48px)] flex flex-col" style={{ background: 'var(--bg-main)' }}>
-      <div 
-        className="flex items-center justify-between px-2 py-1"
-        style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}
-      >
-        <h2 className="text-xs sm:text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
-          <i className="fas fa-robot mr-1" style={{ color: 'var(--accent-color)' }}></i>
-          <span className="hidden sm:inline">AI Chat</span>
-        </h2>
-        <div className="flex items-center gap-1">
+    <div className="h-[calc(100vh-48px)] flex" style={{ background: 'var(--bg-main)' }}>
+      {/* Sidebar */}
+      <div className={`${showSidebar ? 'w-64' : 'w-0'} flex-shrink-0 transition-all duration-300 overflow-hidden flex flex-col`} style={{ background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)' }}>
+        <div className="p-3 flex-shrink-0">
           <button
-            onClick={() => setShowSettings(true)}
-            className="p-1.5 sm:p-1 rounded-lg transition hover:bg-[var(--bg-hover)]"
-            style={{ color: 'var(--text-muted)' }}
-            title="Settings"
+            onClick={createNewConversation}
+            className="w-full py-2.5 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2 hover:opacity-90"
+            style={{ background: 'var(--accent-color)', color: theme === 'sun' ? '#000' : '#fff' }}
           >
-            <i className="fas fa-cog text-sm"></i>
+            <i className="fas fa-plus"></i>
+            New Chat
           </button>
-          <button
-            onClick={clearChat}
-            className="p-1.5 sm:p-1 rounded-lg transition hover:bg-[var(--bg-hover)]"
-            style={{ color: 'var(--text-muted)' }}
-            title="Clear chat"
-          >
-            <i className="fas fa-redo text-sm"></i>
-          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {conversations.map(conv => (
+            <div
+              key={conv.id}
+              onClick={() => selectConversation(conv)}
+              className={`px-3 py-2 mx-2 mb-1 rounded-lg cursor-pointer transition flex items-center justify-between group ${
+                currentConversationId === conv.id ? 'bg-[var(--bg-hover)]' : 'hover:bg-[var(--bg-hover)]'
+              }`}
+            >
+              <span className="text-sm truncate flex-1" style={{ color: 'var(--text-main)' }}>
+                <i className="fas fa-message mr-2 text-xs" style={{ color: 'var(--text-muted)' }}></i>
+                {conv.title}
+              </span>
+              <button
+                onClick={(e) => deleteConversation(e, conv.id)}
+                className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <i className="fas fa-trash text-xs"></i>
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
-<div className="flex-1 overflow-y-auto scrollbar-thin p-2 sm:p-4 space-y-4 min-h-0 w-full sm:w-[85%] md:w-[70%] lg:w-[60%] max-w-5xl mx-auto">
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-            <div
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ 
-                background: msg.role === 'assistant' ? 'var(--accent-color)' : 'var(--bg-hover)',
-                color: msg.role === 'assistant' ? 'white' : 'var(--text-muted)'
-              }}
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2" style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border-color)' }}>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="p-2 rounded-lg hover:bg-[var(--bg-hover)] transition"
+              style={{ color: 'var(--text-muted)' }}
             >
-              <i className={`fas ${msg.role === 'assistant' ? 'fa-robot' : 'fa-user'} text-xs sm:text-sm`}></i>
-            </div>
-            <div
-              className="rounded-2xl p-3 sm:p-4 max-w-[80%] shadow-sm"
-              style={{ 
-                background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)',
-              }}
-              >
-              <div 
-                className="prose prose-sm sm:prose-base max-w-none"
-                style={{ 
-                  color: msg.role === 'user' ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-main)', 
-                  lineHeight: 1.7,
-                  fontSize: '14px',
-                }}
-              >
-                <ReactMarkdown 
-                  components={{
-                    p: ({ children }) => <p style={{ marginBottom: '0.5em', marginTop: 0 }}>{children}</p>,
-                    ul: ({ children }) => <ul style={{ marginLeft: '1em', marginBottom: '0.5em', paddingLeft: 0, listStyleType: 'disc' }}>{children}</ul>,
-                    ol: ({ children }) => <ol style={{ marginLeft: '1em', marginBottom: '0.5em', paddingLeft: 0 }}>{children}</ol>,
-                    li: ({ children }) => <li style={{ marginBottom: '0.25em' }}>{children}</li>,
-                    strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
-                    em: ({ children }) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
-                    code: ({ node, inline, children, ...props }) => (
-                      inline 
-                        ? <code style={{ background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)', padding: '0.15em 0.4em', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.9em' }}>{children}</code>
-                        : <code style={{ display: 'block', background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)', padding: '0.75em', borderRadius: '8px', fontFamily: 'monospace', fontSize: '0.85em', overflowX: 'auto', marginBottom: '0.5em' }} {...props}>{children}</code>
-                    ),
-                    pre: ({ children }) => <pre style={{ margin: 0, padding: 0, background: 'transparent' }}>{children}</pre>,
-                    a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: msg.role === 'user' ? '#fff' : '#3b82f6', textDecoration: 'underline' }}>{children}</a>,
-                    h1: ({ children }) => <h1 style={{ fontSize: '1.25em', fontWeight: 600, marginBottom: '0.5em', marginTop: 0 }}>{children}</h1>,
-                    h2: ({ children }) => <h2 style={{ fontSize: '1.1em', fontWeight: 600, marginBottom: '0.5em', marginTop: 0 }}>{children}</h2>,
-                    h3: ({ children }) => <h3 style={{ fontSize: '1em', fontWeight: 600, marginBottom: '0.5em', marginTop: 0 }}>{children}</h3>,
-                    blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid var(--border-color)', paddingLeft: '0.75em', marginLeft: 0, fontStyle: 'italic', opacity: 0.9 }}>{children}</blockquote>,
-                  }}
-                >{cleanContent(msg.content)}</ReactMarkdown>
-              </div>
-              <p 
-                className="text-[10px] mt-2" 
-                style={{ color: msg.role === 'user' ? (theme === 'sun' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)') : 'var(--text-muted)' }}
-              >
-                {formatTime(msg.timestamp)}
-              </p>
-            </div>
+              <i className="fas fa-bars"></i>
+            </button>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
+              <i className="fas fa-robot mr-2" style={{ color: 'var(--accent-color)' }}></i>
+              AI Chat
+            </h2>
           </div>
-        ))}
-        
-        {loading && (
-          <div className="flex items-start gap-3">
-            <div
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--accent-color)', color: theme === 'sun' ? '#000000' : 'white' }}
-            >
-              <i className="fas fa-robot text-xs sm:text-sm"></i>
-            </div>
-            <div
-              className="rounded-2xl p-3 sm:p-4 shadow-sm"
-              style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)' }}
-            >
-              <div className="flex gap-1">
-                <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '0ms' }}></span>
-                <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '150ms' }}></span>
-                <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '300ms' }}></span>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setShowSettings(true)} className="p-2 rounded-lg hover:bg-[var(--bg-hover)] transition" style={{ color: 'var(--text-muted)' }} title="Settings">
+              <i className="fas fa-cog"></i>
+            </button>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`flex gap-3 max-w-3xl mx-auto ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: msg.role === 'assistant' ? 'var(--accent-color)' : 'var(--bg-hover)', color: msg.role === 'assistant' ? '#fff' : 'var(--text-muted)' }}
+              >
+                <i className={`fas ${msg.role === 'assistant' ? 'fa-robot' : 'fa-user'} text-sm`}></i>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div
+                  className="rounded-2xl p-4 shadow-sm"
+                  style={{ background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)' }}
+                >
+                  <div className="prose prose-sm max-w-none">
+                    <ReactMarkdown 
+                      components={{
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc ml-4 mb-2 space-y-1">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal ml-4 mb-2 space-y-1">{children}</ol>,
+                        li: ({ children }) => <li>{children}</li>,
+                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                        em: ({ children }) => <em>{children}</em>,
+                        code: ({ inline, children, ...props }) => inline ? (
+                          <code className="px-1.5 py-0.5 rounded text-sm font-mono" style={{ background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)' }}>{children}</code>
+                        ) : (
+                          <div className="relative group">
+                            <pre className="p-3 rounded-lg overflow-x-auto text-sm font-mono mb-2" style={{ background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)' }}>
+                              <code {...props}>{children}</code>
+                            </pre>
+                            <button
+                              onClick={() => copyToClipboard(String(children))}
+                              className="absolute top-2 right-2 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition"
+                              style={{ background: 'rgba(0,0,0,0.3)', color: '#fff' }}
+                            >
+                              <i className="fas fa-copy text-xs"></i>
+                            </button>
+                          </div>
+                        ),
+                        pre: ({ children }) => <>{children}</>,
+                        a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{children}</a>,
+                        h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-lg font-semibold mb-2">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-base font-medium mb-1">{children}</h3>,
+                        blockquote: ({ children }) => <blockquote className="border-l-3 border-[var(--border-color)] pl-3 italic opacity-80 mb-2">{children}</blockquote>,
+                        hr: () => <hr className="my-4 border-[var(--border-color)]" />,
+                        table: ({ children }) => <table className="w-full border-collapse my-2">{children}</table>,
+                        th: ({ children }) => <th className="border p-2 bg-[var(--bg-hover)]">{children}</th>,
+                        td: ({ children }) => <td className="border p-2">{children}</td>,
+                      }}
+                    >{cleanContent(msg.content)}</ReactMarkdown>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 mt-2">
+                    {msg.role === 'assistant' && (
+                      <button
+                        onClick={() => copyToClipboard(cleanContent(msg.content))}
+                        className="p-1 rounded hover:bg-[var(--bg-hover)] transition opacity-60 hover:opacity-100"
+                        style={{ color: 'var(--text-muted)' }}
+                        title="Copy"
+                      >
+                        <i className="fas fa-copy text-xs"></i>
+                      </button>
+                    )}
+                    <span className="text-[10px]" style={{ color: msg.role === 'user' ? 'rgba(255,255,255,0.7)' : 'var(--text-muted)' }}>
+                      {formatTime(msg.timestamp)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
+          ))}
+          
+          {loading && (
+            <div className="flex gap-3 max-w-3xl mx-auto">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-color)' }}>
+                <i className="fas fa-robot text-sm text-white"></i>
+              </div>
+              <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)' }}>
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '300ms' }}></span>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="p-4" style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}>
+          <div className="max-w-3xl mx-auto relative flex items-center gap-3">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder="Message AI..."
+              rows="1"
+              className="flex-1 rounded-xl pl-4 pr-12 py-3 resize-none shadow-inner text-sm"
+              style={{ background: 'var(--bg-main)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
+            />
+            <button
+              onClick={sendMessage}
+              disabled={loading || !input.trim()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg flex items-center justify-center transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+              style={{ background: 'var(--accent-color)', color: theme === 'sun' ? '#000' : '#fff' }}
+            >
+              <i className="fas fa-paper-plane"></i>
+            </button>
           </div>
-        )}
-        
-        <div ref={messagesEndRef} />
+        </div>
       </div>
 
+      {/* Settings Modal */}
       {showSettings && (
-        <div 
-          className="fixed inset-0 flex items-end sm:items-center justify-center z-50 p-0 sm:p-2"
-          style={{ background: 'rgba(0,0,0,0.5)' }}
-          onClick={() => setShowSettings(false)}
-        >
-          <div 
-            className="rounded-t-2xl sm:rounded-xl p-2 sm:p-4 w-full sm:max-w-md max-h-[85vh] overflow-y-auto"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderBottomLeftRadius: '0', borderBottomRightRadius: '0' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <h3 className="text-xs sm:text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
-                <i className="fas fa-cog mr-1 sm:mr-2" style={{ color: 'var(--accent-color)' }}></i>
-                <span className="hidden sm:inline">AI Chat Settings</span>
-                <span className="sm:hidden">Settings</span>
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowSettings(false)}>
+          <div className="rounded-xl p-4 w-full max-w-md max-h-[80vh] overflow-y-auto" style={{ background: 'var(--bg-card)' }} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>
+                <i className="fas fa-cog mr-2" style={{ color: 'var(--accent-color)' }}></i>
+                AI Chat Settings
               </h3>
-              <button
-                onClick={() => setShowSettings(false)}
-                className="p-1.5 sm:p-1 rounded-lg transition hover:bg-[var(--bg-hover)]"
-                style={{ color: 'var(--text-muted)' }}
-              >
+              <button onClick={() => setShowSettings(false)} className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)]" style={{ color: 'var(--text-muted)' }}>
                 <i className="fas fa-times"></i>
               </button>
             </div>
@@ -430,42 +459,6 @@ const [messages, setMessages] = useState([
           </div>
         </div>
       )}
-
-<div
-        className="flex-shrink-0 px-2 sm:px-4 py-3 w-full sm:w-[85%] md:w-[70%] lg:w-[60%] max-w-5xl mx-auto"
-        style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)' }}
-      >
-        <div className="relative max-w-full mx-auto flex items-center gap-2 sm:gap-3">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            placeholder="Message AI..."
-            rows="1"
-            className="flex-1 rounded-2xl pl-3 sm:pl-4 pr-10 sm:pr-12 py-2 sm:py-2.5 text-sm resize-none shadow-inner"
-            style={{ 
-              minHeight: '40px sm:44px', 
-              maxHeight: '120px', 
-              background: 'var(--bg-main)', 
-              border: '1px solid var(--border-color)', 
-              color: 'var(--text-main)'
-            }}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={loading || !input.trim()}
-            className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl flex items-center justify-center transition hover:scale-110 shadow-md disabled:opacity-50 disabled:hover:scale-100"
-            style={{ background: 'var(--accent-color)', color: theme === 'sun' ? '#000000' : 'white' }}
-          >
-            <i className="fas fa-paper-plane text-xs"></i>
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

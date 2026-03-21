@@ -44,11 +44,18 @@ const [notification, setNotification] = useState(null);
   const [dbConnected, setDbConnected] = useState(false);
   const [dbSavedItems, setDbSavedItems] = useState({});
 
-  useEffect(() => {
+useEffect(() => {
     loadSavedData();
     loadTheme();
     loadYouTubeAPI();
     checkDbConnection();
+
+    const handleDbConnected = () => {
+      loadFromDatabase();
+      loadDbSavedItems();
+    };
+    window.addEventListener('dbConnected', handleDbConnected);
+    return () => window.removeEventListener('dbConnected', handleDbConnected);
   }, []);
 
   useEffect(() => {

@@ -110,10 +110,16 @@ const handleTestDbConnection = async () => {
     }
   };
 
-  const handleSaveDbConnection = () => {
+  const handleSaveDbConnection = async () => {
     if (supabaseUrl.trim() && supabaseKey.trim()) {
       saveSupabaseConfig(supabaseUrl.trim(), supabaseKey.trim());
-      showNotification('Database connection saved!');
+      showNotification('Database connection saved! Reloading data...');
+      
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('dbConnected', { 
+          detail: { url: supabaseUrl.trim(), key: supabaseKey.trim() } 
+        }));
+      }, 500);
     }
   };
 
