@@ -277,6 +277,18 @@ const [messages, setMessages] = useState([
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const cleanContent = (content) => {
+    if (!content) return '';
+    return content
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t')
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/\s{3,}/g, ' ')
+      .trim();
+  };
+
   return (
 <div className="h-[calc(100vh-48px)] flex flex-col" style={{ background: 'var(--bg-main)' }}>
       <div 
@@ -320,13 +332,40 @@ const [messages, setMessages] = useState([
               <i className={`fas ${msg.role === 'assistant' ? 'fa-robot' : 'fa-user'} text-xs sm:text-sm`}></i>
             </div>
             <div
-              className="rounded-2xl p-3 sm:p-4 max-w-[75%] shadow-sm"
+              className="rounded-2xl p-3 sm:p-4 max-w-[80%] shadow-sm"
               style={{ 
                 background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)',
               }}
               >
-              <div style={{ color: msg.role === 'user' ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-main)', lineHeight: 1.6 }}>
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
+              <div 
+                className="prose prose-sm sm:prose-base max-w-none"
+                style={{ 
+                  color: msg.role === 'user' ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-main)', 
+                  lineHeight: 1.7,
+                  fontSize: '14px',
+                }}
+              >
+                <ReactMarkdown 
+                  components={{
+                    p: ({ children }) => <p style={{ marginBottom: '0.5em', marginTop: 0 }}>{children}</p>,
+                    ul: ({ children }) => <ul style={{ marginLeft: '1em', marginBottom: '0.5em', paddingLeft: 0, listStyleType: 'disc' }}>{children}</ul>,
+                    ol: ({ children }) => <ol style={{ marginLeft: '1em', marginBottom: '0.5em', paddingLeft: 0 }}>{children}</ol>,
+                    li: ({ children }) => <li style={{ marginBottom: '0.25em' }}>{children}</li>,
+                    strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                    em: ({ children }) => <em style={{ fontStyle: 'italic' }}>{children}</em>,
+                    code: ({ node, inline, children, ...props }) => (
+                      inline 
+                        ? <code style={{ background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)', padding: '0.15em 0.4em', borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.9em' }}>{children}</code>
+                        : <code style={{ display: 'block', background: msg.role === 'user' ? 'rgba(0,0,0,0.15)' : 'var(--bg-hover)', padding: '0.75em', borderRadius: '8px', fontFamily: 'monospace', fontSize: '0.85em', overflowX: 'auto', marginBottom: '0.5em' }} {...props}>{children}</code>
+                    ),
+                    pre: ({ children }) => <pre style={{ margin: 0, padding: 0, background: 'transparent' }}>{children}</pre>,
+                    a: ({ children, href }) => <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: msg.role === 'user' ? '#fff' : '#3b82f6', textDecoration: 'underline' }}>{children}</a>,
+                    h1: ({ children }) => <h1 style={{ fontSize: '1.25em', fontWeight: 600, marginBottom: '0.5em', marginTop: 0 }}>{children}</h1>,
+                    h2: ({ children }) => <h2 style={{ fontSize: '1.1em', fontWeight: 600, marginBottom: '0.5em', marginTop: 0 }}>{children}</h2>,
+                    h3: ({ children }) => <h3 style={{ fontSize: '1em', fontWeight: 600, marginBottom: '0.5em', marginTop: 0 }}>{children}</h3>,
+                    blockquote: ({ children }) => <blockquote style={{ borderLeft: '3px solid var(--border-color)', paddingLeft: '0.75em', marginLeft: 0, fontStyle: 'italic', opacity: 0.9 }}>{children}</blockquote>,
+                  }}
+                >{cleanContent(msg.content)}</ReactMarkdown>
               </div>
               <p 
                 className="text-[10px] mt-2" 
