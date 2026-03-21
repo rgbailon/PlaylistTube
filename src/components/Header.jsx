@@ -416,7 +416,7 @@ const navItems = [
       {/* Single Floating Search Bar - Works on Mobile and Desktop */}
       {searchFocused && (
         <div 
-          className="fixed inset-0 z-[100] flex items-start justify-center pt-8 md:pt-12 px-2"
+          className="fixed inset-0 z-[100] flex items-start justify-center pt-[25vh] px-2"
           style={{ 
             background: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(8px) saturate(150%)',
