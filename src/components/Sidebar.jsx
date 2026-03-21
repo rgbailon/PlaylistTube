@@ -245,8 +245,8 @@ const filteredHistory = playlistHistory.filter(item => {
                               {playlist.type === 'courses' ? 'Course' : playlist.type}
                             </span>
                           )}
-                          {dbConnected && isItemSavedInDb(playlist.id, playlist.type) && (
-                            <span className="absolute top-0.5 left-1 text-[8px] px-1 rounded bg-orange-500 text-white font-medium">
+{dbConnected && isItemSavedInDb(playlist.id, playlist.type) && (
+                            <span className="absolute top-0.5 right-0.5 text-[8px] px-1 rounded bg-orange-500 text-white font-medium">
                               db
                             </span>
                           )}
