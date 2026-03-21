@@ -342,7 +342,7 @@ function ChatPage() {
                   style={{ background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)' }}
                 >
                   <div className="prose prose-sm max-w-none">
-                    {msg.content ? (
+                    {msg.content && msg.content.trim() ? (
                       <ReactMarkdown 
                         components={{
                           p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -380,7 +380,7 @@ function ChatPage() {
                         }}
                       >{cleanContent(msg.content)}</ReactMarkdown>
                     ) : (
-                      <p className="text-gray-400 italic">No response</p>
+                      <span className="text-[var(--text-muted)] italic">Thinking...</span>
                     )}
                   </div>
                   <div className="flex items-center justify-end gap-2 mt-2">
@@ -403,7 +403,7 @@ function ChatPage() {
             </div>
           ))}
           
-          {loading && messages[messages.length - 1]?.content === '' && (
+          {loading && (
             <div className="flex gap-3 max-w-3xl mx-auto">
               <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-color)' }}>
                 <i className="fas fa-robot text-sm text-white"></i>
