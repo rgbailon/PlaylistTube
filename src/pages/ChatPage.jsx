@@ -84,7 +84,13 @@ function ChatPage() {
 
   useEffect(() => {
     try {
-      const trimmed = conversations.slice(0, 50);
+      const trimmed = conversations.slice(0, 50).map(conv => ({
+        ...conv,
+        messages: conv.messages.slice(-50).map(msg => ({
+          ...msg,
+          content: msg.content?.slice(0, 5000) || ''
+        }))
+      }));
       localStorage.setItem('yt_chat_conversations', JSON.stringify(trimmed));
     } catch (e) {
       console.warn('Failed to save conversations to localStorage:', e);

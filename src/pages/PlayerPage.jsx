@@ -459,7 +459,7 @@ try {
       const apiKey = getCurrentApiKey();
       if (!apiKey || currentPlaylist.length === 0) return;
       
-      const videoIds = currentPlaylist.map(v => v.id).filter(id => id && !v.viewCount && !v.liveViewers);
+      const videoIds = currentPlaylist.filter(v => v.id && !v.viewCount && !v.liveViewers).map(v => v.id);
       if (videoIds.length === 0) return;
       
       try {
