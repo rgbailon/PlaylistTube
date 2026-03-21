@@ -4,7 +4,7 @@ import { useApp } from '../App';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
 function Sidebar() {
-  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen, theme, dbConnected, isItemSavedInDb } = useApp();
+  const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen, theme, dbConnected, isItemSavedInDb, dbLoading } = useApp();
   const [historySearch, setHistorySearch] = useState('');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [showClearBtn, setShowClearBtn] = useState(false);
@@ -135,8 +135,9 @@ const filteredHistory = playlistHistory.filter(item => {
                 className="font-semibold text-sm uppercase tracking-wide flex items-center gap-2"
                 style={{ color: 'var(--text-main)' }}
               >
-                <i className="fas fa-layer-group text-sm" style={{ color: 'var(--accent-color)' }}></i>
+<i className="fas fa-layer-group text-sm" style={{ color: 'var(--accent-color)' }}></i>
                 Library
+                {dbLoading && <i className="fas fa-spinner fa-spin text-xs ml-2" style={{ color: 'var(--accent-color)' }}></i>}
               </h2>
               <button
                 onClick={() => {

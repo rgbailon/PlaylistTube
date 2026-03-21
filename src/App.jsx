@@ -41,10 +41,11 @@ function App() {
   const [lastSearchType, setLastSearchType] = useState('');
 const [notification, setNotification] = useState(null);
   const [forceSearch, setForceSearch] = useState(null);
-  const [dbConnected, setDbConnected] = useState(false);
+const [dbConnected, setDbConnected] = useState(false);
   const [dbSavedItems, setDbSavedItems] = useState({});
+  const [dbLoading, setDbLoading] = useState(false);
 
-useEffect(() => {
+  useEffect(() => {
     loadSavedData();
     loadTheme();
     loadYouTubeAPI();
@@ -386,8 +387,10 @@ const checkDbConnection = async () => {
     const key = getStoredSupabaseKey();
     if (url && key) {
       setDbConnected(true);
+      setDbLoading(true);
       loadDbSavedItems();
-      loadFromDatabase();
+      await loadFromDatabase();
+      setDbLoading(false);
     }
   };
 
@@ -494,7 +497,7 @@ const value = {
     saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType,
     notification, showNotification,
     forceSearch, setForceSearch,
-    dbConnected, isItemSavedInDb, loadDbSavedItems
+    dbConnected, isItemSavedInDb, loadDbSavedItems, dbLoading
   };
 
   return (
