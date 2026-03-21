@@ -79,10 +79,12 @@ function ChatPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   useEffect(() => {
-    setShowSidebar(false);
+    if (window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
   }, []);
   const messagesEndRef = useRef(null);
 
@@ -289,8 +291,46 @@ function ChatPage() {
           onClick={() => setShowSidebar(false)}
         />
       )}
-      {/* Sidebar */}
-      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 fixed md:relative z-40 h-full w-64 flex-shrink-0 transition-transform duration-300 overflow-hidden flex flex-col`} style={{ background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)' }}>
+      {/* Desktop Sidebar */}
+      <div className={`${showSidebar ? 'w-64' : 'w-0'} hidden md:flex flex-shrink-0 transition-all duration-300 overflow-hidden`} style={{ background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)' }}>
+        <div className="w-64 h-full flex flex-col">
+        <div className="p-3 flex-shrink-0">
+          <button
+            onClick={createNewConversation}
+            className="w-full py-2.5 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2 hover:opacity-90"
+            style={{ background: 'var(--accent-color)', color: theme === 'sun' ? '#000' : '#fff' }}
+          >
+            <i className="fas fa-plus"></i>
+            New Chat
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {conversations.map(conv => (
+            <div
+              key={conv.id}
+              onClick={() => selectConversation(conv)}
+              className={`px-3 py-2 mx-2 mb-1 rounded-lg cursor-pointer transition flex items-center justify-between group ${
+                currentConversationId === conv.id ? 'bg-[var(--bg-hover)]' : 'hover:bg-[var(--bg-hover)]'
+              }`}
+            >
+              <span className="text-sm truncate flex-1" style={{ color: 'var(--text-main)' }}>
+                <i className="fas fa-message mr-2 text-xs" style={{ color: 'var(--text-muted)' }}></i>
+                {conv.title}
+              </span>
+              <button
+                onClick={(e) => deleteConversation(e, conv.id)}
+                className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <i className="fas fa-trash text-xs"></i>
+              </button>
+            </div>
+          ))}
+        </div>
+        </div>
+      </div>
+      {/* Mobile Sidebar */}
+      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} md:hidden fixed z-40 h-full w-64 transition-transform duration-300 overflow-hidden flex flex-col`} style={{ background: 'var(--bg-card)', borderRight: '1px solid var(--border-color)' }}>
         <div className="p-3 flex-shrink-0">
           <button
             onClick={createNewConversation}
@@ -366,7 +406,7 @@ function ChatPage() {
                   style={{ background: msg.role === 'user' ? 'var(--accent-color)' : 'var(--bg-card)' }}
                 >
                   <div className="prose prose-sm max-w-none">
-                    {msg.content && msg.content.trim() ? (
+                    {msg.content && msg.content.trim() && (
                       <ReactMarkdown 
                         components={{
                           p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -403,8 +443,6 @@ function ChatPage() {
                           td: ({ children }) => <td className="border p-2">{children}</td>,
                         }}
                       >{cleanContent(msg.content)}</ReactMarkdown>
-                    ) : (
-                      <span className="text-[var(--text-muted)] italic">Thinking...</span>
                     )}
                   </div>
                   <div className="flex items-center justify-end gap-2 mt-2">
@@ -426,21 +464,6 @@ function ChatPage() {
               </div>
             </div>
           ))}
-          
-          {loading && (
-            <div className="flex gap-3 max-w-3xl mx-auto">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-color)' }}>
-                <i className="fas fa-robot text-sm text-white"></i>
-              </div>
-              <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)' }}>
-                <div className="flex gap-1">
-                  <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '0ms' }}></span>
-                  <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '150ms' }}></span>
-                  <span className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--text-muted)', animationDelay: '300ms' }}></span>
-                </div>
-              </div>
-            </div>
-          )}
           
           <div ref={messagesEndRef} />
         </div>
