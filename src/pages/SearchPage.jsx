@@ -222,6 +222,7 @@ function SearchPage() {
         setTimeFilter(filters.timeFilter || 'all');
       }
       searchTriggeredRef.current = true;
+      explicitSearchRef.current = true;
       setSuggestions([]);
       setSelectedIndex(-1);
       if (query.startsWith('?list=')) {

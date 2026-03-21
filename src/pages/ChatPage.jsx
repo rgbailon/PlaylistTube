@@ -403,7 +403,7 @@ function ChatPage() {
             </div>
           ))}
           
-          {loading && (
+          {loading && messages[messages.length - 1]?.content === '' && (
             <div className="flex gap-3 max-w-3xl mx-auto">
               <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-color)' }}>
                 <i className="fas fa-robot text-sm text-white"></i>
