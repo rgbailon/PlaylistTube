@@ -13,7 +13,6 @@ const getProviderFromUrl = (url) => {
   if (url.includes('mistral.ai')) return 'mistral';
   if (url.includes('perplexity.ai')) return 'perplexity';
   if (url.includes('groq.com')) return 'groq';
-  if (url.includes('localhost:11434')) return 'ollama';
   return 'default';
 };
 
@@ -172,6 +171,8 @@ function ChatPage() {
       .replace(/\\t/g, '\t')
       .replace(/\\"/g, '"')
       .replace(/\\\\/g, '')
+      .replace(/^#+\s*/gm, '')
+      .replace(/^\s*[-*_]{3,}\s*$/gm, '')
       .replace(/\n{3,}/g, '\n\n')
       .replace(/\s{3,}/g, ' ')
       .trim();
@@ -499,7 +500,7 @@ function ChatPage() {
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowSettings(false)}>
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
           <div className="rounded-xl p-4 w-full max-w-md max-h-[80vh] overflow-y-auto" style={{ background: 'var(--bg-card)' }} onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>

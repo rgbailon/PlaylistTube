@@ -48,7 +48,6 @@ const [apiUrl, setApiUrl] = useState('');
     if (url.includes('mistral.ai')) return 'mistral';
     if (url.includes('perplexity.ai')) return 'perplexity';
     if (url.includes('groq.com')) return 'groq';
-    if (url.includes('localhost:11434')) return 'ollama';
     return 'default';
   };
 
@@ -82,8 +81,6 @@ const [apiUrl, setApiUrl] = useState('');
         break;
       case 'groq':
         headers['Authorization'] = `Bearer ${key}`;
-        break;
-      case 'ollama':
         break;
       default:
         headers['Authorization'] = `Bearer ${key}`;
@@ -156,14 +153,11 @@ const presets = [
     { name: 'Anthropic', url: 'https://api.anthropic.com/v1', model: 'claude-sonnet-4-5-20250514' },
     { name: 'Google', url: 'https://generativelanguage.googleapis.com/v1beta', model: 'gemini-2.0-flash-exp' },
     { name: 'xAI', url: 'https://api.x.ai/v1', model: 'grok-3-mini' },
-    { name: 'Mistral', url: 'https://api.mistral.ai/v1', model: 'mistral-small-latest' },
     { name: 'Perplexity', url: 'https://api.perplexity.ai/v1', model: 'llama-3.1-sonar-small-128k-online' },
     { name: 'OpenRouter', url: 'https://openrouter.ai/api/v1', model: 'anthropic/claude-4-sonnet' },
-    { name: 'Groq', url: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-instruct' },
-    { name: 'Ollama', url: 'http://localhost:11434/v1', model: 'llama3.3' },
   ];
 
-  const modelsByProvider = {
+const modelsByProvider = {
     openai: [
       { name: 'GPT-4.5', value: 'gpt-4.5', type: 'pro', icon: 'fa-robot' },
       { name: 'GPT-4o', value: 'gpt-4o', type: 'pro', icon: 'fa-robot' },
@@ -194,7 +188,10 @@ const presets = [
       { name: 'Claude 3 Haiku', value: 'claude-3-haiku-20240307', type: 'free', icon: 'fa-brain' },
     ],
     google: [
+      { name: 'Gemini 3 Pro', value: 'gemini-3-pro', type: 'pro', icon: 'fa-gem' },
+      { name: 'Gemini 3 Flash', value: 'gemini-3-flash', type: 'pro', icon: 'fa-gem' },
       { name: 'Gemini 2.5 Pro', value: 'gemini-2.5-pro-preview-06-05', type: 'pro', icon: 'fa-gem' },
+      { name: 'Gemini 2.5 Flash', value: 'gemini-2.5-flash', type: 'pro', icon: 'fa-gem' },
       { name: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash-exp', type: 'pro', icon: 'fa-gem' },
       { name: 'Gemini 2.0 Flash Lite', value: 'gemini-2.0-flash-lite', type: 'free', icon: 'fa-gem' },
       { name: 'Gemini 1.5 Pro', value: 'gemini-1.5-pro', type: 'free', icon: 'fa-gem' },
@@ -210,49 +207,12 @@ const presets = [
       { name: 'Grok Beta', value: 'grok-beta', type: 'free', icon: 'fa-bolt' },
       { name: 'Grok Vision Beta', value: 'grok-vision-beta', type: 'free', icon: 'fa-eye' },
     ],
-    mistral: [
-      { name: 'Mistral Large 3', value: 'mistral-large-2411', type: 'pro', icon: 'fa-wind' },
-      { name: 'Mistral Large', value: 'mistral-large-latest', type: 'pro', icon: 'fa-wind' },
-      { name: 'Mistral Small', value: 'mistral-small-latest', type: 'free', icon: 'fa-wind' },
-      { name: 'Mistral Nemo', value: 'mistral-nemo', type: 'free', icon: 'fa-wind' },
-      { name: 'Mistral Codestral', value: 'codestral-latest', type: 'free', icon: 'fa-code' },
-    ],
     perplexity: [
       { name: 'Sonar Large Online', value: 'llama-3.1-sonar-large-128k-online', type: 'pro', icon: 'fa-search' },
       { name: 'Sonar Huge Online', value: 'llama-3.1-sonar-huge-128k-online', type: 'pro', icon: 'fa-search' },
       { name: 'Sonar Large', value: 'llama-3.1-sonar-large-128k', type: 'free', icon: 'fa-search' },
       { name: 'Sonar Small Online', value: 'llama-3.1-sonar-small-128k-online', type: 'free', icon: 'fa-search' },
       { name: 'Sonar Small', value: 'llama-3.1-sonar-small-128k', type: 'free', icon: 'fa-search' },
-    ],
-    groq: [
-      { name: 'Llama 3.3 70B', value: 'llama-3.3-70b-instruct', type: 'free', icon: 'fa-paw' },
-      { name: 'Llama 3.2 90B Vision', value: 'llama-3.2-90b-vision-instruct', type: 'free', icon: 'fa-paw' },
-      { name: 'Llama 3.2 Vision', value: 'llama-3.2-11b-vision-instruct', type: 'free', icon: 'fa-paw' },
-      { name: 'Llama 3.1 70B', value: 'llama-3.1-70b-instruct', type: 'free', icon: 'fa-paw' },
-      { name: 'Llama 3.1 8B', value: 'llama-3.1-8b-instruct', type: 'free', icon: 'fa-paw' },
-      { name: 'Mixtral 8x7B', value: 'mixtral-8x7b-32768', type: 'free', icon: 'fa-wind' },
-      { name: 'Gemma 2 9B', value: 'gemma2-9b-it', type: 'free', icon: 'fa-gem' },
-      { name: 'Qwen 2.5 72B', value: 'qwen-2.5-72b-instruct', type: 'free', icon: 'fa-wave-square' },
-      { name: 'DeepSeek R1', value: 'deepseek-r1-distill-llama-70b', type: 'free', icon: 'fa-brain' },
-    ],
-    ollama: [
-      { name: 'GLM-5 (Z.ai)', value: 'glm-5', type: 'pro', icon: 'fa-bolt' },
-      { name: 'Qwen 3.5', value: 'qwen2.5:72b', type: 'free', icon: 'fa-wave-square' },
-      { name: 'Qwen 3.5 (Large)', value: 'qwen2.5:122b', type: 'pro', icon: 'fa-wave-square' },
-      { name: 'Nemotron-3 Super', value: 'nemotron-3-super', type: 'pro', icon: 'fa-microchip' },
-      { name: 'LFM2-24B-A2B', value: 'lfm2-24b-a2b', type: 'free', icon: 'fa-bolt' },
-      { name: 'MiniMax-M2.5', value: 'minimax-m2.5', type: 'free', icon: 'fa-brain' },
-      { name: 'MiMo-V2-Flash', value: 'mimo-v2-flash', type: 'free', icon: 'fa-bolt' },
-      { name: 'Llama 3.3', value: 'llama3.3', type: 'free', icon: 'fa-paw' },
-      { name: 'Llama 3.2', value: 'llama3.2', type: 'free', icon: 'fa-paw' },
-      { name: 'Llama 3.1', value: 'llama3.1', type: 'free', icon: 'fa-paw' },
-      { name: 'Mistral', value: 'mistral', type: 'free', icon: 'fa-wind' },
-      { name: 'Phi 4', value: 'phi4', type: 'free', icon: 'fa-atom' },
-      { name: 'Phi 3', value: 'phi3', type: 'free', icon: 'fa-atom' },
-      { name: 'Gemma 2', value: 'gemma2', type: 'free', icon: 'fa-gem' },
-      { name: 'Qwen 2.5', value: 'qwen2.5', type: 'free', icon: 'fa-wave-square' },
-      { name: 'DeepSeek R1', value: 'deepseek-r1', type: 'free', icon: 'fa-brain' },
-      { name: 'Mistral Large', value: 'mistral-large', type: 'free', icon: 'fa-wind' },
     ],
     default: [
       { name: 'GPT-4o Mini', value: 'gpt-4o-mini', type: 'free', icon: 'fa-robot' },
