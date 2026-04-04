@@ -18,6 +18,7 @@ function SearchPage() {
     return saved || 'auto';
   });
   const [timeFilter, setTimeFilter] = useState('all');
+  const [courseRegion, setCourseRegion] = useState('US');
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [lastSearchNextPageToken, setLastSearchNextPageToken] = useState('');
@@ -28,8 +29,10 @@ function SearchPage() {
   const [playlistDetails, setPlaylistDetails] = useState({});
   const [liveDetails, setLiveDetails] = useState({});
   const [videoStats, setVideoStats] = useState({});
+  const [videoDetails, setVideoDetails] = useState({});
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [filterIndianContent, setFilterIndianContent] = useState(true);
   const searchTriggeredRef = useRef(false);
   const initialLoadRef = useRef(false);
   const explicitSearchRef = useRef(false);
@@ -131,6 +134,41 @@ function SearchPage() {
     { code: 'BR', name: 'Brazil' },
     { code: 'MX', name: 'Mexico' },
   ];
+
+  const courseRegions = [
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'PH', name: 'Philippines' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'KR', name: 'South Korea' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'MX', name: 'Mexico' },
+  ];
+
+  const isIndianContent = (item) => {
+    const hindiRegex = /[\u0900-\u097F]/;
+    const indianKeywords = ['india', 'hindi', 'indian', 'bhakti', 'bollywood',
+                           'desi', 'punjabi', 'tamil', 'telugu', 'malayalam',
+                           'kannada', 'bengali', 'gujarati', 'marathi'];
+    const text = `${item.snippet?.title || ''} ${item.snippet?.channelTitle || ''} ${item.snippet?.description || ''}`.toLowerCase();
+
+    if (hindiRegex.test(text)) return true;
+    return indianKeywords.some(keyword => text.includes(keyword));
+  };
+
+  const isIndianVideo = (item) => {
+    const details = videoDetails[item.id.videoId];
+    if (details?.isIndian) return true;
+    const hindiRegex = /[\u0900-\u097F]/;
+    const text = `${item.snippet?.title || ''} ${item.snippet?.channelTitle || ''} ${item.snippet?.description || ''}`.toLowerCase();
+    if (hindiRegex.test(text)) return true;
+    const indianKeywords = ['india', 'hindi', 'indian', 'bhakti', 'bollywood', 'desi', 'punjabi', 'tamil', 'telugu', 'malayalam', 'kannada', 'bengali', 'gujarati', 'marathi'];
+    return indianKeywords.some(keyword => text.includes(keyword));
+  };
 
   const timeFilters = [
     { value: 'all', label: 'All' },
@@ -625,7 +663,7 @@ const loadTrendingCourses = async () => {
       const relevanceLang = 'en';
       const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=course+tutorial+complete+learn+programming&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=course+tutorial+complete+learn+programming&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${courseRegion}&key=${apiKey}`
       );
       const data = await resp.json();
 
@@ -639,7 +677,7 @@ const loadTrendingCourses = async () => {
           }
         }
       } else if (data.items) {
-        const filteredItems = data.items.filter(item => item.id.playlistId);
+        const filteredItems = data.items.filter(item => item.id.playlistId && !isIndianContent(item));
         setResults(filteredItems);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
@@ -704,7 +742,7 @@ if (!activeQuery.trim()) {
           ? `${encodeURIComponent(activeQuery)}+course+tutorial+complete+playlist`
           : 'course+tutorial+complete+learn+programming';
         const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${courseRegion}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -721,7 +759,7 @@ if (!activeQuery.trim()) {
         }
       } else if (data.items) {
         const filteredItems = activeType === 'courses' 
-          ? data.items.filter(item => item.id.playlistId)
+          ? data.items.filter(item => item.id.playlistId && !isIndianContent(item))
           : data.items;
         setResults(filteredItems);
         setNextPageToken(data.nextPageToken || '');
@@ -780,18 +818,31 @@ if (!activeQuery.trim()) {
     
     try {
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoIds.join(',')}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=${videoIds.join(',')}&key=${apiKey}`
       );
       const data = await resp.json();
       if (data.items) {
         const stats = {};
+        const details = {};
+        const indianAudioLanguages = ['hi', 'hindi', 'bn', 'bengali', 'gu', 'gujarati', 'kn', 'kannada', 'ml', 'malayalam', 'mr', 'marathi', 'pa', 'punjabi', 'ta', 'tamil', 'te', 'telugu', 'ur'];
         data.items.forEach(item => {
           stats[item.id] = {
             viewCount: parseInt(item.statistics?.viewCount) || 0,
             likeCount: parseInt(item.statistics?.likeCount) || 0,
           };
+          const audioLang = item.contentDetails?.defaultAudioLanguage;
+          const hasCaption = item.contentDetails?.caption === 'true';
+          const isIndianLang = audioLang && indianAudioLanguages.some(lang => 
+            audioLang.toLowerCase().includes(lang) || (lang === 'hi' && audioLang === 'hi')
+          );
+          details[item.id] = {
+            hasCaption,
+            defaultAudioLanguage: audioLang,
+            isIndian: isIndianLang || hasCaption
+          };
         });
         setVideoStats(prev => ({ ...prev, ...stats }));
+        setVideoDetails(prev => ({ ...prev, ...details }));
       }
       updateQuota(-1, 'videos');
     } catch (err) {
@@ -824,19 +875,19 @@ if (!activeQuery.trim()) {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
 } else if (searchType === 'courses') {
-        const courseQuery = activeQuery 
-          ? `${encodeURIComponent(activeQuery)}+course+tutorial+complete+playlist`
+        const courseQuery = searchQuery
+          ? `${encodeURIComponent(searchQuery)}+course+tutorial+complete+playlist`
           : 'course+tutorial+complete+learn+programming';
         const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${courseRegion}&pageToken=${nextPageToken}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
       const data = await resp.json();
       
       if (data.items) {
-        const filteredItems = searchType === 'courses' 
-          ? data.items.filter(item => item.id.playlistId)
+        const filteredItems = searchType === 'courses'
+          ? data.items.filter(item => item.id.playlistId && !isIndianContent(item))
           : data.items;
         setResults([...results, ...filteredItems]);
         setNextPageToken(data.nextPageToken || '');
@@ -1145,11 +1196,21 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
     }
   };
 
+  const getFilteredResults = () => {
+    if (!filterIndianContent) return results;
+    if (searchType === 'video' || searchType === 'live') {
+      return results.filter(item => !isIndianVideo(item));
+    }
+    return results;
+  };
+
   const sortOptions = [
     { value: 'relevance', label: 'Relevance', icon: 'fa-star' },
     { value: 'date', label: 'Newest', icon: 'fa-clock' },
     { value: 'viewCount', label: 'Popular', icon: 'fa-fire' },
   ];
+
+  const displayedResults = getFilteredResults();
 
   return (
     <div className="h-[calc(100vh-48px)] overflow-y-auto pb-16 md:pb-0" style={{ background: 'var(--bg-main)' }}>
@@ -1212,6 +1273,21 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
               </select>
               <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
             </div>
+            {searchType === 'courses' && (
+              <div className="relative">
+                <select
+                  value={courseRegion}
+                  onChange={(e) => setCourseRegion(e.target.value)}
+                  className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-4 py-2 pr-8 text-xs font-medium cursor-pointer transition-all duration-200"
+                  style={{ color: 'var(--text-main)' }}
+                >
+                  {courseRegions.map(r => (
+                    <option key={r.code} value={r.code} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>{r.name}</option>
+                  ))}
+                </select>
+                <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
+              </div>
+            )}
             <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-1">
               {timeFilters.map(option => (
                 <button
@@ -1227,6 +1303,20 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 </button>
               ))}
             </div>
+            {(searchType === 'video' || searchType === 'live') && (
+              <button
+                onClick={() => setFilterIndianContent(!filterIndianContent)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 border"
+                style={{
+                  background: filterIndianContent ? 'var(--accent-color)' : 'var(--bg-card)',
+                  color: filterIndianContent ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-muted)',
+                  borderColor: 'var(--border-color)'
+                }}
+              >
+                <i className="fas fa-filter"></i>
+                {filterIndianContent ? 'Filtering Indian Content' : 'Show Indian Content'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -1236,7 +1326,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
             {searchType === 'playlist' ? 'Playlists' : searchType === 'video' ? 'Videos' : searchType === 'live' ? 'Live Videos' : searchType === 'shorts_playlist' ? 'Shorts Playlists' : 'Courses'}
           </h2>
           <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            {results.length} results
+            {displayedResults.length} results
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
@@ -1248,17 +1338,17 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 <div className="h-3 rounded" style={{ background: 'var(--bg-hover)', width: '60%' }}></div>
               </div>
             ))
-          ) : results.length === 0 ? (
+) : displayedResults.length === 0 ? (
             <div className="col-span-full text-center py-20">
               <i className="fab fa-youtube text-6xl mb-4" style={{ color: 'var(--text-muted)' }}></i>
-<p style={{ color: 'var(--text-muted)' }} className="text-lg">
+              <p style={{ color: 'var(--text-muted)' }} className="text-lg">
                 {getCurrentApiKey() 
                   ? (searchType === 'playlist' ? 'No playlists found' : searchType === 'video' ? 'No videos found' : searchType === 'live' ? 'No live videos found' : searchType === 'shorts_playlist' ? 'No shorts playlists found' : 'No courses found')
                   : 'Add an API key to search'}
               </p>
             </div>
           ) : (
-            results.map((item) => (
+            displayedResults.map((item) => (
               <div key={item.id.playlistId || item.id.videoId || item.id.videoId} className="group">
 <div className="relative aspect-video rounded-xl overflow-hidden mb-3 cursor-pointer" onClick={() => {
                   if (searchType === 'playlist' || searchType === 'courses') loadPlaylist(item.id.playlistId, item);
