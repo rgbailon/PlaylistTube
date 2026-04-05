@@ -593,11 +593,13 @@ const addToHistory = async (playlist, type = 'playlist') => {
 
     let saveResult = { success: false };
     const dbConfigured = isDbConfigured();
+    const alreadySaved = isItemSavedInDb(playlist.id, type);
     console.log('[DB] isDbConfigured:', dbConfigured);
+    console.log('[DB] Already in Supabase:', alreadySaved);
     console.log('[DB] Supabase URL:', getStoredSupabaseUrl() ? 'set' : 'empty');
     console.log('[DB] Supabase Key:', getStoredSupabaseKey() ? 'set' : 'empty');
 
-    if (dbConfigured && dbCanWrite) {
+    if (dbConfigured && dbCanWrite && !alreadySaved) {
       const normalizedType = type === 'course' ? 'courses' : type;
       console.log('[DB] Saving type:', normalizedType, 'with', validVideos.length, 'videos');
       try {
