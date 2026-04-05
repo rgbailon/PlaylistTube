@@ -215,6 +215,7 @@ const [dbConnected, setDbConnected] = useState(false);
       }
       
       const videosByPlaylistId = {};
+      const videosByCourseId = {};
       if (videosResult.success && videosResult.items) {
         videosResult.items.forEach(v => {
           if (v.playlist_id) {
@@ -222,6 +223,21 @@ const [dbConnected, setDbConnected] = useState(false);
               videosByPlaylistId[v.playlist_id] = [];
             }
             videosByPlaylistId[v.playlist_id].push({
+              id: v.video_id || v.id,
+              title: v.title,
+              description: v.description || '',
+              thumbnail: v.thumbnail || '',
+              channelTitle: v.channel_title || '',
+              publishedAt: v.published_at,
+              viewCount: v.view_count || 0,
+              position: v.position
+            });
+          }
+          if (v.playlist_id && v.playlist_id.includes('course')) {
+            if (!videosByCourseId[v.playlist_id]) {
+              videosByCourseId[v.playlist_id] = [];
+            }
+            videosByCourseId[v.playlist_id].push({
               id: v.video_id || v.id,
               title: v.title,
               description: v.description || '',
@@ -260,13 +276,21 @@ const [dbConnected, setDbConnected] = useState(false);
       
       if (coursesResult.success && coursesResult.items) {
         coursesResult.items.forEach(c => {
-          const courseVideos = videosByPlaylistId[c.id] || [];
+          const courseVideos = videosByPlaylistId[c.id] || videosByCourseId[c.id] || [];
           if (courseVideos.length > 0) {
             allDbItems.push({
               ...c,
               addedAt: c.created_at,
               type: 'courses',
               videos: courseVideos
+            });
+          } else if (c.video_count && c.video_count > 0) {
+            console.log(`[DB] Course "${c.title}" has ${c.video_count} videos in courses table but none in videos table - fetching from local`);
+            allDbItems.push({
+              ...c,
+              addedAt: c.created_at,
+              type: 'courses',
+              videos: []
             });
           } else {
             console.log(`[DB] Skipping course "${c.title}": no videos in videos table`);
@@ -577,7 +601,11 @@ const addToHistory = async (playlist, type = 'playlist') => {
             ? await saveVideo(itemToSave)
             : await saveLive(itemToSave);
         } else if (normalizedType === 'courses') {
-          saveResult = await saveCourse(playlistWithType);
+          if (validVideos.length === 0) {
+            showNotification('Cannot save course with zero videos to database', 'warning');
+          } else {
+            saveResult = await saveCourse(playlistWithType);
+          }
         } else {
           saveResult = await savePlaylist(playlistWithType);
         }

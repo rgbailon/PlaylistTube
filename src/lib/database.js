@@ -329,13 +329,17 @@ export const saveCourse = async (course) => {
   const client = getSupabaseClient();
   if (!client) return { success: false, error: 'Not configured' };
 
+  if (!course.videos || course.videos.length === 0) {
+    return { success: false, error: 'Cannot save course with zero videos' };
+  }
+
   try {
     const { error } = await client.from('courses').upsert([{
       id: course.id,
       title: course.title,
       description: course.description,
       thumbnail: course.thumbnail,
-      video_count: course.videoCount || course.video_count,
+      video_count: course.videoCount || course.video_count || course.videos.length,
       user_id: course.userId || 'default'
     }], { onConflict: 'id' });
     
