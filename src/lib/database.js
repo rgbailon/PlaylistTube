@@ -52,6 +52,22 @@ export const getSupabaseClient = () => {
   return supabase;
 };
 
+export const isStorageQuotaError = (error) => {
+  if (!error) return false;
+  const message = error.message || error.error || '';
+  const code = error.code || '';
+  return (
+    code === 'PGRST301' ||
+    code === '413' ||
+    message.includes('Payload too large') ||
+    message.includes('quota') ||
+    message.includes('storage') ||
+    message.includes('row-level security') ||
+    message.includes('RLS') ||
+    message.includes('too many requests')
+  );
+};
+
 export const testConnection = async (url, key) => {
   try {
     const client = createClient(url, key);
@@ -105,27 +121,54 @@ export const savePlaylist = async (playlist) => {
   const client = getSupabaseClient();
   if (!client) return { success: false, error: 'Not configured' };
 
-  const { error } = await client.from('playlists').upsert([{
-    id: playlist.id,
-    title: playlist.title,
-    description: playlist.description,
-    thumbnail: playlist.thumbnail,
-    channel_title: playlist.channelTitle,
-    video_count: playlist.videoCount || playlist.video_count || (playlist.videos ? playlist.videos.length : 0),
-    type: playlist.type || 'playlist',
-    user_id: playlist.userId || 'default'
-  }], { onConflict: 'id' });
-  
-  if (error) return { success: false, error: error.message };
-
-  if (playlist.videos && playlist.videos.length > 0) {
-    const videosResult = await savePlaylistVideos(playlist.id, playlist.videos);
-    if (!videosResult.success) {
-      return { success: false, error: videosResult.error };
+  try {
+    const { error } = await client.from('playlists').upsert([{
+      id: playlist.id,
+      title: playlist.title,
+      description: playlist.description,
+      thumbnail: playlist.thumbnail,
+      channel_title: playlist.channelTitle,
+      video_count: playlist.videoCount || playlist.video_count || (playlist.videos ? playlist.videos.length : 0),
+      type: playlist.type || 'playlist',
+      user_id: playlist.userId || 'default'
+    }], { onConflict: 'id' });
+    
+    if (error) {
+      if (isStorageQuotaError(error)) {
+        return { success: false, error: error.message, isQuotaError: true };
+      }
+      if (error.message.includes('column') && error.message.includes('does not exist')) {
+        const { error: retryError } = await client.from('playlists').upsert([{
+          id: playlist.id,
+          title: playlist.title,
+          description: playlist.description,
+          user_id: playlist.userId || 'default'
+        }], { onConflict: 'id' });
+        if (retryError) {
+          if (isStorageQuotaError(retryError)) {
+            return { success: false, error: retryError.message, isQuotaError: true };
+          }
+          return { success: false, error: retryError.message };
+        }
+      } else {
+        return { success: false, error: error.message };
+      }
     }
-  }
 
-  return { success: true };
+    if (playlist.videos && playlist.videos.length > 0) {
+      const videosResult = await savePlaylistVideos(playlist.id, playlist.videos);
+      if (!videosResult.success) {
+        return videosResult;
+      }
+    }
+
+    return { success: true };
+  } catch (err) {
+    if (isStorageQuotaError(err)) {
+      return { success: false, error: err.message, isQuotaError: true };
+    }
+    return { success: false, error: err.message };
+  }
 };
 
 export const savePlaylistVideos = async (playlistId, videos, onProgress) => {
@@ -151,13 +194,43 @@ export const savePlaylistVideos = async (playlistId, videos, onProgress) => {
       user_id: 'default'
     }));
 
-    const { error } = await client.from('videos').upsert(videoRecords, { onConflict: 'id' });
-    if (error) {
-      console.error('Error saving video batch:', error);
-      return { success: false, error: error.message, savedCount };
+    try {
+      const { error } = await client.from('videos').upsert(videoRecords, { onConflict: 'id' });
+      if (error) {
+        if (isStorageQuotaError(error)) {
+          return { success: false, error: error.message, savedCount, isQuotaError: true };
+        }
+        if (error.message.includes('column') && error.message.includes('does not exist')) {
+          const minimalRecords = batch.map((v, index) => ({
+            id: v.id || `${playlistId}_video_${i + index}`,
+            playlist_id: playlistId,
+            title: v.title,
+            video_id: v.id,
+            position: i + index,
+            user_id: 'default'
+          }));
+          const { error: retryError } = await client.from('videos').upsert(minimalRecords, { onConflict: 'id' });
+          if (retryError) {
+            console.error('Error saving video batch:', retryError);
+            if (isStorageQuotaError(retryError)) {
+              return { success: false, error: retryError.message, savedCount, isQuotaError: true };
+            }
+            return { success: false, error: retryError.message, savedCount };
+          }
+        } else {
+          console.error('Error saving video batch:', error);
+          return { success: false, error: error.message, savedCount };
+        }
+      }
+      savedCount += batch.length;
+      if (onProgress) onProgress(savedCount, videos.length);
+    } catch (err) {
+      console.error('Error saving video batch:', err);
+      if (isStorageQuotaError(err)) {
+        return { success: false, error: err.message, savedCount, isQuotaError: true };
+      }
+      return { success: false, error: err.message, savedCount };
     }
-    savedCount += batch.length;
-    if (onProgress) onProgress(savedCount, videos.length);
   }
   return { success: true, savedCount };
 };
@@ -166,62 +239,143 @@ export const saveVideo = async (video) => {
   const client = getSupabaseClient();
   if (!client) return { success: false, error: 'Not configured' };
 
-  const { error } = await client.from('videos').upsert([{
-    id: video.id,
-    playlist_id: video.playlist_id || video.playlistId,
-    title: video.title,
-    description: video.description || video.snippet?.description || '',
-    thumbnail: video.thumbnail,
-    video_id: video.videoId || video.video_id || video.id,
-    position: video.position || 0,
-    user_id: video.userId || 'default'
-  }], { onConflict: 'id' });
-  
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+  try {
+    const { error } = await client.from('videos').upsert([{
+      id: video.id,
+      playlist_id: video.playlist_id || video.playlistId,
+      title: video.title,
+      description: video.description || video.snippet?.description || '',
+      thumbnail: video.thumbnail,
+      video_id: video.videoId || video.video_id || video.id,
+      position: video.position || 0,
+      user_id: video.userId || 'default'
+    }], { onConflict: 'id' });
+    
+    if (error) {
+      if (isStorageQuotaError(error)) {
+        return { success: false, error: error.message, isQuotaError: true };
+      }
+      if (error.message.includes('column') && error.message.includes('does not exist')) {
+        const { error: retryError } = await client.from('videos').upsert([{
+          id: video.id,
+          playlist_id: video.playlist_id || video.playlistId,
+          title: video.title,
+          video_id: video.videoId || video.video_id || video.id,
+          position: video.position || 0,
+          user_id: video.userId || 'default'
+        }], { onConflict: 'id' });
+        if (retryError) {
+          if (isStorageQuotaError(retryError)) {
+            return { success: false, error: retryError.message, isQuotaError: true };
+          }
+          return { success: false, error: retryError.message };
+        }
+      } else {
+        return { success: false, error: error.message };
+      }
+    }
+    return { success: true };
+  } catch (err) {
+    if (isStorageQuotaError(err)) {
+      return { success: false, error: err.message, isQuotaError: true };
+    }
+    return { success: false, error: err.message };
+  }
 };
 
 export const saveLive = async (live) => {
   const client = getSupabaseClient();
   if (!client) return { success: false, error: 'Not configured' };
 
-  const { error } = await client.from('lives').upsert([{
-    id: live.id,
-    title: live.title,
-    description: live.description || live.snippet?.description || '',
-    thumbnail: live.thumbnail,
-    channel_id: live.channelId || live.channel_id,
-    channel_title: live.channelTitle || live.channel_title,
-    user_id: live.userId || 'default'
-  }], { onConflict: 'id' });
-  
-  if (error) return { success: false, error: error.message };
-  return { success: true };
+  try {
+    const { error } = await client.from('lives').upsert([{
+      id: live.id,
+      title: live.title,
+      description: live.description || live.snippet?.description || '',
+      thumbnail: live.thumbnail,
+      channel_id: live.channelId || live.channel_id,
+      channel_title: live.channelTitle || live.channel_title,
+      user_id: live.userId || 'default'
+    }], { onConflict: 'id' });
+    
+    if (error) {
+      if (isStorageQuotaError(error)) {
+        return { success: false, error: error.message, isQuotaError: true };
+      }
+      if (error.message.includes('column') && error.message.includes('does not exist')) {
+        const { error: retryError } = await client.from('lives').upsert([{
+          id: live.id,
+          title: live.title,
+          user_id: live.userId || 'default'
+        }], { onConflict: 'id' });
+        if (retryError) {
+          if (isStorageQuotaError(retryError)) {
+            return { success: false, error: retryError.message, isQuotaError: true };
+          }
+          return { success: false, error: retryError.message };
+        }
+      } else {
+        return { success: false, error: error.message };
+      }
+    }
+    return { success: true };
+  } catch (err) {
+    if (isStorageQuotaError(err)) {
+      return { success: false, error: err.message, isQuotaError: true };
+    }
+    return { success: false, error: err.message };
+  }
 };
 
 export const saveCourse = async (course) => {
   const client = getSupabaseClient();
   if (!client) return { success: false, error: 'Not configured' };
 
-  const { error } = await client.from('courses').upsert([{
-    id: course.id,
-    title: course.title,
-    description: course.description,
-    thumbnail: course.thumbnail,
-    video_count: course.videoCount || course.video_count,
-    user_id: course.userId || 'default'
-  }], { onConflict: 'id' });
-  
-  if (error) return { success: false, error: error.message };
-
-  if (course.videos && course.videos.length > 0) {
-    const videosResult = await savePlaylistVideos(course.id, course.videos);
-    if (!videosResult.success) {
-      return { success: false, error: videosResult.error };
+  try {
+    const { error } = await client.from('courses').upsert([{
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      thumbnail: course.thumbnail,
+      video_count: course.videoCount || course.video_count,
+      user_id: course.userId || 'default'
+    }], { onConflict: 'id' });
+    
+    if (error) {
+      if (isStorageQuotaError(error)) {
+        return { success: false, error: error.message, isQuotaError: true };
+      }
+      if (error.message.includes('column') && error.message.includes('does not exist')) {
+        const { error: retryError } = await client.from('courses').upsert([{
+          id: course.id,
+          title: course.title,
+          user_id: course.userId || 'default'
+        }], { onConflict: 'id' });
+        if (retryError) {
+          if (isStorageQuotaError(retryError)) {
+            return { success: false, error: retryError.message, isQuotaError: true };
+          }
+          return { success: false, error: retryError.message };
+        }
+      } else {
+        return { success: false, error: error.message };
+      }
     }
-  }
 
-  return { success: true };
+    if (course.videos && course.videos.length > 0) {
+      const videosResult = await savePlaylistVideos(course.id, course.videos);
+      if (!videosResult.success) {
+        return videosResult;
+      }
+    }
+
+    return { success: true };
+  } catch (err) {
+    if (isStorageQuotaError(err)) {
+      return { success: false, error: err.message, isQuotaError: true };
+    }
+    return { success: false, error: err.message };
+  }
 };
 
 export const getAllItems = async (type = null) => {
@@ -242,12 +396,18 @@ export const getAllItems = async (type = null) => {
     }
 
     const allItems = [];
+    let hasRlsError = false;
+    let rlsErrorMessage = '';
     for (const table of tables) {
       try {
         const { data, error } = await client.from(table).select('*');
         if (error) {
           if (error.code === '42P01' || error.code === '404') {
             continue;
+          }
+          if (error.message?.includes('row-level security') || error.message?.includes('RLS')) {
+            hasRlsError = true;
+            rlsErrorMessage = error.message;
           }
           throw error;
         }
@@ -262,6 +422,9 @@ export const getAllItems = async (type = null) => {
         console.error(`Error querying table ${table}:`, tableErr.message || tableErr);
       }
     }
+    if (hasRlsError) {
+      return { success: false, error: `RLS policy blocked access: ${rlsErrorMessage}`, items: allItems, isRlsError: true };
+    }
     return { success: true, items: allItems };
   } catch (err) {
     return { success: false, error: err.message, items: [] };
@@ -274,11 +437,21 @@ export const loadFullPlaylistsFromDb = async () => {
 
   try {
     const { data: playlists, error } = await client.from('playlists').select('*');
-    if (error) throw error;
+    if (error) {
+      if (error.message?.includes('row-level security') || error.message?.includes('RLS')) {
+        return { success: false, error: error.message, isRlsError: true, playlists: [] };
+      }
+      throw error;
+    }
     if (!playlists || playlists.length === 0) return { success: true, playlists: [] };
 
     const { data: allVideos, error: videosError } = await client.from('videos').select('*');
-    if (videosError) throw videosError;
+    if (videosError) {
+      if (videosError.message?.includes('row-level security') || videosError.message?.includes('RLS')) {
+        return { success: false, error: videosError.message, isRlsError: true, playlists: [] };
+      }
+      throw videosError;
+    }
 
     const videosByPlaylist = {};
     if (allVideos) {
@@ -299,16 +472,19 @@ export const loadFullPlaylistsFromDb = async () => {
       });
     }
 
-    const fullPlaylists = playlists.map(p => ({
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      thumbnail: p.thumbnail,
-      channelTitle: p.channel_title,
-      videoCount: p.video_count,
-      type: p.type || 'playlist',
-      videos: videosByPlaylist[p.id] || []
-    })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const fullPlaylists = playlists
+      .map(p => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        thumbnail: p.thumbnail,
+        channelTitle: p.channel_title,
+        videoCount: p.video_count,
+        type: p.type || 'playlist',
+        videos: videosByPlaylist[p.id] || []
+      }))
+      .filter(p => p.videos.length > 0)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     return { success: true, playlists: fullPlaylists };
   } catch (err) {
@@ -324,6 +500,33 @@ export const deletePlaylistWithVideos = async (playlistId) => {
     await client.from('videos').delete().eq('playlist_id', playlistId);
     await client.from('playlists').delete().eq('id', playlistId);
     return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+};
+
+export const cleanupZeroVideoPlaylists = async () => {
+  const client = getSupabaseClient();
+  if (!client) return { success: true, deleted: 0 };
+
+  try {
+    const { data: playlists, error } = await client.from('playlists').select('id');
+    if (error) throw error;
+    if (!playlists || playlists.length === 0) return { success: true, deleted: 0 };
+
+    const { data: allVideos, error: videosError } = await client.from('videos').select('playlist_id');
+    if (videosError) throw videosError;
+
+    const playlistIdsWithVideos = new Set(allVideos?.map(v => v.playlist_id) || []);
+    const playlistsToDelete = playlists.filter(p => !playlistIdsWithVideos.has(p.id));
+
+    let deleted = 0;
+    for (const playlist of playlistsToDelete) {
+      await client.from('playlists').delete().eq('id', playlist.id);
+      deleted++;
+    }
+
+    return { success: true, deleted };
   } catch (err) {
     return { success: false, error: err.message };
   }

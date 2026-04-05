@@ -10,7 +10,7 @@ import ChatPage from './pages/ChatPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import PrivacyPage from './pages/PrivacyPage';
 import CastReceiver from './pages/CastReceiver';
-import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, loadFullPlaylistsFromDb, deleteItem } from './lib/database';
+import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, loadFullPlaylistsFromDb, deleteItem, cleanupZeroVideoPlaylists } from './lib/database';
 import './index.css';
 
 export const AppContext = createContext();
@@ -179,14 +179,28 @@ const [dbConnected, setDbConnected] = useState(false);
 
   const loadFromDatabase = async () => {
     try {
+      const cleanupResult = await cleanupZeroVideoPlaylists();
+      if (cleanupResult.success && cleanupResult.deleted > 0) {
+        console.log(`[DB] Cleaned up ${cleanupResult.deleted} playlist(s) with zero videos`);
+      }
+
       const [playlistsResult, coursesResult, videosResult, livesResult] = await Promise.all([
         loadFullPlaylistsFromDb(),
         getAllItems('course'),
         getAllItems('video'),
         getAllItems('live')
       ]);
-      
+
       const allDbItems = [];
+      let hasRlsError = false;
+      let rlsErrorMessage = '';
+
+      if (coursesResult.isRlsError) { hasRlsError = true; rlsErrorMessage = coursesResult.error; }
+      if (videosResult.isRlsError) { hasRlsError = true; rlsErrorMessage = videosResult.error; }
+      if (livesResult.isRlsError) { hasRlsError = true; rlsErrorMessage = livesResult.error; }
+      if (hasRlsError) {
+        showNotification('Supabase RLS policies may be blocking data. Check your table permissions.', 'warning');
+      }
       
       const dbPlaylists = [];
       if (playlistsResult.success && playlistsResult.playlists) {
@@ -556,15 +570,25 @@ const addToHistory = async (playlist, type = 'playlist') => {
         
         if (saveResult.success) {
           setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${normalizedType}`]: true }));
-        } else {
-          // Show warning when database save fails
+        } else if (saveResult.isQuotaError) {
+          console.error('[DB] Storage quota exceeded:', saveResult.error);
+          showNotification('Supabase storage full! Please delete some items or reduce playlist sizes.', 'warning');
+        } else if (saveResult.error && saveResult.error !== 'Not configured') {
           console.error('[DB] Save failed:', saveResult.error);
-          showNotification(`Database save failed: ${saveResult.error || 'Unknown error'}`, 'error');
+          if (!saveResult.error.includes('column') || !saveResult.error.includes('does not exist')) {
+            showNotification(`Database save failed: ${saveResult.error || 'Unknown error'}`, 'error');
+          } else {
+            console.warn('[DB] Schema mismatch - data saved to local storage only');
+          }
         }
       } catch (err) {
-        // Catch any unexpected errors during save
         console.error('[DB] Unexpected error:', err);
-        showNotification(`Database error: ${err.message || 'Failed to save to database'}`, 'error');
+        const errMessage = err.message || '';
+        if (errMessage.includes('quota') || errMessage.includes('storage') || errMessage.includes('Payload too large') || errMessage.includes('row-level') || errMessage.includes('RLS')) {
+          showNotification('Supabase storage full! Please delete some items or reduce playlist sizes.', 'warning');
+        } else if (errMessage && !errMessage.includes('column') && !errMessage.includes('does not exist')) {
+          showNotification(`Database error: ${errMessage || 'Failed to save to database'}`, 'error');
+        }
       }
     }
 
