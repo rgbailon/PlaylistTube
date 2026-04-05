@@ -523,21 +523,27 @@ const checkDbConnection = async () => {
     if (url && key) {
       setDbConnected(true);
       setDbLoading(true);
+      console.log('[DB] Checking Supabase connection...');
       
       await loadDbSavedItems();
       await loadFromDatabase();
       setDbLoading(false);
       
       setTimeout(async () => {
+        console.log('[DB] Testing write access to Supabase...');
         const writeTest = await testWriteAccess();
         setDbCanWrite(writeTest.success);
         if (!writeTest.success) {
           console.warn('[DB] Write access blocked:', writeTest.error);
           if (writeTest.isRlsError) {
-            showNotification('Database read-only. Check RLS policies.', 'warning');
+            showNotification('⚠ Supabase is read-only. Check RLS policies in Supabase dashboard.', 'warning');
           }
+        } else {
+          console.log('[DB] Write access confirmed to Supabase');
         }
       }, 100);
+    } else {
+      console.log('[DB] Supabase not configured - using local storage only');
     }
   };
 
@@ -602,7 +608,7 @@ const addToHistory = async (playlist, type = 'playlist') => {
             : await saveLive(itemToSave);
         } else if (normalizedType === 'courses') {
           if (validVideos.length === 0) {
-            showNotification('Cannot save course with zero videos to database', 'warning');
+            showNotification('Cannot save course with zero videos to Supabase', 'warning');
           } else {
             saveResult = await saveCourse(playlistWithType);
           }
@@ -614,29 +620,31 @@ const addToHistory = async (playlist, type = 'playlist') => {
         if (saveResult.success) {
           setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${normalizedType}`]: true }));
           const itemTypeLabel = normalizedType === 'courses' ? 'Course' : normalizedType;
-          showNotification(`${itemTypeLabel} saved to database!`, 'success');
+          const title = playlist.title?.substring(0, 30) || 'Item';
+          const videoCount = validVideos.length;
+          showNotification(`✓ ${itemTypeLabel}: "${title}" (${videoCount} videos) saved to Supabase!`, 'success');
         } else if (saveResult.isQuotaError) {
           console.error('[DB] Storage quota exceeded:', saveResult.error);
-          showNotification('Supabase storage full! Please delete some items or reduce playlist sizes.', 'warning');
+          showNotification('⚠ Supabase storage full! Delete items or reduce sizes.', 'warning');
         } else if (saveResult.error && saveResult.error !== 'Not configured') {
           console.error('[DB] Save failed:', saveResult.error);
           if (!saveResult.error.includes('column') || !saveResult.error.includes('does not exist')) {
-            showNotification(`Database save failed: ${saveResult.error || 'Unknown error'}`, 'error');
+            showNotification(`✗ Failed to save to Supabase: ${saveResult.error}`, 'error');
           } else {
-            console.warn('[DB] Schema mismatch - data saved to local storage only');
+            showNotification('⚠ Schema mismatch - saved to local storage only', 'warning');
           }
         }
       } catch (err) {
         console.error('[DB] Unexpected error:', err);
         const errMessage = err.message || '';
         if (errMessage.includes('quota') || errMessage.includes('storage') || errMessage.includes('Payload too large') || errMessage.includes('row-level') || errMessage.includes('RLS')) {
-          showNotification('Supabase storage full! Please delete some items or reduce playlist sizes.', 'warning');
+          showNotification('⚠ Supabase storage full! Delete items or reduce sizes.', 'warning');
         } else if (errMessage && !errMessage.includes('column') && !errMessage.includes('does not exist')) {
-          showNotification(`Database error: ${errMessage || 'Failed to save to database'}`, 'error');
+          showNotification(`✗ Supabase error: ${errMessage || 'Failed to save'}`, 'error');
         }
       }
     } else if (dbConfigured && !dbCanWrite) {
-      showNotification('Database is read-only. Cannot save.', 'warning');
+      showNotification('⚠ Database is read-only. Cannot save to Supabase.', 'warning');
     }
 
     return localSuccess;
