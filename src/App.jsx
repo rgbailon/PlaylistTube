@@ -267,7 +267,6 @@ const [dbConnected, setDbConnected] = useState(false);
           const courseVideos = videosByPlaylistId[c.id] || [];
           console.log(`[DB] Course "${c.title}" (${c.id}):`, courseVideos.length, 'videos found');
           if (courseVideos.length > 0) {
-          if (courseVideos.length > 0) {
             allDbItems.push({
               ...c,
               addedAt: c.created_at,
@@ -275,7 +274,7 @@ const [dbConnected, setDbConnected] = useState(false);
               videos: courseVideos
             });
           } else if (c.video_count && c.video_count > 0) {
-            console.log(`[DB] Course "${c.title}" has ${c.video_count} videos in courses table but none in videos table - fetching from local`);
+            console.log(`[DB] Course "${c.title}" has ${c.video_count} videos in courses table but none in videos table`);
             allDbItems.push({
               ...c,
               addedAt: c.created_at,
