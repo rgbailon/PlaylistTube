@@ -62,8 +62,6 @@ export const isStorageQuotaError = (error) => {
     message.includes('Payload too large') ||
     message.includes('quota') ||
     message.includes('storage') ||
-    message.includes('row-level security') ||
-    message.includes('RLS') ||
     message.includes('too many requests')
   );
 };
@@ -398,6 +396,7 @@ export const getAllItems = async (type = null) => {
     const allItems = [];
     let hasRlsError = false;
     let rlsErrorMessage = '';
+    let canWrite = true;
     for (const table of tables) {
       try {
         const { data, error } = await client.from(table).select('*');
@@ -421,9 +420,6 @@ export const getAllItems = async (type = null) => {
       } catch (tableErr) {
         console.error(`Error querying table ${table}:`, tableErr.message || tableErr);
       }
-    }
-    if (hasRlsError) {
-      return { success: false, error: `RLS policy blocked access: ${rlsErrorMessage}`, items: allItems, isRlsError: true };
     }
     return { success: true, items: allItems };
   } catch (err) {
@@ -581,4 +577,30 @@ export const isPlaylistSavedInDb = async (playlistId, type) => {
 
 export const isVideoSavedInDb = async (videoId) => {
   return isPlaylistSavedInDb(videoId, 'video');
+};
+
+export const testWriteAccess = async () => {
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: 'Not configured' };
+
+  try {
+    const testId = `__test_${Date.now()}`;
+    const { error } = await client.from('playlists').upsert([{
+      id: testId,
+      title: 'test',
+      user_id: 'default'
+    }], { onConflict: 'id' });
+    
+    if (error) {
+      if (error.message?.includes('row-level security') || error.message?.includes('RLS')) {
+        return { success: false, error: error.message, isRlsError: true };
+      }
+      return { success: false, error: error.message };
+    }
+    
+    await client.from('playlists').delete().eq('id', testId);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 };

@@ -10,7 +10,7 @@ import ChatPage from './pages/ChatPage';
 import WhiteboardPage from './pages/WhiteboardPage';
 import PrivacyPage from './pages/PrivacyPage';
 import CastReceiver from './pages/CastReceiver';
-import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, loadFullPlaylistsFromDb, deleteItem, cleanupZeroVideoPlaylists } from './lib/database';
+import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, loadFullPlaylistsFromDb, deleteItem, cleanupZeroVideoPlaylists, testWriteAccess } from './lib/database';
 import './index.css';
 
 export const AppContext = createContext();
@@ -45,6 +45,7 @@ const [notification, setNotification] = useState(null);
 const [dbConnected, setDbConnected] = useState(false);
   const [dbSavedItems, setDbSavedItems] = useState({});
   const [dbLoading, setDbLoading] = useState(false);
+  const [dbCanWrite, setDbCanWrite] = useState(false);
 
   useEffect(() => {
     loadSavedData();
@@ -493,6 +494,16 @@ const checkDbConnection = async () => {
       setDbLoading(true);
       await loadDbSavedItems();
       await loadFromDatabase();
+      
+      const writeTest = await testWriteAccess();
+      setDbCanWrite(writeTest.success);
+      if (!writeTest.success) {
+        console.warn('[DB] Write access blocked:', writeTest.error);
+        if (writeTest.isRlsError) {
+          showNotification('Database read-only. Check RLS policies.', 'warning');
+        }
+      }
+      
       setDbLoading(false);
     }
   };
@@ -547,7 +558,7 @@ const addToHistory = async (playlist, type = 'playlist') => {
     console.log('[DB] Supabase URL:', getStoredSupabaseUrl() ? 'set' : 'empty');
     console.log('[DB] Supabase Key:', getStoredSupabaseKey() ? 'set' : 'empty');
 
-    if (dbConfigured) {
+    if (dbConfigured && dbCanWrite) {
       const normalizedType = type === 'course' ? 'courses' : type;
       console.log('[DB] Saving type:', normalizedType, 'with', validVideos.length, 'videos');
       try {
@@ -666,7 +677,7 @@ const value = {
     saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType,
     notification, notificationType, showNotification,
     forceSearch, setForceSearch,
-    dbConnected, isItemSavedInDb, loadDbSavedItems, dbLoading
+    dbConnected, isItemSavedInDb, loadDbSavedItems, dbLoading, dbCanWrite
   };
 
   return (
