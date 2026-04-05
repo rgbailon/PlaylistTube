@@ -889,7 +889,7 @@ const toggleFullscreen = () => {
 
       <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${isFullscreen ? 'h-screen' : ''} ${immersiveMode ? 'h-screen' : ''}`}>
         <div className={`flex-1 flex flex-col ${isFullscreen ? 'h-screen' : 'p-1 md:p-2 pt-1 pb-24 md:pb-2'} ${immersiveMode ? 'h-screen' : ''} overflow-y-auto relative`}>
-          <div className={`flex-1 flex items-center justify-center ${isFullscreen ? 'h-full' : ''} ${immersiveMode ? 'h-full' : ''}`}>
+          <div className={`flex-1 flex flex-col items-center justify-center ${isFullscreen ? 'h-full' : ''} ${immersiveMode ? 'h-full' : ''}`}>
             <div className={`w-full ${isFullscreen ? 'max-w-none h-full' : (sidebarCollapsed ? 'max-w-full' : 'max-w-5xl')} ${immersiveMode ? 'max-w-none h-full' : ''}`}>
               <div 
                 className="player-container relative w-full h-full"
@@ -909,10 +909,10 @@ const toggleFullscreen = () => {
                   className="absolute z-10"
                   onClick={togglePlay}
                   onDoubleClick={toggleFullscreen}
-                  style={{ 
+style={{ 
                     width: '85%',
-                    height: '85%',
-                    top: '7.5%',
+                    height: '50%',
+                    top: '20%',
                     left: '7.5%'
                   }}
                 ></div>
@@ -1035,6 +1035,12 @@ const toggleFullscreen = () => {
               )}
             </div>
           )}
+
+          {!isFullscreen && !immersiveMode && settingsOpen && (
+            <div className="mt-2 md:mt-3">
+              <Settings />
+            </div>
+          )}
           <div className="hidden md:hidden gap-2 mt-2 md:mt-3">
             <button onClick={playPrevious} disabled={currentVideoIndex === 0} className="flex-1 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm disabled:opacity-50" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
               <i className="fas fa-step-backward mr-1"></i>Prev
@@ -1149,7 +1155,6 @@ const toggleFullscreen = () => {
             <i className="fas fa-cog"></i>
           </button>
         </div>
-        {settingsOpen && <div className="flex-shrink-0"><Settings /></div>}
         {activeTab === 'playlist' ? (
           <div className="flex-1 overflow-y-auto h-0 min-h-[200px]" style={{ background: 'var(--bg-main)' }}>
             {currentPlaylist.length === 0 ? (

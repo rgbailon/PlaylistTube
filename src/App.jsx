@@ -113,7 +113,12 @@ const [dbConnected, setDbConnected] = useState(false);
     const savedHistory = localStorage.getItem('yt_playlist_history') || getCookie('yt_playlist_history');
     if (savedHistory) {
       try {
-        setPlaylistHistory(JSON.parse(savedHistory));
+        const parsedHistory = JSON.parse(savedHistory);
+        const filteredHistory = parsedHistory.filter(p => p.videos && p.videos.some(v => v && v.id));
+        if (filteredHistory.length !== parsedHistory.length) {
+          console.log(`[History] Filtered out ${parsedHistory.length - filteredHistory.length} playlists with zero videos`);
+        }
+        setPlaylistHistory(filteredHistory);
       } catch (e) {
         setPlaylistHistory([]);
       }
@@ -182,17 +187,17 @@ const [dbConnected, setDbConnected] = useState(false);
       
       const allDbItems = [];
       
+      const dbPlaylists = [];
       if (playlistsResult.success && playlistsResult.playlists) {
-        const dbPlaylists = playlistsResult.playlists.map(p => ({
+        dbPlaylists.push(...playlistsResult.playlists.map(p => ({
           ...p,
           addedAt: p.created_at,
           type: p.type || 'playlist'
-        }));
-        allDbItems.push(...dbPlaylists);
+        })));
       }
       
+      const videosByPlaylistId = {};
       if (videosResult.success && videosResult.items) {
-        const videosByPlaylistId = {};
         videosResult.items.forEach(v => {
           if (v.playlist_id) {
             if (!videosByPlaylistId[v.playlist_id]) {
@@ -211,50 +216,58 @@ const [dbConnected, setDbConnected] = useState(false);
           }
         });
         
-        if (coursesResult.success && coursesResult.items) {
-          coursesResult.items.forEach(c => {
+        videosResult.items.forEach(v => {
+          if (!v.playlist_id) {
             allDbItems.push({
-              ...c,
-              addedAt: c.created_at,
-              type: 'courses',
-              videos: videosByPlaylistId[c.id] || []
-            });
-          });
-        }
-        
-        if (videosResult.success && videosResult.items) {
-          videosResult.items.forEach(v => {
-            if (!v.playlist_id) {
-              allDbItems.push({
-                id: v.id,
+              id: v.id,
+              title: v.title,
+              description: v.description || '',
+              thumbnail: v.thumbnail || '',
+              channelTitle: v.channel_title || '',
+              type: 'video',
+              addedAt: v.created_at,
+              videos: [{
+                id: v.video_id || v.id,
                 title: v.title,
                 description: v.description || '',
                 thumbnail: v.thumbnail || '',
                 channelTitle: v.channel_title || '',
-                type: 'video',
-                addedAt: v.created_at,
-                videos: [{
-                  id: v.video_id || v.id,
-                  title: v.title,
-                  description: v.description || '',
-                  thumbnail: v.thumbnail || '',
-                  channelTitle: v.channel_title || '',
-                  publishedAt: v.published_at,
-                  viewCount: v.view_count || 0
-                }]
-              });
-            }
-          });
-        }
-      } else {
-        if (coursesResult.success && coursesResult.items) {
-          coursesResult.items.forEach(c => {
-            allDbItems.push({
-              ...c,
-              addedAt: c.created_at,
-              type: 'courses'
+                publishedAt: v.published_at,
+                viewCount: v.view_count || 0
+              }]
             });
+          }
+        });
+      }
+      
+      if (coursesResult.success && coursesResult.items) {
+        coursesResult.items.forEach(c => {
+          allDbItems.push({
+            ...c,
+            addedAt: c.created_at,
+            type: 'courses',
+            videos: videosByPlaylistId[c.id] || []
           });
+        });
+      }
+      
+      if (dbPlaylists.length > 0) {
+        const playlistsWithVideos = dbPlaylists.filter(p => 
+          videosByPlaylistId[p.id] && videosByPlaylistId[p.id].length > 0
+        );
+        const playlistsWithoutVideos = dbPlaylists.filter(p => 
+          !videosByPlaylistId[p.id] || videosByPlaylistId[p.id].length === 0
+        );
+        
+        playlistsWithVideos.forEach(p => {
+          allDbItems.push({
+            ...p,
+            videos: videosByPlaylistId[p.id] || []
+          });
+        });
+        
+        if (playlistsWithoutVideos.length > 0) {
+          console.log(`[DB] ${playlistsWithoutVideos.length} playlist(s) with zero videos found in database`);
         }
       }
       
@@ -283,12 +296,17 @@ const [dbConnected, setDbConnected] = useState(false);
         setPlaylistHistory(prev => {
           const merged = [...prev];
           allDbItems.forEach(dbItem => {
+            const hasValidVideos = dbItem.videos && dbItem.videos.some(v => v && v.id);
+            if (!hasValidVideos) {
+              console.log(`[DB] Skipping "${dbItem.title}": no valid videos`);
+              return;
+            }
             const exists = merged.find(p => p.id === dbItem.id);
             if (!exists) {
               merged.push(dbItem);
             }
           });
-          return merged.sort((a, b) => new Date(b.addedAt || b.created_at) - new Date(a.addedAt || a.created_at));
+          return merged.sort((a, b) => new Date(b.addedAt || b.created_at) - new Date(a.addedAt || b.created_at));
         });
       }
     } catch (err) {
@@ -490,9 +508,14 @@ const isItemSavedInDb = (id, type) => {
 const isDbConfigured = () => !!(getStoredSupabaseUrl() && getStoredSupabaseKey());
 
   const addToHistory = async (playlist, type = 'playlist') => {
+    const validVideos = (playlist.videos || []).filter(v => v && v.id);
+    if (validVideos.length === 0) {
+      console.log('[History] Skipped: playlist has no valid videos');
+      return false;
+    }
     const existingIndex = playlistHistory.findIndex(p => p.id === playlist.id);
     let newHistory;
-    const playlistWithType = { ...playlist, type };
+    const playlistWithType = { ...playlist, videos: validVideos, type };
     if (existingIndex !== -1) {
       newHistory = [playlistWithType, ...playlistHistory.filter((_, i) => i !== existingIndex)];
     } else {

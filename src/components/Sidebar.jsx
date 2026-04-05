@@ -47,6 +47,8 @@ function Sidebar() {
   };
 
 const filteredHistory = playlistHistory.filter(item => {
+    const hasValidVideos = item.videos && item.videos.some(v => v && v.id);
+    if (!hasValidVideos) return false;
     const matchesSearch = item.title.toLowerCase().includes(historySearch.toLowerCase());
     const itemType = item.type || 'playlist';
     const matchesTab = libraryTab === 'all' || 
