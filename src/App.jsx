@@ -722,13 +722,17 @@ const value = {
         <div className="min-h-screen" style={{ background: 'var(--bg-main)' }}>
           <Header />
           {notification && (
-            <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-medium animate-fade-in" 
-                 style={{ 
-                   background: notificationType === 'error' ? '#ef4444' : 'var(--accent-color)', 
-                   color: 'white' 
-                 }}>
-              <i className={`fas ${notificationType === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'} mr-2`}></i>
-              {notification}
+            <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+              <div className="px-6 py-4 rounded-xl shadow-2xl text-base font-semibold animate-fade-in transform scale-100"
+                   style={{ 
+                    background: notificationType === 'error' ? '#ef4444' : notificationType === 'warning' ? '#f59e0b' : 'var(--accent-color)', 
+                    color: 'white' 
+                  }}>
+                <div className="flex items-center gap-3">
+                  <i className={`fas ${notificationType === 'error' ? 'fa-exclamation-triangle' : notificationType === 'warning' ? 'fa-exclamation-circle' : 'fa-check-circle'} text-lg`}></i>
+                  <span>{notification}</span>
+                </div>
+              </div>
             </div>
           )}
           <div className="flex">
