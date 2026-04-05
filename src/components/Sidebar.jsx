@@ -83,7 +83,7 @@ const filteredHistory = playlistHistory.filter(item => {
 
   // Show sidebar when: not collapsed on desktop OR open on mobile
   const shouldShowSidebar = !sidebarCollapsed || mobileSidebarOpen;
-  
+
   if (!shouldShowSidebar) {
     return (
       <>
@@ -95,11 +95,20 @@ const filteredHistory = playlistHistory.filter(item => {
               setSidebarCollapsed(false);
             }
           }}
-          className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-1.5 rounded-r-lg shadow-lg hidden md:block"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderLeft: 'none', color: 'var(--text-muted)' }}
-          title="Show history"
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-50 p-3 rounded-r-xl shadow-lg hidden md:flex items-center justify-center hover:scale-105 transition-transform group"
+          style={{
+            background: 'var(--bg-card)', 
+            border: '2px solid var(--accent-color)', 
+            borderLeft: 'none', 
+            color: 'var(--accent-color)' 
+          }}
+          title="Show Library"
         >
-          <i className="fas fa-chevron-right text-xs"></i>
+          <i className="fas fa-chevron-right text-base group-hover:translate-x-0.5 transition-transform"></i>
+          <span className="absolute left-full ml-2 px-2 py-1 rounded text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                style={{ background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
+            Show Library
+          </span>
         </button>
         {mobileSidebarOpen && (
           <div 
@@ -149,11 +158,16 @@ const filteredHistory = playlistHistory.filter(item => {
                     setSidebarCollapsed(true);
                   }
                 }}
-                className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition"
+                className="p-2 rounded-lg hover:bg-[var(--bg-hover)] transition cursor-pointer group relative"
                 style={{ color: 'var(--text-muted)' }}
-                title="Collapse"
+                title="Collapse Library"
+                aria-label="Collapse library sidebar"
               >
-                <i className="fas fa-chevron-left text-xs"></i>
+                <i className="fas fa-chevron-left text-xs group-hover:-translate-x-0.5 transition-transform"></i>
+                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50"
+                      style={{ background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
+                  Collapse
+                </span>
               </button>
             </div>
             <div className="relative">

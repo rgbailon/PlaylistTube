@@ -617,9 +617,10 @@ const removeFromHistory = async (id) => {
   };
 
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-    localStorage.setItem('yt_sidebar_collapsed', sidebarCollapsed ? '0' : '1');
-    setCookie('yt_sidebar_collapsed', sidebarCollapsed ? '0' : '1');
+    const newState = !sidebarCollapsed;
+    setSidebarCollapsed(newState);
+    localStorage.setItem('yt_sidebar_collapsed', newState ? '1' : '0');
+    setCookie('yt_sidebar_collapsed', newState ? '1' : '0');
   };
 
 const value = {
