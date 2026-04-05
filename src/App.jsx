@@ -673,6 +673,16 @@ const value = {
     <AppContext.Provider value={value}>
       <BrowserRouter>
         <div className="min-h-screen" style={{ background: 'var(--bg-main)' }}>
+          {sidebarCollapsed && (
+            <button
+              onClick={() => setSidebarCollapsed(false)}
+              className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-1.5 rounded-r-lg shadow-lg hidden md:block"
+              title="Show history"
+              style={{ background: 'var(--bg-card)', color: 'var(--text-muted)' }}
+            >
+              <i className="fas fa-chevron-right text-xs"></i>
+            </button>
+          )}
           <Header />
           {notification && (
             <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-medium animate-fade-in" 
