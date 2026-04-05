@@ -29,28 +29,47 @@ const [clearPlaylistExpanded, setClearPlaylistExpanded] = useState(false);
 
   // Periodically check database connection health
   useEffect(() => {
+    let wasHealthy = null;
+    
     const checkConnectionHealth = async () => {
       const url = getStoredSupabaseUrl();
       const key = getStoredSupabaseKey();
       
       // Only check if database is configured
       if (!url || !key) {
-        setConnectionHealth({ healthy: false, lastChecked: new Date(), error: 'Not configured' });
+        if (wasHealthy !== false) {
+          setConnectionHealth({ healthy: false, lastChecked: new Date(), error: 'Not configured' });
+          wasHealthy = false;
+        }
         return;
       }
 
       try {
         const result = await testConnection(url, key);
         if (result.success) {
-          setConnectionHealth({ healthy: true, lastChecked: new Date(), error: null });
+          if (!wasHealthy) {
+            setConnectionHealth({ healthy: true, lastChecked: new Date(), error: null });
+            wasHealthy = true;
+          } else if (wasHealthy === false) {
+            setConnectionHealth({ healthy: true, lastChecked: new Date(), error: null });
+            showNotification('Database connection restored!', 'success');
+            wasHealthy = true;
+          }
         } else {
-          setConnectionHealth({ healthy: false, lastChecked: new Date(), error: result.error });
-          // Show warning notification when connection is lost
-          showNotification(`Database connection lost: ${result.error}`, 'error');
+          if (wasHealthy !== false) {
+            setConnectionHealth({ healthy: false, lastChecked: new Date(), error: result.error });
+            showNotification(`Database connection lost: ${result.error}`, 'error');
+            wasHealthy = false;
+          } else {
+            setConnectionHealth({ healthy: false, lastChecked: new Date(), error: result.error });
+          }
         }
       } catch (err) {
-        setConnectionHealth({ healthy: false, lastChecked: new Date(), error: err.message });
-        showNotification(`Database connection error: ${err.message}`, 'error');
+        if (wasHealthy !== false) {
+          setConnectionHealth({ healthy: false, lastChecked: new Date(), error: err.message });
+          showNotification(`Database connection error: ${err.message}`, 'error');
+          wasHealthy = false;
+        }
       }
     };
 

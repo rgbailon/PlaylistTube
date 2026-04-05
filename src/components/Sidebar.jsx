@@ -7,6 +7,7 @@ function Sidebar() {
   const { playlistHistory, clearHistory, sidebarCollapsed, setSidebarCollapsed, setCurrentPlaylist, setCurrentVideoIndex, removeFromHistory, mobileSidebarOpen, setMobileSidebarOpen, theme, dbConnected, isItemSavedInDb, dbLoading } = useApp();
   const [historySearch, setHistorySearch] = useState('');
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+  const [showExpandButton, setShowExpandButton] = useState(false);
   const [showClearBtn, setShowClearBtn] = useState(false);
   const [libraryTab, setLibraryTab] = useState('all');
   const navigate = useNavigate();
@@ -87,31 +88,33 @@ const filteredHistory = playlistHistory.filter(item => {
   if (!shouldShowSidebar) {
     return (
       <>
-        <button
-          onClick={() => {
-            if (window.innerWidth < 768) {
-              setMobileSidebarOpen(true);
-            } else {
-              setSidebarCollapsed(false);
-            }
-          }}
-          className="fixed left-0 top-1/2 -translate-y-1/2 z-50 p-3 rounded-r-xl shadow-lg hidden md:flex items-center justify-center hover:scale-105 transition-transform group"
-          style={{
-            background: 'var(--bg-card)', 
-            border: '2px solid var(--accent-color)', 
-            borderLeft: 'none', 
-            color: 'var(--accent-color)' 
-          }}
-          title="Show Library"
-        >
-          <i className="fas fa-chevron-right text-base group-hover:translate-x-0.5 transition-transform"></i>
-          <span className="absolute left-full ml-2 px-2 py-1 rounded text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                style={{ background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)' }}>
-            Show Library
-          </span>
-        </button>
+        {/* Hover zone on left edge to reveal button */}
+        <div
+          className="fixed left-0 top-12 bottom-0 w-2 z-40 hidden md:block"
+          onMouseEnter={() => setShowExpandButton(true)}
+          onMouseLeave={() => setShowExpandButton(false)}
+        />
+        
+        {/* Expand button - positioned at vertical center */}
+        {(showExpandButton || sidebarCollapsed) && (
+          <button
+            onClick={() => {
+              if (window.innerWidth < 768) {
+                setMobileSidebarOpen(true);
+              } else {
+                setSidebarCollapsed(false);
+              }
+            }}
+            onMouseEnter={() => setShowExpandButton(true)}
+            className="fixed left-0 top-1/2 -translate-y-1/2 z-40 p-1 rounded-r shadow-md hidden md:block hover:scale-105 transition-all opacity-30 hover:opacity-100"
+            style={{ background: 'var(--bg-card)', color: 'var(--text-muted)' }}
+            title="Show Library"
+          >
+            <i className="fas fa-chevron-right text-xs"></i>
+          </button>
+        )}
         {mobileSidebarOpen && (
-          <div 
+          <div
             className="md:hidden fixed inset-0 z-20 bg-black/50 animate-fade-in"
             onClick={handleClose}
           />
