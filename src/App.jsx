@@ -53,9 +53,11 @@ const [dbConnected, setDbConnected] = useState(false);
     loadYouTubeAPI();
     checkDbConnection();
 
-    const handleDbConnected = () => {
-      loadFromDatabase();
-      loadDbSavedItems();
+    const handleDbConnected = async () => {
+      await loadFromDatabase();
+      await loadDbSavedItems();
+      const writeTest = await testWriteAccess();
+      setDbCanWrite(writeTest.success);
     };
     window.addEventListener('dbConnected', handleDbConnected);
     return () => window.removeEventListener('dbConnected', handleDbConnected);
@@ -492,19 +494,21 @@ const checkDbConnection = async () => {
     if (url && key) {
       setDbConnected(true);
       setDbLoading(true);
+      
       await loadDbSavedItems();
       await loadFromDatabase();
-      
-      const writeTest = await testWriteAccess();
-      setDbCanWrite(writeTest.success);
-      if (!writeTest.success) {
-        console.warn('[DB] Write access blocked:', writeTest.error);
-        if (writeTest.isRlsError) {
-          showNotification('Database read-only. Check RLS policies.', 'warning');
-        }
-      }
-      
       setDbLoading(false);
+      
+      setTimeout(async () => {
+        const writeTest = await testWriteAccess();
+        setDbCanWrite(writeTest.success);
+        if (!writeTest.success) {
+          console.warn('[DB] Write access blocked:', writeTest.error);
+          if (writeTest.isRlsError) {
+            showNotification('Database read-only. Check RLS policies.', 'warning');
+          }
+        }
+      }, 100);
     }
   };
 
