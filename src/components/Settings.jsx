@@ -19,12 +19,52 @@ const [clearPlaylistExpanded, setClearPlaylistExpanded] = useState(false);
   const [supabaseKey, setSupabaseKey] = useState('');
   const [dbStatus, setDbStatus] = useState({ connected: false, checking: false, message: '' });
   const [migrationSql, setMigrationSql] = useState(null);
+  const [connectionHealth, setConnectionHealth] = useState({ healthy: true, lastChecked: null, error: null });
   const btnRef = useRef(null);
 
   useEffect(() => {
     setSupabaseUrl(getStoredSupabaseUrl());
     setSupabaseKey(getStoredSupabaseKey());
   }, []);
+
+  // Periodically check database connection health
+  useEffect(() => {
+    const checkConnectionHealth = async () => {
+      const url = getStoredSupabaseUrl();
+      const key = getStoredSupabaseKey();
+      
+      // Only check if database is configured
+      if (!url || !key) {
+        setConnectionHealth({ healthy: false, lastChecked: new Date(), error: 'Not configured' });
+        return;
+      }
+
+      try {
+        const result = await testConnection(url, key);
+        if (result.success) {
+          setConnectionHealth({ healthy: true, lastChecked: new Date(), error: null });
+        } else {
+          setConnectionHealth({ healthy: false, lastChecked: new Date(), error: result.error });
+          // Show warning notification when connection is lost
+          showNotification(`Database connection lost: ${result.error}`, 'error');
+        }
+      } catch (err) {
+        setConnectionHealth({ healthy: false, lastChecked: new Date(), error: err.message });
+        showNotification(`Database connection error: ${err.message}`, 'error');
+      }
+    };
+
+    // Check every 60 seconds
+    const interval = setInterval(checkConnectionHealth, 60 * 1000);
+    
+    // Initial check after 5 seconds
+    const timeout = setTimeout(checkConnectionHealth, 5000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [showNotification]);
 
   useEffect(() => {
     const updateResetTimes = () => {
@@ -246,6 +286,11 @@ const handleTestDbConnection = async () => {
               <i className="fas fa-database mr-2 text-green-500"></i>
               Supabase
               {dbStatus.connected && <span className="ml-2 px-1.5 py-0.5 bg-green-500/20 text-green-500 rounded text-[10px]">Connected</span>}
+              {!connectionHealth.healthy && connectionHealth.lastChecked && (
+                <span className="ml-2 px-1.5 py-0.5 bg-red-500/20 text-red-500 rounded text-[10px]" title={connectionHealth.error}>
+                  <i className="fas fa-exclamation-triangle mr-1"></i>Connection Issue
+                </span>
+              )}
             </span>
             <i className={`fas fa-chevron-${dbConnectionExpanded ? 'up' : 'down'} text-xs`}></i>
           </button>
@@ -296,6 +341,15 @@ const handleTestDbConnection = async () => {
                 <div className={`text-xs px-3 py-2 rounded-lg ${dbStatus.connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                   <i className={`fas ${dbStatus.connected ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-1`}></i>
                   {dbStatus.message}
+                </div>
+              )}
+              {!connectionHealth.healthy && connectionHealth.error && connectionHealth.lastChecked && (
+                <div className="text-xs px-3 py-2 rounded-lg bg-red-100 text-red-700 border border-red-200">
+                  <i className="fas fa-exclamation-triangle mr-1"></i>
+                  <strong>Connection Warning:</strong> {connectionHealth.error}
+                  <div className="mt-1 text-[10px] opacity-75">
+                    Last checked: {connectionHealth.lastChecked.toLocaleTimeString()}
+                  </div>
                 </div>
               )}
               {migrationSql && (

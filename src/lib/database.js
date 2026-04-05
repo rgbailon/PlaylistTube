@@ -119,7 +119,10 @@ export const savePlaylist = async (playlist) => {
   if (error) return { success: false, error: error.message };
 
   if (playlist.videos && playlist.videos.length > 0) {
-    await savePlaylistVideos(playlist.id, playlist.videos);
+    const videosResult = await savePlaylistVideos(playlist.id, playlist.videos);
+    if (!videosResult.success) {
+      return { success: false, error: videosResult.error };
+    }
   }
 
   return { success: true };
@@ -212,7 +215,10 @@ export const saveCourse = async (course) => {
   if (error) return { success: false, error: error.message };
 
   if (course.videos && course.videos.length > 0) {
-    await savePlaylistVideos(course.id, course.videos);
+    const videosResult = await savePlaylistVideos(course.id, course.videos);
+    if (!videosResult.success) {
+      return { success: false, error: videosResult.error };
+    }
   }
 
   return { success: true };

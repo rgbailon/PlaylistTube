@@ -40,6 +40,7 @@ function App() {
   const [lastSearchQuery, setLastSearchQuery] = useState('');
   const [lastSearchType, setLastSearchType] = useState('');
 const [notification, setNotification] = useState(null);
+  const [notificationType, setNotificationType] = useState('success'); // 'success' or 'error'
   const [forceSearch, setForceSearch] = useState(null);
 const [dbConnected, setDbConnected] = useState(false);
   const [dbSavedItems, setDbSavedItems] = useState({});
@@ -333,8 +334,9 @@ const [dbConnected, setDbConnected] = useState(false);
     return value ? decodeURIComponent(value.split('=')[1]) : null;
   };
 
-  const showNotification = (message) => {
+  const showNotification = (message, type = 'success') => {
     setNotification(message);
+    setNotificationType(type);
     setTimeout(() => setNotification(null), 3000);
   };
 
@@ -507,7 +509,7 @@ const isItemSavedInDb = (id, type) => {
 
 const isDbConfigured = () => !!(getStoredSupabaseUrl() && getStoredSupabaseKey());
 
-  const addToHistory = async (playlist, type = 'playlist') => {
+const addToHistory = async (playlist, type = 'playlist') => {
     const validVideos = (playlist.videos || []).filter(v => v && v.id);
     if (validVideos.length === 0) {
       console.log('[History] Skipped: playlist has no valid videos');
@@ -522,29 +524,47 @@ const isDbConfigured = () => !!(getStoredSupabaseUrl() && getStoredSupabaseKey()
       newHistory = [playlistWithType, ...playlistHistory];
     }
     setPlaylistHistory(newHistory);
-    const sortedHistory = newHistory.sort((a, b) => new Date(b.addedAt || b.created_at) - new Date(a.addedAt || a.created_at));
+    const sortedHistory = newHistory.sort((a, b) => new Date(b.addedAt || b.created_at) - new Date(a.addedAt || b.created_at));
     const localSuccess = safeSaveToStorage('yt_playlist_history', JSON.stringify(sortedHistory));
 
-    if (isDbConfigured()) {
-      let saveResult;
+    let saveResult = { success: false };
+    const dbConfigured = isDbConfigured();
+    console.log('[DB] isDbConfigured:', dbConfigured);
+    console.log('[DB] Supabase URL:', getStoredSupabaseUrl() ? 'set' : 'empty');
+    console.log('[DB] Supabase Key:', getStoredSupabaseKey() ? 'set' : 'empty');
+
+    if (dbConfigured) {
       const normalizedType = type === 'course' ? 'courses' : type;
-      if (normalizedType === 'video' || normalizedType === 'live') {
-        const itemToSave = playlistWithType.videos?.[0] || playlistWithType;
-        saveResult = normalizedType === 'video' 
-          ? await saveVideo(itemToSave) 
-          : await saveLive(itemToSave);
-      } else if (normalizedType === 'courses') {
-        saveResult = await saveCourse(playlistWithType);
-        if (saveResult.success && playlistWithType.videos && playlistWithType.videos.length > 0) {
-          if (typeof showNotification === 'function') {
-            showNotification(`Course saved with ${playlistWithType.videos.length} videos (DB synced)`);
+      console.log('[DB] Saving type:', normalizedType, 'with', validVideos.length, 'videos');
+      try {
+        if (normalizedType === 'video' || normalizedType === 'live') {
+          const itemToSave = playlistWithType.videos?.[0] || playlistWithType;
+          saveResult = normalizedType === 'video'
+            ? await saveVideo(itemToSave)
+            : await saveLive(itemToSave);
+        } else if (normalizedType === 'courses') {
+          saveResult = await saveCourse(playlistWithType);
+          if (saveResult.success && playlistWithType.videos && playlistWithType.videos.length > 0) {
+            if (typeof showNotification === 'function') {
+              showNotification(`Course saved with ${playlistWithType.videos.length} videos (DB synced)`);
+            }
           }
+        } else {
+          saveResult = await savePlaylist(playlistWithType);
         }
-      } else {
-        saveResult = await savePlaylist(playlistWithType);
-      }
-      if (saveResult.success) {
-        setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${normalizedType}`]: true }));
+        console.log('[DB] Save result:', saveResult);
+        
+        if (saveResult.success) {
+          setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${normalizedType}`]: true }));
+        } else {
+          // Show warning when database save fails
+          console.error('[DB] Save failed:', saveResult.error);
+          showNotification(`Database save failed: ${saveResult.error || 'Unknown error'}`, 'error');
+        }
+      } catch (err) {
+        // Catch any unexpected errors during save
+        console.error('[DB] Unexpected error:', err);
+        showNotification(`Database error: ${err.message || 'Failed to save to database'}`, 'error');
       }
     }
 
@@ -619,7 +639,7 @@ const value = {
     playerPanelOpen, setPlayerPanelOpen,
     getCookie, setCookie,
     saveSearchResults, lastSearchResults, lastSearchQuery, lastSearchType,
-    notification, showNotification,
+    notification, notificationType, showNotification,
     forceSearch, setForceSearch,
     dbConnected, isItemSavedInDb, loadDbSavedItems, dbLoading
   };
@@ -630,8 +650,12 @@ const value = {
         <div className="min-h-screen" style={{ background: 'var(--bg-main)' }}>
           <Header />
           {notification && (
-            <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-medium animate-fade-in" style={{ background: 'var(--accent-color)', color: 'white' }}>
-              <i className="fas fa-check-circle mr-2"></i>
+            <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-medium animate-fade-in" 
+                 style={{ 
+                   background: notificationType === 'error' ? '#ef4444' : 'var(--accent-color)', 
+                   color: 'white' 
+                 }}>
+              <i className={`fas ${notificationType === 'error' ? 'fa-exclamation-triangle' : 'fa-check-circle'} mr-2`}></i>
               {notification}
             </div>
           )}
