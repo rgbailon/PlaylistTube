@@ -215,7 +215,6 @@ const [dbConnected, setDbConnected] = useState(false);
       }
       
       const videosByPlaylistId = {};
-      const videosByCourseId = {};
       if (videosResult.success && videosResult.items) {
         videosResult.items.forEach(v => {
           if (v.playlist_id) {
@@ -223,21 +222,6 @@ const [dbConnected, setDbConnected] = useState(false);
               videosByPlaylistId[v.playlist_id] = [];
             }
             videosByPlaylistId[v.playlist_id].push({
-              id: v.video_id || v.id,
-              title: v.title,
-              description: v.description || '',
-              thumbnail: v.thumbnail || '',
-              channelTitle: v.channel_title || '',
-              publishedAt: v.published_at,
-              viewCount: v.view_count || 0,
-              position: v.position
-            });
-          }
-          if (v.playlist_id && v.playlist_id.includes('course')) {
-            if (!videosByCourseId[v.playlist_id]) {
-              videosByCourseId[v.playlist_id] = [];
-            }
-            videosByCourseId[v.playlist_id].push({
               id: v.video_id || v.id,
               title: v.title,
               description: v.description || '',
@@ -276,7 +260,7 @@ const [dbConnected, setDbConnected] = useState(false);
       
       if (coursesResult.success && coursesResult.items) {
         coursesResult.items.forEach(c => {
-          const courseVideos = videosByPlaylistId[c.id] || videosByCourseId[c.id] || [];
+          const courseVideos = videosByPlaylistId[c.id] || [];
           if (courseVideos.length > 0) {
             allDbItems.push({
               ...c,
@@ -340,8 +324,10 @@ const [dbConnected, setDbConnected] = useState(false);
       }
       
       if (allDbItems.length > 0) {
+        console.log('[DB] Loading', allDbItems.length, 'items from Supabase');
         setPlaylistHistory(prev => {
           const merged = [...prev];
+          let addedCount = 0;
           allDbItems.forEach(dbItem => {
             const hasValidVideos = dbItem.videos && dbItem.videos.some(v => v && v.id);
             if (!hasValidVideos) {
@@ -350,11 +336,18 @@ const [dbConnected, setDbConnected] = useState(false);
             }
             const exists = merged.find(p => p.id === dbItem.id);
             if (!exists) {
+              console.log('[DB] Adding from Supabase:', dbItem.title, 'with', dbItem.videos.length, 'videos');
               merged.push(dbItem);
+              addedCount++;
+            } else {
+              console.log('[DB] Already exists in local:', dbItem.id);
             }
           });
+          console.log('[DB] Added', addedCount, 'new items from Supabase');
           return merged.sort((a, b) => new Date(b.addedAt || b.created_at) - new Date(a.addedAt || b.created_at));
         });
+      } else {
+        console.log('[DB] No items found in Supabase');
       }
     } catch (err) {
       console.error('[DB] loadFromDatabase error:', err);
