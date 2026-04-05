@@ -260,12 +260,17 @@ const [dbConnected, setDbConnected] = useState(false);
       
       if (coursesResult.success && coursesResult.items) {
         coursesResult.items.forEach(c => {
-          allDbItems.push({
-            ...c,
-            addedAt: c.created_at,
-            type: 'courses',
-            videos: videosByPlaylistId[c.id] || []
-          });
+          const courseVideos = videosByPlaylistId[c.id] || [];
+          if (courseVideos.length > 0) {
+            allDbItems.push({
+              ...c,
+              addedAt: c.created_at,
+              type: 'courses',
+              videos: courseVideos
+            });
+          } else {
+            console.log(`[DB] Skipping course "${c.title}": no videos in videos table`);
+          }
         });
       }
       
@@ -573,11 +578,6 @@ const addToHistory = async (playlist, type = 'playlist') => {
             : await saveLive(itemToSave);
         } else if (normalizedType === 'courses') {
           saveResult = await saveCourse(playlistWithType);
-          if (saveResult.success && playlistWithType.videos && playlistWithType.videos.length > 0) {
-            if (typeof showNotification === 'function') {
-              showNotification(`Course saved with ${playlistWithType.videos.length} videos (DB synced)`);
-            }
-          }
         } else {
           saveResult = await savePlaylist(playlistWithType);
         }
@@ -585,6 +585,8 @@ const addToHistory = async (playlist, type = 'playlist') => {
         
         if (saveResult.success) {
           setDbSavedItems(prev => ({ ...prev, [`${playlist.id}_${normalizedType}`]: true }));
+          const itemTypeLabel = normalizedType === 'courses' ? 'Course' : normalizedType;
+          showNotification(`${itemTypeLabel} saved to database!`, 'success');
         } else if (saveResult.isQuotaError) {
           console.error('[DB] Storage quota exceeded:', saveResult.error);
           showNotification('Supabase storage full! Please delete some items or reduce playlist sizes.', 'warning');
@@ -605,6 +607,8 @@ const addToHistory = async (playlist, type = 'playlist') => {
           showNotification(`Database error: ${errMessage || 'Failed to save to database'}`, 'error');
         }
       }
+    } else if (dbConfigured && !dbCanWrite) {
+      showNotification('Database is read-only. Cannot save.', 'warning');
     }
 
     return localSuccess;
