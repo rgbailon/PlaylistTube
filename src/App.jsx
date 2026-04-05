@@ -215,6 +215,7 @@ const [dbConnected, setDbConnected] = useState(false);
       }
       
       const videosByPlaylistId = {};
+      console.log('[DB] Total videos from Supabase:', videosResult.items?.length || 0);
       if (videosResult.success && videosResult.items) {
         videosResult.items.forEach(v => {
           if (v.playlist_id) {
@@ -233,6 +234,8 @@ const [dbConnected, setDbConnected] = useState(false);
             });
           }
         });
+        
+        console.log('[DB] Videos grouped by playlist_id:', Object.keys(videosByPlaylistId).length);
         
         videosResult.items.forEach(v => {
           if (!v.playlist_id) {
@@ -259,8 +262,11 @@ const [dbConnected, setDbConnected] = useState(false);
       }
       
       if (coursesResult.success && coursesResult.items) {
+        console.log('[DB] Courses from Supabase:', coursesResult.items.length);
         coursesResult.items.forEach(c => {
           const courseVideos = videosByPlaylistId[c.id] || [];
+          console.log(`[DB] Course "${c.title}" (${c.id}):`, courseVideos.length, 'videos found');
+          if (courseVideos.length > 0) {
           if (courseVideos.length > 0) {
             allDbItems.push({
               ...c,
