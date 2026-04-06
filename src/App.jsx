@@ -379,6 +379,7 @@ const [dbConnected, setDbConnected] = useState(false);
   };
 
   const showNotification = (message, type = 'success') => {
+    if (!dbConnected) return;
     setNotification(message);
     setNotificationType(type);
     setTimeout(() => setNotification(null), 3000);
