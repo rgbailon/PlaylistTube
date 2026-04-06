@@ -1260,19 +1260,7 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 </button>
               ))}
             </div>
-            <div className="relative">
-              <select
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-4 py-2 pr-8 text-xs font-medium cursor-pointer transition-all duration-200"
-                style={{ color: 'var(--text-main)' }}
-              >
-                {regions.map(r => (
-                  <option key={r.code} value={r.code} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>{r.name}</option>
-                ))}
-              </select>
-              <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
-            </div>
+
             {searchType === 'courses' && (
               <div className="relative">
                 <select
@@ -1303,20 +1291,6 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 </button>
               ))}
             </div>
-            {(searchType === 'video' || searchType === 'live') && (
-              <button
-                onClick={() => setFilterIndianContent(!filterIndianContent)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 border"
-                style={{
-                  background: filterIndianContent ? 'var(--accent-color)' : 'var(--bg-card)',
-                  color: filterIndianContent ? (theme === 'sun' ? '#000000' : 'white') : 'var(--text-muted)',
-                  borderColor: 'var(--border-color)'
-                }}
-              >
-                <i className="fas fa-filter"></i>
-                {filterIndianContent ? 'Filtering Indian Content' : 'Show Indian Content'}
-              </button>
-            )}
           </div>
         </div>
 

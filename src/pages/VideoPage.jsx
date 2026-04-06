@@ -13,23 +13,15 @@ function VideoPage() {
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState(null);
-  const [region, setRegion] = useState('US');
   const [timeFilter, setTimeFilter] = useState('all');
 
-  const regions = [
-    { code: 'US', name: 'United States' },
-    { code: 'GB', name: 'United Kingdom' },
-    { code: 'PH', name: 'Philippines' },
-    { code: 'IN', name: 'India' },
-    { code: 'CA', name: 'Canada' },
-    { code: 'AU', name: 'Australia' },
-    { code: 'DE', name: 'Germany' },
-    { code: 'FR', name: 'France' },
-    { code: 'JP', name: 'Japan' },
-    { code: 'KR', name: 'South Korea' },
-    { code: 'BR', name: 'Brazil' },
-    { code: 'MX', name: 'Mexico' },
-  ];
+  const isIndianVideo = (item) => {
+    const hindiRegex = /[\u0900-\u097F]/;
+    const text = `${item.title || ''} ${item.channelTitle || ''} ${item.description || ''}`.toLowerCase();
+    if (hindiRegex.test(text)) return true;
+    const indianKeywords = ['india', 'hindi', 'indian', 'bhakti', 'bollywood', 'desi', 'punjabi', 'tamil', 'telugu', 'malayalam', 'kannada', 'bengali', 'gujarati', 'marathi'];
+    return indianKeywords.some(keyword => text.includes(keyword));
+  };
 
   const getPublishedAfter = () => {
     const now = new Date();
@@ -109,7 +101,7 @@ function VideoPage() {
     if (searchQuery && results.length > 0) {
       handleSearch();
     }
-  }, [region, timeFilter]);
+  }, [timeFilter]);
 
   const extractVideoId = (input) => {
     const patterns = [
@@ -152,7 +144,7 @@ function VideoPage() {
     setError(null);
     setResults([]);
     try {
-      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&regionCode=${region}&key=${apiKey}`;
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&regionCode=US&key=${apiKey}`;
       
       const publishedAfter = getPublishedAfter();
       if (publishedAfter) {
@@ -183,6 +175,8 @@ function VideoPage() {
           publishedAt: item.snippet.publishedAt,
           liveViewers: item.liveStreamingDetails?.concurrentViewers ? parseInt(item.liveStreamingDetails.concurrentViewers) : 0,
         }));
+
+        videos = videos.filter(item => !isIndianVideo(item));
 
         try {
           const statsResp = await fetch(
@@ -236,7 +230,7 @@ function VideoPage() {
 
     setLoading(true);
     try {
-      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=video&regionCode=${region}&pageToken=${nextPageToken}&key=${apiKey}`;
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery)}&type=video&regionCode=US&pageToken=${nextPageToken}&key=${apiKey}`;
       
       const publishedAfter = getPublishedAfter();
       if (publishedAfter) {
@@ -266,6 +260,8 @@ function VideoPage() {
           description: item.snippet.description,
           publishedAt: item.snippet.publishedAt,
         }));
+
+        videos = videos.filter(item => !isIndianVideo(item));
 
         try {
           const statsResp = await fetch(
@@ -350,19 +346,6 @@ function VideoPage() {
 
         <div className="px-4 md:px-8 pb-4">
           <div className="flex flex-wrap items-center gap-3 justify-center">
-            <div className="flex items-center gap-2">
-              <i className="fas fa-globe text-xs" style={{ color: 'var(--text-muted)' }}></i>
-              <select
-                value={region}
-                onChange={(e) => setRegion(e.target.value)}
-                className="text-xs rounded-lg px-2 py-1.5"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', color: 'var(--text-main)' }}
-              >
-                {regions.map(r => (
-                  <option key={r.code} value={r.code}>{r.name}</option>
-                ))}
-              </select>
-            </div>
             <div className="flex items-center gap-1">
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Time:</span>
               {[
