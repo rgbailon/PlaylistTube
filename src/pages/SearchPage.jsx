@@ -666,7 +666,7 @@ const loadTrendingCourses = async () => {
       const relevanceLang = 'en';
       const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=course+tutorial+complete+learn+programming&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${courseRegion}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=course+tutorial+complete+learn+programming&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`
       );
       const data = await resp.json();
 
@@ -745,7 +745,7 @@ if (!activeQuery.trim()) {
           ? `${encodeURIComponent(activeQuery)}+course+tutorial+complete+playlist`
           : 'course+tutorial+complete+learn+programming';
         const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${courseRegion}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -861,11 +861,6 @@ if (!activeQuery.trim()) {
   };
 
   const loadMore = async () => {
-    if (searchQuery.trim()) {
-      searchPlaylists();
-      return;
-    }
-    
     if (!nextPageToken) return;
     
     const apiKey = getCurrentApiKey();
@@ -874,41 +869,51 @@ if (!activeQuery.trim()) {
     setLoading(true);
     try {
       const relevanceLang = 'en';
-      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'trending')}&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
+      const activeQuery = searchQuery;
+      const activeType = searchType;
       
-      if (searchType === 'playlist') {
+      let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&order=${sortOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
+      
+      if (activeType === 'playlist') {
         const playlistOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'popular+playlists')}&type=playlist&order=${playlistOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
-      } else if (searchType === 'live') {
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'live+stream')}&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
-} else if (searchType === 'shorts_playlist') {
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=playlist&order=${playlistOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
+      } else if (activeType === 'live') {
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=video&eventType=live&order=${sortOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
+      } else if (activeType === 'shorts_playlist') {
         const shortsOrder = sortOrder === 'viewCount' || sortOrder === 'rating' ? 'relevance' : sortOrder;
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(searchQuery || 'shorts+playlist')}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
-} else if (searchType === 'courses') {
-        const courseQuery = searchQuery
-          ? `${encodeURIComponent(searchQuery)}+course+tutorial+complete+playlist`
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(activeQuery)}&type=playlist&order=${shortsOrder}&relevanceLanguage=${relevanceLang}&pageToken=${nextPageToken}&key=${apiKey}`;
+      } else if (activeType === 'courses') {
+        const courseQuery = activeQuery
+          ? `${encodeURIComponent(activeQuery)}+course+tutorial+complete+playlist`
           : 'course+tutorial+complete+learn+programming';
         const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${courseRegion}&pageToken=${nextPageToken}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&pageToken=${nextPageToken}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
       const data = await resp.json();
       
       if (data.items) {
-        const filteredItems = searchType === 'courses'
-          ? data.items.filter(item => item.id.playlistId && !isIndianContent(item))
-          : data.items;
+        let filteredItems = data.items;
+        
+        if (filterIndianContent) {
+          if (activeType === 'video' || activeType === 'live') {
+            filteredItems = data.items.filter(item => item.id.videoId && !isIndianVideo(item));
+          } else if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType === 'courses') {
+            filteredItems = data.items.filter(item => item.id.playlistId && !isIndianContent(item));
+          }
+        }
+        
         setResults([...results, ...filteredItems]);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         
-        if (searchType === 'playlist' || searchType === 'shorts_playlist' || searchType === 'courses') {
+        if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType === 'courses') {
           updateQuota(-1, 'playlists');
           fetchPlaylistDetails(filteredItems.map(item => item.id.playlistId));
-        } else if (searchType === 'video' || searchType === 'live') {
+        } else if (activeType === 'video' || activeType === 'live') {
           updateQuota(-100, 'search');
-          const videoIds = data.items.map(item => item.id.videoId).filter(Boolean);
+          const videoIds = filteredItems.map(item => item.id.videoId).filter(Boolean);
           if (videoIds.length > 0) {
             fetchVideoStats(videoIds);
             fetchLiveDetails(videoIds);
@@ -927,6 +932,32 @@ const handleSortChange = (order) => {
     setVideoStats({});
     if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(searchType, searchQuery);
+    }
+  };
+
+  const handleTimeFilterChange = (time) => {
+    setTimeFilter(time);
+    setVideoStats({});
+    if (explicitSearchRef.current && searchQuery.trim()) {
+      searchPlaylists(searchType, searchQuery);
+    }
+  };
+
+  const handleRegionChange = (newRegion) => {
+    setRegion(newRegion);
+    setVideoStats({});
+    if (explicitSearchRef.current && searchQuery.trim()) {
+      searchPlaylists(searchType, searchQuery);
+    }
+  };
+
+  const handleCourseRegionChange = (newRegion) => {
+    setRegion(newRegion);
+    setVideoStats({});
+    if (explicitSearchRef.current && searchQuery.trim()) {
+      searchPlaylists(searchType, searchQuery);
+    } else if (searchType === 'courses') {
+      loadTrendingCourses();
     }
   };
 
@@ -1255,6 +1286,19 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
               </select>
               <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
             </div>
+            <div className="relative">
+              <select
+                value={region}
+                onChange={(e) => handleRegionChange(e.target.value)}
+                className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-4 py-2 pr-8 text-xs font-medium cursor-pointer transition-all duration-200"
+                style={{ color: 'var(--text-main)' }}
+              >
+                {regions.map(r => (
+                  <option key={r.code} value={r.code} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>{r.name}</option>
+                ))}
+              </select>
+              <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
+            </div>
             <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-1">
               {sortOptions.map((option) => (
                 <button
@@ -1271,26 +1315,11 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
               ))}
             </div>
 
-            {searchType === 'courses' && (
-              <div className="relative">
-                <select
-                  value={courseRegion}
-                  onChange={(e) => setCourseRegion(e.target.value)}
-                  className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-4 py-2 pr-8 text-xs font-medium cursor-pointer transition-all duration-200"
-                  style={{ color: 'var(--text-main)' }}
-                >
-                  {courseRegions.map(r => (
-                    <option key={r.code} value={r.code} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>{r.name}</option>
-                  ))}
-                </select>
-                <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
-              </div>
-            )}
             <div className="flex items-center gap-1 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-1">
               {timeFilters.map(option => (
                 <button
                   key={option.value}
-                  onClick={() => setTimeFilter(option.value)}
+                  onClick={() => handleTimeFilterChange(option.value)}
                   className="sort-filter-btn px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200"
                   style={{ 
                     background: timeFilter === option.value ? 'var(--accent-color)' : 'transparent', 
