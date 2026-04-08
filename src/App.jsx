@@ -1,17 +1,18 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
-import PlayerPage from './pages/PlayerPage';
-import SearchPage from './pages/SearchPage';
-import VideoPage from './pages/VideoPage';
-import LivePage from './pages/LivePage';
-import ChatPage from './pages/ChatPage';
-import WhiteboardPage from './pages/WhiteboardPage';
-import PrivacyPage from './pages/PrivacyPage';
 import CastReceiver from './pages/CastReceiver';
 import { getStoredSupabaseUrl, getStoredSupabaseKey, savePlaylist, saveVideo, saveLive, saveCourse, getAllItems, loadFullPlaylistsFromDb, deleteItem, cleanupZeroVideoPlaylists, testWriteAccess } from './lib/database';
 import './index.css';
+
+const PlayerPage = lazy(() => import('./pages/PlayerPage'));
+const SearchPage = lazy(() => import('./pages/SearchPage'));
+const VideoPage = lazy(() => import('./pages/VideoPage'));
+const LivePage = lazy(() => import('./pages/LivePage'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const WhiteboardPage = lazy(() => import('./pages/WhiteboardPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
 
 export const AppContext = createContext();
 
@@ -742,16 +743,18 @@ const value = {
           <div className="flex">
             <Sidebar />
             <main className={`flex-1 mt-12 h-[calc(100vh-48px)] overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'ml-0 pl-3' : 'md:ml-64'} md:pb-0 pb-16`}>
-              <Routes>
-                <Route path="/" element={<PlayerPage />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/video" element={<VideoPage />} />
-                <Route path="/live" element={<LivePage />} />
-                <Route path="/chat" element={<ChatPage />} />
-                <Route path="/whiteboard" element={<WhiteboardPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="/cast" element={<CastReceiver />} />
-              </Routes>
+              <Suspense fallback={<div className="flex items-center justify-center h-full" style={{ background: 'var(--bg-main)' }}><i className="fas fa-spinner fa-spin text-2xl" style={{ color: 'var(--text-muted)' }}></i></div>}>
+                <Routes>
+                  <Route path="/" element={<PlayerPage />} />
+                  <Route path="/search" element={<SearchPage />} />
+                  <Route path="/video" element={<VideoPage />} />
+                  <Route path="/live" element={<LivePage />} />
+                  <Route path="/chat" element={<ChatPage />} />
+                  <Route path="/whiteboard" element={<WhiteboardPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/cast" element={<CastReceiver />} />
+                </Routes>
+              </Suspense>
             </main>
           </div>
         </div>
