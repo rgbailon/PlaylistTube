@@ -474,7 +474,10 @@ function SearchPage() {
           }
         }
       } else if (data.items) {
-        setResults(data.items);
+        const filteredItems = filterIndianContent 
+          ? data.items.filter(item => !isIndianVideo(item))
+          : data.items;
+        setResults(filteredItems);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         updateQuota(-100, 'search');
@@ -758,9 +761,16 @@ if (!activeQuery.trim()) {
           }
         }
       } else if (data.items) {
-        const filteredItems = activeType === 'courses' 
-          ? data.items.filter(item => item.id.playlistId && !isIndianContent(item))
-          : data.items;
+        let filteredItems = data.items;
+        
+        if (filterIndianContent && (activeType === 'video' || activeType === 'live')) {
+          filteredItems = data.items.filter(item => item.id.videoId && !isIndianVideo(item));
+        } else if (activeType === 'courses') {
+          filteredItems = data.items.filter(item => item.id.playlistId && !isIndianContent(item));
+        } else if (activeType === 'playlist' || activeType === 'shorts_playlist') {
+          filteredItems = data.items.filter(item => item.id.playlistId && !isIndianContent(item));
+        }
+        
         setResults(filteredItems);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);

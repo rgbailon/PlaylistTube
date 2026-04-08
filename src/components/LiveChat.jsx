@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 function LiveChat({ videoId }) {
   const [chatUrl, setChatUrl] = useState('');
@@ -6,20 +6,20 @@ function LiveChat({ videoId }) {
   const [error, setError] = useState(null);
   const iframeRef = useRef(null);
 
-  useEffect(() => {
-    if (videoId) {
-      loadLiveChat();
-    }
-  }, [videoId]);
-
-  const loadLiveChat = async () => {
+  const loadLiveChat = useCallback(() => {
     setLoading(true);
     setError(null);
     
     const embedUrl = `https://www.youtube.com/live_chat?v=${videoId}&embed_domain=${window.location.hostname}&dark=1`;
     setChatUrl(embedUrl);
     setLoading(false);
-  };
+  }, [videoId]);
+
+  useEffect(() => {
+    if (videoId) {
+      loadLiveChat();
+    }
+  }, [videoId, loadLiveChat]);
 
   const refreshChat = () => {
     if (iframeRef.current) {

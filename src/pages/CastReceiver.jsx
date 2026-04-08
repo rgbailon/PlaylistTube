@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 function CastReceiver() {
   const [status, setStatus] = useState('connecting');
@@ -9,28 +8,12 @@ function CastReceiver() {
   const [error, setError] = useState('');
   const [ipAddress, setIpAddress] = useState('');
   const eventSourceRef = useRef(null);
+  const serverUrlRef = useRef('');
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const server = params.get('server');
-    
-    if (server) {
-      setServerUrl(server);
-      connectToServer(server);
-    } else {
-      setStatus('waiting');
-    }
-
-    return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-    };
-  }, []);
-
-  const connectToServer = (server) => {
+  const connectToServer = useCallback((server) => {
     setStatus('connecting');
     setError('');
+    serverUrlRef.current = server;
 
     try {
       const url = `${server}/api/cast-events`;
@@ -66,8 +49,8 @@ function CastReceiver() {
         setError('Connection lost. Trying to reconnect...');
         
         setTimeout(() => {
-          if (serverUrl) {
-            connectToServer(serverUrl);
+          if (serverUrlRef.current) {
+            connectToServer(serverUrlRef.current);
           }
         }, 3000);
       };
@@ -75,7 +58,7 @@ function CastReceiver() {
       setError('Failed to connect: ' + err.message);
       setStatus('error');
     }
-  };
+  }, []);
 
   const handleManualConnect = () => {
     if (!ipAddress.trim()) return;
@@ -92,7 +75,7 @@ function CastReceiver() {
     try {
       const pc = new RTCPeerConnection({ iceServers: [] });
       pc.createDataChannel('');
-      const offer = await pc.createOffer();
+      await pc.createOffer();
       pc.onicecandidate = (event) => {
         if (event.candidate) {
           const match = event.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
@@ -102,11 +85,28 @@ function CastReceiver() {
           pc.close();
         }
       };
-      pc.createOffer();
     } catch (err) {
       console.error('Could not get local IP:', err);
     }
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const server = params.get('server');
+    
+    if (server) {
+      setServerUrl(server);
+      connectToServer(server);
+    } else {
+      setStatus('waiting');
+    }
+
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+    };
+  }, [connectToServer]);
 
   useEffect(() => {
     getLocalIP();

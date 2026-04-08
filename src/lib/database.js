@@ -4,6 +4,10 @@ const SUPABASE_URL_KEY = 'yt_supabase_url';
 const SUPABASE_KEY_KEY = 'yt_supabase_key';
 const SUPABASE_DB_KEY = 'yt_supabase_connection_string';
 
+let supabase = null;
+let cachedUrl = '';
+let cachedKey = '';
+
 export const getStoredSupabaseUrl = () => localStorage.getItem(SUPABASE_URL_KEY) || '';
 export const getStoredSupabaseKey = () => localStorage.getItem(SUPABASE_KEY_KEY) || '';
 export const getStoredConnectionString = () => localStorage.getItem(SUPABASE_DB_KEY) || '';
@@ -35,10 +39,6 @@ export const clearSupabaseConfig = () => {
   cachedUrl = '';
   cachedKey = '';
 };
-
-let supabase = null;
-let cachedUrl = '';
-let cachedKey = '';
 
 export const getSupabaseClient = () => {
   const url = getStoredSupabaseUrl();
@@ -82,7 +82,7 @@ export const initDatabase = async () => {
   if (!client) return { success: false, error: 'Not configured' };
 
   try {
-    const { data, error } = await client.from('playlists').select('channel_title,type').limit(1);
+    const { error } = await client.from('playlists').select('channel_title,type').limit(1);
     if (error) {
       if (error.code === '42P01') {
         return { success: false, error: 'Tables do not exist. Please create them in Supabase Dashboard.', needsManualUpdate: true };
@@ -398,19 +398,12 @@ export const getAllItems = async (type = null) => {
     }
 
     const allItems = [];
-    let hasRlsError = false;
-    let rlsErrorMessage = '';
-    let canWrite = true;
     for (const table of tables) {
       try {
         const { data, error } = await client.from(table).select('*');
         if (error) {
           if (error.code === '42P01' || error.code === '404') {
             continue;
-          }
-          if (error.message?.includes('row-level security') || error.message?.includes('RLS')) {
-            hasRlsError = true;
-            rlsErrorMessage = error.message;
           }
           throw error;
         }

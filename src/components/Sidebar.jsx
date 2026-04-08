@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import * as Tooltip from '@radix-ui/react-tooltip';
@@ -11,6 +11,10 @@ function Sidebar() {
   const [showClearBtn, setShowClearBtn] = useState(false);
   const [libraryTab, setLibraryTab] = useState('all');
   const navigate = useNavigate();
+
+  const handleClose = useCallback(() => {
+    setIsAnimatingOut(true);
+  }, []);
 
   // Handle closing animation
   useEffect(() => {
@@ -32,7 +36,7 @@ function Sidebar() {
     };
     window.addEventListener('closeMobileSidebar', handleCloseEvent);
     return () => window.removeEventListener('closeMobileSidebar', handleCloseEvent);
-  }, [mobileSidebarOpen]);
+  }, [mobileSidebarOpen, handleClose]);
 
   // Listen for clear library event from Header
   useEffect(() => {
@@ -42,10 +46,6 @@ function Sidebar() {
     window.addEventListener('clearLibrary', handleClearLibrary);
     return () => window.removeEventListener('clearLibrary', handleClearLibrary);
   }, [clearHistory]);
-
-  const handleClose = () => {
-    setIsAnimatingOut(true);
-  };
 
 const filteredHistory = playlistHistory.filter(item => {
     const hasValidVideos = item.videos && item.videos.some(v => v && v.id);

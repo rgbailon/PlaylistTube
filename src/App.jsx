@@ -67,7 +67,7 @@ const [dbConnected, setDbConnected] = useState(false);
     try {
       localStorage.setItem('yt_current_playlist', JSON.stringify(currentPlaylist));
       localStorage.setItem('yt_current_video_index', currentVideoIndex.toString());
-    } catch (e) {
+    } catch {
       if (typeof showNotification === 'function') {
         showNotification('Storage full! Cannot save current playlist.');
       }
@@ -82,7 +82,7 @@ const [dbConnected, setDbConnected] = useState(false);
       try {
         localStorage.setItem('yt_last_search_results', JSON.stringify(updated));
         document.cookie = `yt_last_search_results=${encodeURIComponent(JSON.stringify(updated))}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 30}`;
-      } catch (e) {}
+      } catch { /* ignore */ }
       return updated;
     });
     try {
@@ -90,7 +90,7 @@ const [dbConnected, setDbConnected] = useState(false);
       localStorage.setItem('yt_last_search_type', type);
       setCookie('yt_last_search_query', query);
       setCookie('yt_last_search_type', type);
-    } catch (e) {}
+    } catch { /* ignore */ }
   };
 
   const loadTheme = () => {
@@ -104,7 +104,7 @@ const [dbConnected, setDbConnected] = useState(false);
     if (savedApiKeys) {
       try {
         setApiKeys(JSON.parse(savedApiKeys));
-      } catch (e) {
+      } catch {
         setApiKeys([]);
       }
     }
@@ -123,7 +123,7 @@ const [dbConnected, setDbConnected] = useState(false);
           console.log(`[History] Filtered out ${parsedHistory.length - filteredHistory.length} playlists with zero videos`);
         }
         setPlaylistHistory(filteredHistory);
-      } catch (e) {
+      } catch {
         setPlaylistHistory([]);
       }
     }
@@ -137,14 +137,14 @@ const [dbConnected, setDbConnected] = useState(false);
     if (savedApiUsage) {
       try {
         setApiUsage(JSON.parse(savedApiUsage));
-      } catch (e) {}
+      } catch { /* ignore */ }
     }
 
     const savedApiCalls = localStorage.getItem('yt_api_calls');
     if (savedApiCalls) {
       try {
         setApiCalls(JSON.parse(savedApiCalls));
-      } catch (e) {}
+      } catch { /* ignore */ }
     }
 
     const savedSidebarState = localStorage.getItem('yt_sidebar_collapsed') || getCookie('yt_sidebar_collapsed');
@@ -156,7 +156,7 @@ const [dbConnected, setDbConnected] = useState(false);
     if (savedCurrentPlaylist) {
       try {
         setCurrentPlaylist(JSON.parse(savedCurrentPlaylist));
-      } catch (e) {
+      } catch {
         setCurrentPlaylist([]);
       }
     }
@@ -174,7 +174,7 @@ const [dbConnected, setDbConnected] = useState(false);
         setLastSearchQuery(savedSearchQuery || '');
         setLastSearchType(savedSearchType || '');
         setLastSearchResults(JSON.parse(savedSearchResults));
-      } catch (e) {
+      } catch {
         setLastSearchResults({});
       }
     }
@@ -195,12 +195,7 @@ const [dbConnected, setDbConnected] = useState(false);
       ]);
 
       const allDbItems = [];
-      let hasRlsError = false;
-      let rlsErrorMessage = '';
-
-      if (coursesResult.isRlsError) { hasRlsError = true; rlsErrorMessage = coursesResult.error; }
-      if (videosResult.isRlsError) { hasRlsError = true; rlsErrorMessage = videosResult.error; }
-      if (livesResult.isRlsError) { hasRlsError = true; rlsErrorMessage = livesResult.error; }
+      const hasRlsError = coursesResult.isRlsError || videosResult.isRlsError || livesResult.isRlsError;
       if (hasRlsError) {
         showNotification('Supabase RLS policies may be blocking data. Check your table permissions.', 'warning');
       }
@@ -390,7 +385,7 @@ const [dbConnected, setDbConnected] = useState(false);
       localStorage.setItem(key, value);
       try {
         document.cookie = `${key}=${encodeURIComponent(value)}; path=/; SameSite=Lax; max-age=${60 * 60 * 24 * 365}`;
-      } catch (cookieError) {}
+      } catch { /* ignore */ }
       return true;
     } catch (error) {
       if (typeof showNotification === 'function') {
@@ -660,7 +655,7 @@ const addToHistory = async (playlist, type = 'playlist') => {
       addedAt: new Date().toISOString(),
       type,
     };
-    const success = addToHistory(playlist, type);
+    const success = await addToHistory(playlist, type);
     if (success) {
       const totalVideos = playlistHistory.reduce((acc, p) => acc + (p.videos?.length || 0), 0) + 1;
       showNotification(`Added: ${video.title.substring(0, 20)}${video.title.length > 20 ? '...' : ''} (${totalVideos} videos)`);

@@ -82,7 +82,7 @@ return true;
           if (matches) {
             for (const m of matches) {
               let val = m.replace(/"/g, '');
-              try { val = JSON.parse('"' + val + '"'); } catch(e) {}
+              try { val = JSON.parse('"' + val + '"'); } catch { /* ignore */ }
               if (isValidSuggestion(val)) {
                 suggestions.push(val);
               }
@@ -91,9 +91,7 @@ return true;
         }
         const unique = [...new Set(suggestions)].slice(0, 6);
         setSuggestions(unique);
-      } catch (err) {
-        setSuggestions([]);
-      }
+      } catch { /* ignore */ }
     };
 
     const timeoutId = setTimeout(() => {

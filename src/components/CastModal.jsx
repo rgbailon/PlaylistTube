@@ -1,43 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 function CastModal({ isOpen, onClose, onConnect, currentVideo }) {
   const [mode, setMode] = useState('menu');
   const [devices, setDevices] = useState([]);
   const [manualIp, setManualIp] = useState('');
   const [loading, setLoading] = useState(false);
-  const [localIp, setLocalIp] = useState('');
 
-  useEffect(() => {
-    if (isOpen && mode === 'discover') {
-      discoverDevices();
-      getLocalIP();
-    }
-    if (isOpen && mode === 'projector') {
-      getLocalIP();
-    }
-  }, [isOpen, mode]);
-
-  const getLocalIP = async () => {
-    try {
-      const pc = new RTCPeerConnection({ iceServers: [] });
-      pc.createDataChannel('');
-      const offer = await pc.createOffer();
-      pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          const match = event.candidate.candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
-          if (match) {
-            setLocalIp(match[1]);
-          }
-          pc.close();
-        }
-      };
-      pc.createOffer();
-    } catch (err) {
-      console.error('Could not get local IP:', err);
-    }
-  };
-
-  const discoverDevices = async () => {
+  const discoverDevices = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch('/api/dlnas');
@@ -45,11 +14,15 @@ function CastModal({ isOpen, onClose, onConnect, currentVideo }) {
         const data = await response.json();
         setDevices(data.devices || []);
       }
-    } catch (err) {
-      console.log('DLNA discovery not available');
-    }
+    } catch { /* ignore */ }
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && mode === 'discover') {
+      discoverDevices();
+    }
+  }, [isOpen, mode, discoverDevices]);
 
   const handleManualConnect = () => {
     if (!manualIp.trim()) return;
