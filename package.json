@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.0",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@supabase/supabase-js": "^2.99.3",
     "cors": "^2.8.6",
