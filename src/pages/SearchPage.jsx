@@ -932,6 +932,8 @@ const handleSortChange = (order) => {
     setVideoStats({});
     if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(searchType, searchQuery);
+    } else {
+      loadTrendingForType(searchType);
     }
   };
 
@@ -940,6 +942,8 @@ const handleSortChange = (order) => {
     setVideoStats({});
     if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(searchType, searchQuery);
+    } else {
+      loadTrendingForType(searchType);
     }
   };
 
@@ -948,6 +952,8 @@ const handleSortChange = (order) => {
     setVideoStats({});
     if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(searchType, searchQuery);
+    } else {
+      loadTrendingForType(searchType);
     }
   };
 
