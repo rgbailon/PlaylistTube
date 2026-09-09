@@ -13,12 +13,9 @@ function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState('relevance');
   const [searchType, setSearchType] = useState('video');
-  const [region, setRegion] = useState(() => {
-    const saved = localStorage.getItem('userRegion');
-    return saved || 'auto';
-  });
+  const [region] = useState('auto');
   const [timeFilter, setTimeFilter] = useState('all');
-  const [courseRegion, setCourseRegion] = useState('US');
+  const [courseRegion] = useState('auto');
   const [nextPageToken, setNextPageToken] = useState('');
   const [hasMore, setHasMore] = useState(false);
   const [lastSearchNextPageToken, setLastSearchNextPageToken] = useState('');
@@ -38,8 +35,6 @@ function SearchPage() {
   const explicitSearchRef = useRef(false);
 
   const getDetectedRegion = () => {
-    const saved = localStorage.getItem('userRegion');
-    if (saved) return saved;
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const regionMap = {
@@ -51,13 +46,11 @@ function SearchPage() {
         'Asia/Kolkata': 'IN', 'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG',
         'Australia/Sydney': 'AU', 'Pacific/Auckland': 'NZ',
       };
-      const detectedRegion = regionMap[timezone] || 'US';
-      localStorage.setItem('userRegion', detectedRegion);
-      return detectedRegion;
+      return regionMap[timezone] || 'US';
     } catch { return 'US'; }
   };
 
-  const getRegionCode = () => region === 'auto' ? getDetectedRegion() : region;
+  const getRegionCode = () => getDetectedRegion();
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '';
@@ -170,6 +163,22 @@ function SearchPage() {
     return indianKeywords.some(keyword => text.includes(keyword));
   };
 
+  // English priority for courses: Indian content is NOT filtered, just de-prioritized
+  const sortCoursesByEnglishPriority = (items) => {
+    return [...items].sort((a, b) => {
+      const aIsIndian = isIndianContent(a);
+      const bIsIndian = isIndianContent(b);
+      if (aIsIndian !== bIsIndian) return aIsIndian ? 1 : -1; // English (non-Indian) first
+      // Secondary boost: explicit "english" in title/description ranks even higher within English group
+      const aText = `${a.snippet?.title || ''} ${a.snippet?.description || ''}`.toLowerCase();
+      const bText = `${b.snippet?.title || ''} ${b.snippet?.description || ''}`.toLowerCase();
+      const aHasEnglish = aText.includes('english') ? 1 : 0;
+      const bHasEnglish = bText.includes('english') ? 1 : 0;
+      if (aHasEnglish !== bHasEnglish) return bHasEnglish - aHasEnglish;
+      return 0; // keep original relevance order otherwise
+    });
+  };
+
   const timeFilters = [
     { value: 'all', label: 'All' },
     { value: 'today', label: 'Today' },
@@ -253,7 +262,6 @@ function SearchPage() {
       setSearchType(type || 'video');
       if (filters) {
         setSortOrder(filters.sortOrder || 'relevance');
-        setRegion(filters.region || 'US');
         setTimeFilter(filters.timeFilter || 'all');
       }
       searchTriggeredRef.current = true;
@@ -324,9 +332,6 @@ function SearchPage() {
     
     if (sort && ['relevance', 'date', 'viewCount', 'rating'].includes(sort)) {
       setSortOrder(sort);
-    }
-    if (region) {
-      setRegion(region);
     }
     if (time && ['all', 'today', 'week', 'month'].includes(time)) {
       setTimeFilter(time);
@@ -666,7 +671,7 @@ const loadTrendingCourses = async () => {
       const relevanceLang = 'en';
       const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
       const resp = await fetch(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=course+tutorial+complete+learn+programming&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=course+tutorial+complete+learn+programming&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`
       );
       const data = await resp.json();
 
@@ -680,12 +685,14 @@ const loadTrendingCourses = async () => {
           }
         }
       } else if (data.items) {
-        const filteredItems = data.items.filter(item => item.id.playlistId && !isIndianContent(item));
-        setResults(filteredItems);
+        // No Indian filter for courses — prioritize English instead
+        const validItems = data.items.filter(item => item.id.playlistId);
+        const prioritizedItems = sortCoursesByEnglishPriority(validItems);
+        setResults(prioritizedItems);
         setNextPageToken(data.nextPageToken || '');
         setHasMore(!!data.nextPageToken);
         updateQuota(-1, 'playlists');
-        fetchPlaylistDetails(filteredItems.map(item => item.id.playlistId));
+        fetchPlaylistDetails(prioritizedItems.map(item => item.id.playlistId));
       }
     } catch (err) {
       console.error('Failed to load courses:', err);
@@ -745,7 +752,7 @@ if (!activeQuery.trim()) {
           ? `${encodeURIComponent(activeQuery)}+course+tutorial+complete+playlist`
           : 'course+tutorial+complete+learn+programming';
         const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -766,7 +773,8 @@ if (!activeQuery.trim()) {
         if (filterIndianContent && (activeType === 'video' || activeType === 'live')) {
           filteredItems = data.items.filter(item => item.id.videoId && !isIndianVideo(item));
         } else if (activeType === 'courses') {
-          filteredItems = data.items.filter(item => item.id.playlistId && !isIndianContent(item));
+          // No Indian filter for courses — show all, prioritize English
+          filteredItems = sortCoursesByEnglishPriority(data.items.filter(item => item.id.playlistId));
         } else if (activeType === 'playlist' || activeType === 'shorts_playlist') {
           filteredItems = data.items.filter(item => item.id.playlistId && !isIndianContent(item));
         }
@@ -887,7 +895,7 @@ if (!activeQuery.trim()) {
           ? `${encodeURIComponent(activeQuery)}+course+tutorial+complete+playlist`
           : 'course+tutorial+complete+learn+programming';
         const courseOrder = sortOrder === 'viewCount' ? 'viewCount' : 'relevance';
-        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${region}&pageToken=${nextPageToken}&key=${apiKey}`;
+        url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=24&q=${courseQuery}&type=playlist&order=${courseOrder}&relevanceLanguage=${relevanceLang}&regionCode=${getRegionCode()}&pageToken=${nextPageToken}&key=${apiKey}`;
       }
       
       const resp = await fetch(url);
@@ -896,10 +904,13 @@ if (!activeQuery.trim()) {
       if (data.items) {
         let filteredItems = data.items;
         
-        if (filterIndianContent) {
+        if (activeType === 'courses') {
+          // No Indian filter for courses — prioritize English, show all
+          filteredItems = sortCoursesByEnglishPriority(data.items.filter(item => item.id.playlistId));
+        } else if (filterIndianContent) {
           if (activeType === 'video' || activeType === 'live') {
             filteredItems = data.items.filter(item => item.id.videoId && !isIndianVideo(item));
-          } else if (activeType === 'playlist' || activeType === 'shorts_playlist' || activeType === 'courses') {
+          } else if (activeType === 'playlist' || activeType === 'shorts_playlist') {
             filteredItems = data.items.filter(item => item.id.playlistId && !isIndianContent(item));
           }
         }
@@ -947,8 +958,7 @@ const handleSortChange = (order) => {
     }
   };
 
-  const handleRegionChange = (newRegion) => {
-    setRegion(newRegion);
+  const handleRegionChange = () => {
     setVideoStats({});
     if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(searchType, searchQuery);
@@ -957,8 +967,7 @@ const handleSortChange = (order) => {
     }
   };
 
-  const handleCourseRegionChange = (newRegion) => {
-    setRegion(newRegion);
+  const handleCourseRegionChange = () => {
     setVideoStats({});
     if (explicitSearchRef.current && searchQuery.trim()) {
       searchPlaylists(searchType, searchQuery);
@@ -1289,19 +1298,6 @@ liveViewers: searchType === 'live' && liveDetails[item.id.videoId]?.concurrentVi
                 <option value="playlist" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Playlists</option>
                 <option value="live" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Live</option>
                 <option value="courses" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>Courses</option>
-              </select>
-              <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
-            </div>
-            <div className="relative">
-              <select
-                value={region}
-                onChange={(e) => handleRegionChange(e.target.value)}
-                className="appearance-none bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg px-4 py-2 pr-8 text-xs font-medium cursor-pointer transition-all duration-200"
-                style={{ color: 'var(--text-main)' }}
-              >
-                {regions.map(r => (
-                  <option key={r.code} value={r.code} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>{r.name}</option>
-                ))}
               </select>
               <i className="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style={{ color: 'var(--text-muted)' }}></i>
             </div>

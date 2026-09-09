@@ -26,7 +26,7 @@ function App() {
   const [currentPlaylist, setCurrentPlaylist] = useState([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [playlistHistory, setPlaylistHistory] = useState([]);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('netflix');
   const [apiKeys, setApiKeys] = useState([]);
   const [currentKeyIndex, setCurrentKeyIndex] = useState(0);
   const [quota, setQuota] = useState(0);
@@ -95,7 +95,7 @@ const [dbConnected, setDbConnected] = useState(false);
   };
 
   const loadTheme = () => {
-    const savedTheme = localStorage.getItem('yt_theme') || getCookie('yt_theme') || 'light';
+    const savedTheme = localStorage.getItem('yt_theme') || getCookie('yt_theme') || 'netflix';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
   };

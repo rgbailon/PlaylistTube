@@ -19,16 +19,11 @@ function Header() {
   const [suggestions, setSuggestions] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [searchSortOrder, setSearchSortOrder] = useState('relevance');
-  const [searchRegion, setSearchRegion] = useState(() => {
-    const saved = localStorage.getItem('userRegion');
-    return saved || 'auto';
-  });
+  const [searchRegion] = useState('auto');
   const [searchTimeFilter, setSearchTimeFilter] = useState('all');
   const headerSearchTriggeredRef = useRef(false);
 
   const getDetectedRegion = () => {
-    const saved = localStorage.getItem('userRegion');
-    if (saved) return saved;
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const regionMap = {
@@ -40,9 +35,7 @@ function Header() {
         'Asia/Kolkata': 'IN', 'Asia/Shanghai': 'CN', 'Asia/Singapore': 'SG',
         'Australia/Sydney': 'AU', 'Pacific/Auckland': 'NZ',
       };
-      const region = regionMap[timezone] || 'US';
-      localStorage.setItem('userRegion', region);
-      return region;
+      return regionMap[timezone] || 'US';
     } catch { return 'US'; }
   };
 
@@ -117,7 +110,7 @@ return true;
     setSuggestions([]);
     setSelectedIndex(-1);
     headerSearchTriggeredRef.current = true;
-    const region = searchRegion === 'auto' ? getDetectedRegion() : searchRegion;
+    const region = getDetectedRegion();
     const filters = { sortOrder: searchSortOrder, region, timeFilter: searchTimeFilter };
     if (isActive('/search')) {
       setForceSearch({ query: suggestion, type: searchType, filters });
@@ -150,7 +143,7 @@ return true;
     const input = videoSearchQuery.trim();
     const videoId = extractVideoId(input);
     const playlistId = extractPlaylistId(input);
-    const region = searchRegion === 'auto' ? getDetectedRegion() : searchRegion;
+    const region = getDetectedRegion();
     
     headerSearchTriggeredRef.current = true;
     setSuggestions([]);
@@ -527,31 +520,6 @@ return true;
                   <option value="today" style={{ background: '#1e1e1e', color: '#ffffff' }}>Today</option>
                   <option value="week" style={{ background: '#1e1e1e', color: '#ffffff' }}>This Week</option>
                   <option value="month" style={{ background: '#1e1e1e', color: '#ffffff' }}>This Month</option>
-                </select>
-
-                <select
-                  value={searchRegion}
-                  onChange={(e) => setSearchRegion(e.target.value)}
-                  className="px-1.5 py-1 rounded-md text-xs font-medium appearance-none cursor-pointer text-center"
-                  style={{ 
-                    color: '#ffffff',
-                    background: 'rgba(0, 0, 0, 0.4)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)'
-                  }}
-                >
-                  <option value="auto" style={{ background: '#1e1e1e', color: '#ffffff' }}>Auto</option>
-                  <option value="US" style={{ background: '#1e1e1e', color: '#ffffff' }}>US</option>
-                  <option value="GB" style={{ background: '#1e1e1e', color: '#ffffff' }}>UK</option>
-                  <option value="PH" style={{ background: '#1e1e1e', color: '#ffffff' }}>PH</option>
-                  <option value="IN" style={{ background: '#1e1e1e', color: '#ffffff' }}>IN</option>
-                  <option value="CA" style={{ background: '#1e1e1e', color: '#ffffff' }}>CA</option>
-                  <option value="AU" style={{ background: '#1e1e1e', color: '#ffffff' }}>AU</option>
-                  <option value="DE" style={{ background: '#1e1e1e', color: '#ffffff' }}>DE</option>
-                  <option value="FR" style={{ background: '#1e1e1e', color: '#ffffff' }}>FR</option>
-                  <option value="JP" style={{ background: '#1e1e1e', color: '#ffffff' }}>JP</option>
-                  <option value="KR" style={{ background: '#1e1e1e', color: '#ffffff' }}>KR</option>
-                  <option value="BR" style={{ background: '#1e1e1e', color: '#ffffff' }}>BR</option>
-                  <option value="MX" style={{ background: '#1e1e1e', color: '#ffffff' }}>MX</option>
                 </select>
               </div>
 
