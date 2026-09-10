@@ -222,7 +222,7 @@ return true;
         )}
       </div>
 
-      <form onSubmit={handleVideoSearch} className="header-search-form hidden md:flex items-center gap-2 mx-4 flex-1 max-w-md">
+      <form onSubmit={handleVideoSearch} className="header-search-form hidden md:flex items-center gap-2 mx-4 flex-1 max-w-xl">
         {searchError && (
           <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs whitespace-nowrap">
             {searchError}
@@ -261,7 +261,7 @@ return true;
               }
             }}
             placeholder="Search video or paste URL..."
-            className="w-full rounded-full px-4 py-1.5 text-sm bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
+            className="w-full rounded-full px-5 py-2.5 text-base bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-main)]"
           />
             {searchFocused && videoSearchQuery && suggestions.length > 0 && (
             <div
@@ -418,19 +418,19 @@ return true;
           }}
         >
           <div 
-            className="w-full max-w-2xl rounded-xl overflow-hidden"
+            className="w-full max-w-3xl rounded-2xl overflow-hidden"
             style={{ 
               background: 'var(--bg-card, rgba(30, 30, 30, 0.98))',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px var(--border-color, rgba(255, 255, 255, 0.1))',
               animation: 'scaleIn 150ms ease-out'
             }}
           >
-              <div className="flex flex-col gap-4 p-2 md:p-3">
-              <div className="flex items-center justify-center gap-2">
-                <i className="fas fa-search text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
+              <div className="flex flex-col gap-5 p-5 md:p-6">
+              <div className="flex items-center justify-center gap-3">
+                <i className="fas fa-search text-lg" style={{ color: 'rgba(255,255,255,0.5)' }}></i>
 <input
                   placeholder="Search video or paste URL..."
-                  className="flex-1 bg-transparent border-none outline-none text-sm text-center w-full font-medium"
+                  className="flex-1 bg-transparent border-none outline-none text-base md:text-lg text-center w-full font-medium py-1.5"
                   type="text"
                   value={videoSearchQuery}
                   onChange={(e) => {
@@ -464,7 +464,7 @@ return true;
                 />
                 <button
                   onClick={() => setSearchFocused(false)}
-                  className="px-1.5 py-1 rounded-md text-xs"
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium"
                   style={{ 
                     color: 'rgba(255, 255, 255, 0.5)',
                     background: 'rgba(255, 255, 255, 0.1)'
@@ -474,11 +474,11 @@ return true;
                 </button>
               </div>
               
-              <div className="flex flex-wrap items-center justify-center gap-2 px-1">
+              <div className="flex flex-wrap items-center justify-center gap-3 px-1">
                 <select
                   value={searchType}
                   onChange={(e) => setSearchType(e.target.value)}
-                  className="px-1.5 py-1 rounded-md text-xs font-medium appearance-none cursor-pointer text-center"
+                  className="px-3.5 py-2 rounded-lg text-sm font-medium appearance-none cursor-pointer text-center"
                   style={{ 
                     color: '#ffffff',
                     background: 'rgba(0, 0, 0, 0.4)',
@@ -494,7 +494,7 @@ return true;
                 <select
                   value={searchSortOrder}
                   onChange={(e) => setSearchSortOrder(e.target.value)}
-                  className="px-1.5 py-1 rounded-md text-xs font-medium appearance-none cursor-pointer text-center"
+                  className="px-3.5 py-2 rounded-lg text-sm font-medium appearance-none cursor-pointer text-center"
                   style={{ 
                     color: '#ffffff',
                     background: 'rgba(0, 0, 0, 0.4)',
@@ -509,7 +509,7 @@ return true;
                 <select
                   value={searchTimeFilter}
                   onChange={(e) => setSearchTimeFilter(e.target.value)}
-                  className="px-1.5 py-1 rounded-md text-xs font-medium appearance-none cursor-pointer text-center"
+                  className="px-3.5 py-2 rounded-lg text-sm font-medium appearance-none cursor-pointer text-center"
                   style={{ 
                     color: '#ffffff',
                     background: 'rgba(0, 0, 0, 0.4)',
